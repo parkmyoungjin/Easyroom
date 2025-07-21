@@ -32,10 +32,10 @@ export const reservationService = {
       throw new Error('예약을 찾을 수 없습니다.');
       }
 
-      logger.userAction('Reservation created', true);
+      logger.info('Reservation created successfully');
       return result[0] as Reservation;
     } catch (error) {
-      logger.error('예약 생성 중 오류 발생', error);
+      logger.error('예약 생성 중 오류 발생', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   },
@@ -92,7 +92,7 @@ export const reservationService = {
 
       return publicReservations;
     } catch (error) {
-      logger.error('예약 목록 조회 중 오류 발생', error);
+      logger.error('예약 목록 조회 중 오류 발생', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   },
@@ -128,7 +128,7 @@ export const reservationService = {
 
       return data as Reservation[];
     } catch (error) {
-      logger.error('상세 예약 목록 조회 중 오류 발생', error);
+      logger.error('상세 예약 목록 조회 중 오류 발생', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   },
@@ -152,7 +152,7 @@ export const reservationService = {
 
       return data as Reservation[];
     } catch (error) {
-      logger.error('전체 예약 목록 조회 중 오류 발생', error);
+      logger.error('전체 예약 목록 조회 중 오류 발생', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   },
@@ -197,7 +197,7 @@ export const reservationService = {
       }
 
       logger.debug('예약 수정 성공', { reservationId: id });
-      logger.userAction('Reservation updated', true);
+      logger.info('Reservation updated successfully');
       return reservation as Reservation;
     } catch (error) {
       logger.error('예약 수정 중 오류 발생', {
@@ -251,7 +251,7 @@ export const reservationService = {
       }
 
       logger.debug('예약 취소 성공', { reservationId: id, updatedCount: count });
-      logger.userAction('Reservation cancelled', true);
+      logger.info('Reservation cancelled successfully');
     } catch (error) {
       logger.error('예약 취소 중 오류 발생', {
         reservationId: id,
@@ -274,9 +274,9 @@ export const reservationService = {
         throw new Error('예약 삭제에 실패했습니다.');
       }
 
-      logger.userAction('Reservation deleted', true);
+      logger.info('Reservation deleted successfully');
     } catch (error) {
-      logger.error('예약 삭제 중 오류 발생', error);
+      logger.error('예약 삭제 중 오류 발생', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   },
@@ -303,7 +303,7 @@ export const reservationService = {
 
       return data && data.length > 0;
     } catch (error) {
-      logger.error('예약 충돌 검사 중 오류 발생', error);
+      logger.error('예약 충돌 검사 중 오류 발생', error instanceof Error ? error : new Error(String(error)));
       return false; // 안전하게 충돌 없음으로 처리
     }
   },
@@ -327,7 +327,7 @@ export const reservationService = {
 
       return data as Reservation;
     } catch (error) {
-      logger.error('예약 상세 조회 중 오류 발생', error);
+      logger.error('예약 상세 조회 중 오류 발생', error instanceof Error ? error : new Error(String(error)));
       return null;
     }
   },
@@ -338,7 +338,7 @@ export const reservationService = {
       
       // ✅ API 엔드포인트 호출로 RLS 우회
       const url = `/api/reservations/public?startDate=${startDate}&endDate=${endDate}`;
-      logger.debug('API 호출 URL:', url);
+      logger.debug('API 호출 URL', { url });
       
       const response = await fetch(url, {
         method: 'GET',
@@ -355,7 +355,7 @@ export const reservationService = {
         try {
           errorData = await response.json();
         } catch (parseError) {
-          logger.error('응답 파싱 실패:', parseError);
+          logger.error('응답 파싱 실패', parseError instanceof Error ? parseError : new Error(String(parseError)));
           errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
         }
         
@@ -416,7 +416,7 @@ export const reservationService = {
 
       return data as ReservationWithDetails[];
     } catch (error) {
-      logger.error('내 예약 목록 조회 중 오류 발생', error);
+      logger.error('내 예약 목록 조회 중 오류 발생', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }

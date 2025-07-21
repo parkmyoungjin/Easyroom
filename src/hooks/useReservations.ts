@@ -6,7 +6,7 @@ import { ReservationFormData } from '@/lib/validations/schemas';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from "@/lib/supabase/client";
-import type { Reservation, ReservationInsert, ReservationUpdate, PublicReservation } from "@/types/database";
+import type { ReservationInsert, ReservationUpdate } from "@/types/database";
 import { format } from 'date-fns';
 import { logger } from '@/lib/utils/logger';
 
@@ -18,10 +18,10 @@ export const reservationKeys = {
   list: (filters: Record<string, any>) => [...reservationKeys.lists(), filters] as const,
   details: () => [...reservationKeys.all, 'detail'] as const,
   detail: (id: string) => [...reservationKeys.details(), id] as const,
-  public: (startDate: string, endDate: string) => 
+  public: (startDate: string, endDate: string) =>
     [...reservationKeys.all, 'public', startDate, endDate] as const,
   my: () => [...reservationKeys.all, 'my'] as const,
-  withDetails: (startDate: string, endDate: string) => 
+  withDetails: (startDate: string, endDate: string) =>
     [...reservationKeys.all, 'withDetails', startDate, endDate] as const,
 };
 
@@ -62,7 +62,7 @@ export function useReservationsWithDetails(startDate: string, endDate: string) {
 // Get my reservations
 export function useMyReservations() {
   const { userProfile } = useAuth();
-  
+
   return useQuery({
     queryKey: reservationKeys.my(),
     queryFn: async () => {
@@ -70,7 +70,7 @@ export function useMyReservations() {
         logger.warn('사용자 ID가 없어 내 예약을 조회할 수 없습니다');
         return [];
       }
-      
+
       // ✅ 디버깅: 내 예약 조회 시작
       logger.debug('내 예약 조회 시작', {
         userProfileId: userProfile.id,
@@ -78,7 +78,7 @@ export function useMyReservations() {
         userEmail: userProfile.email,
         userEmployeeId: userProfile.employeeId || ''
       });
-      
+
       // Auth ID로 users 테이블에서 실제 데이터베이스 ID 조회
       const { data: userData, error: userError } = await supabase
         .from('users')
@@ -114,7 +114,7 @@ export function useMyReservations() {
       });
 
       const reservations = await reservationService.getMyReservations(userData.id);
-      
+
       // ✅ 디버깅: 예약 조회 결과
       logger.debug('내 예약 조회 완료', {
         reservationCount: reservations.length,
@@ -165,7 +165,7 @@ export function useCreateReservation() {
       if (!user?.authId) {
         throw new Error('사용자 정보를 찾을 수 없습니다');
       }
-      
+
       // Auth ID로 users 테이블에서 실제 데이터베이스 ID 조회
       const { data: userData, error: userError } = await supabase
         .from('users')
@@ -177,7 +177,7 @@ export function useCreateReservation() {
         logger.error('사용자 정보 조회 실패:', userError);
         throw new Error('사용자 정보를 찾을 수 없습니다.');
       }
-      
+
       // Convert Date objects to ISO strings and add user_id
       const reservationData: ReservationInsert = {
         room_id: data.room_id,
@@ -187,12 +187,12 @@ export function useCreateReservation() {
         start_time: data.start_time.toISOString(),
         end_time: data.end_time.toISOString(),
       };
-      
+
       return reservationService.createReservation(reservationData);
     },
     onSuccess: () => {
       // ????구체?�으�?무효??(?�체가 ?�닌 ?�요??부분만)
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: reservationKeys.all,
         exact: false // 'reservations'�??�작?�는 모든 쿼리 무효??
       });
@@ -226,14 +226,14 @@ export function useUpdateReservation() {
         ...(data.start_time && { start_time: data.start_time.toISOString() }),
         ...(data.end_time && { end_time: data.end_time.toISOString() }),
       };
-      
+
       // ???�전??로깅?�로 변�?(민감???�보 ?�거)
       logger.debug('Updating reservation', { id, hasData: !!updateData });
       return reservationService.updateReservation(id, updateData);
     },
     onSuccess: () => {
       // ????구체?�으�?무효??(?�체가 ?�닌 ?�요??부분만)
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: reservationKeys.all,
         exact: false // 'reservations'�??�작?�는 모든 쿼리 무효??
       });
@@ -249,11 +249,11 @@ export function useCancelReservation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason?: string }) => 
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
       reservationService.cancelReservation(id, reason),
     onSuccess: () => {
       // 캐시 무효화로 최신 데이터 반영
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: reservationKeys.all,
         exact: false // 'reservations'로 시작하는 모든 쿼리 무효화
       });
@@ -278,14 +278,14 @@ export function useReservations(startDate?: string, endDate?: string) {
       try {
         return await reservationService.getReservations(startDate || defaultStartDate, endDate || defaultEndDate);
       } catch (error) {
-        logger.error('?�약 목록 조회 ?�패', error);
+        logger.error('예약 목록 조회 실패', error instanceof Error ? error : new Error(String(error)));
         throw error;
       }
     },
-    staleTime: 1 * 60 * 1000, // 1분간 fresh ?�태 ?��? (?�짜 변�???빠른 반응)
-    gcTime: 5 * 60 * 1000, // 5분간 캐시 ?��?
+    staleTime: 1 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
     enabled: true,
-    refetchOnMount: true, // 마운?????�로???�이??가?�오�?
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
     retry: 3,

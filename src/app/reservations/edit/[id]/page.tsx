@@ -184,7 +184,7 @@ export default function EditReservationPage() {
     const mappingDebugInfo = debugUserIdMapping(userProfile, targetReservation);
 
     // ✅ 사용자 ID 매핑 로깅
-    logger.reservation.userIdMapping({
+    logger.debug('사용자 ID 매핑 상태', {
       authId: userProfile.authId,
       dbId: userProfile.dbId,
       profileId: userProfile.id,
@@ -196,8 +196,9 @@ export default function EditReservationPage() {
     const permissionResult = canEditReservation(targetReservation, userProfile);
     
     // ✅ 권한 검증 로깅
-    logger.reservation.permissionCheck(permissionResult.allowed, {
+    logger.debug('권한 검증 결과', {
       action: 'edit',
+      allowed: permissionResult.allowed,
       reservationId: targetReservation.id,
       reservationUserId: targetReservation.user_id,
       currentUserId: userProfile.id,
@@ -230,7 +231,11 @@ export default function EditReservationPage() {
     }
 
     if (!permissionResult.allowed) {
-      logger.reservation.process('edit', 'permission_denied', targetReservation.id, false, {
+      logger.warn('예약 수정 권한 거부', {
+        action: 'edit',
+        status: 'permission_denied',
+        reservationId: targetReservation.id,
+        success: false,
         reason: permissionResult.reason,
         details: permissionResult.details,
         mappingIssues: mappingDebugInfo.issues
@@ -384,7 +389,7 @@ export default function EditReservationPage() {
         data: updateData
       }, {
         onSuccess: () => {
-          logger.userAction('Reservation updated', true);
+          logger.info('예약 수정 완료', { reservationId: reservation.id, success: true });
           toast({
             title: "예약이 수정되었습니다",
             description: "예약 정보가 성공적으로 업데이트되었습니다."

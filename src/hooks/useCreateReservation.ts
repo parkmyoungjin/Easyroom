@@ -15,12 +15,12 @@ export function useCreateReservation() {
       logger.debug('Creating reservation');
       
       const result = await reservationService.createReservation(data);
-      logger.userAction('Reservation created', true);
+      logger.info('Reservation created successfully');
       return result;
     },
     onSuccess: (data) => {
       // ✅ 성공 로깅은 안전하게
-      logger.userAction('Reservation creation successful');
+      logger.info('Reservation creation successful');
       
       // ✅ 통일된 키 시스템으로 관련 쿼리 무효화
       queryClient.invalidateQueries({ 
