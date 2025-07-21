@@ -1,6 +1,6 @@
 'use client';
 
-import { Lock, LogIn, Mail, UserPlus, Smartphone } from 'lucide-react';
+import { Lock, LogIn, Mail, UserPlus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -19,15 +18,21 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigationController } from '@/hooks/useNavigationController';
+import { EnhancedLoadingState, useEnhancedLoadingState } from '@/components/ui/enhanced-loading-state';
 import { loginSchema, type LoginFormData } from '@/lib/validations/schemas';
+import { handleAuthError } from '@/lib/utils/auth-error-handler';
 import Link from 'next/link';
 
 export function LoginForm() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
+
   const { toast } = useToast();
   const { userProfile, signIn, loading } = useAuth();
+  const { handlePostLoginRedirect, isRedirecting: navIsRedirecting } = useNavigationController();
+  const loadingState = useEnhancedLoadingState();
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -37,15 +42,35 @@ export function LoginForm() {
   // 클라이언트 마운트 확인
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // Check for timeout parameter in URL
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('timeout') === 'true') {
+        toast({
+          title: '세션 만료',
+          description: '인증 세션이 만료되어 로그인 페이지로 이동했습니다. 다시 로그인해주세요.',
+          variant: 'destructive',
+        });
+        
+        // Clean up URL parameter
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete('timeout');
+        window.history.replaceState({}, '', newUrl.toString());
+      }
+    }
+  }, [toast]);
+
+
 
   // 이미 로그인된 사용자는 메인 페이지로 리디렉션 (한 번만)
   useEffect(() => {
-    if (mounted && userProfile && !loading) {
+    if (mounted && userProfile && !loading && !loadingState.isLoading && !navIsRedirecting) {
       console.log('이미 로그인된 사용자, 메인 페이지로 이동:', userProfile.name);
-      window.location.href = '/'; // 메인 페이지로 이동
+      loadingState.setLoading(true);
+      handlePostLoginRedirect();
     }
-  }, [userProfile, loading, mounted]);
+  }, [userProfile, loading, mounted, loadingState, navIsRedirecting, handlePostLoginRedirect]);
 
   // 마운트되지 않았거나 로딩 중일 때
   if (!mounted || loading) {
@@ -59,20 +84,23 @@ export function LoginForm() {
     );
   }
 
-  // 이미 로그인된 사용자
-  if (userProfile) {
+  // 이미 로그인된 사용자 또는 리디렉션 중
+  if (userProfile || loadingState.isLoading || navIsRedirecting) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">메인 페이지로 이동 중...</p>
-        </div>
+        <EnhancedLoadingState
+          isLoading={true}
+          title="페이지 이동 중"
+          description={navIsRedirecting ? '페이지 이동 중...' : '메인 페이지로 이동 중...'}
+          showNetworkStatus={true}
+        />
       </div>
     );
   }
 
   const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
+    loadingState.setLoading(true);
+    setLoginError(null);
 
     try {
       console.log('로그인 시도:', data.email);
@@ -84,34 +112,37 @@ export function LoginForm() {
         description: '환영합니다!',
       });
 
-      console.log('로그인 성공, 메인 페이지로 이동');
-
-      // 로그인 성공 후 강제 페이지 이동
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 100);
+      console.log('로그인 성공, 리디렉션 처리');
+      
+      // 중앙화된 리디렉션 로직 사용
+      await handlePostLoginRedirect();
 
     } catch (error) {
       console.error('로그인 에러:', error);
 
-      // 이메일 미인증 상태 특별 처리
-      let errorMessage = error instanceof Error ? error.message : '로그인 중 오류가 발생했습니다.';
+      // Use centralized error handler for better error handling
+      const userFriendlyError = handleAuthError(error);
 
-      if (errorMessage.includes('이메일 인증이 완료되지 않았습니다')) {
-        toast({
-          title: '이메일 인증 필요',
-          description: '회원가입 시 발송된 이메일을 확인하여 인증을 완료해주세요.',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: '로그인 실패',
-          description: errorMessage,
-          variant: 'destructive',
-        });
+      // Set error state for enhanced loading component
+      setLoginError(userFriendlyError.message);
+      loadingState.setError(userFriendlyError.message);
+
+      // Show user-friendly error message
+      toast({
+        title: userFriendlyError.title,
+        description: userFriendlyError.message,
+        variant: userFriendlyError.severity === 'error' ? 'destructive' : 'default',
+      });
+
+      // Handle timeout errors specifically
+      if (error instanceof Error && error.name === 'AuthTimeoutError') {
+        // Show recovery options for timeout errors
+        const timeoutError = error as any;
+        if (timeoutError.type === 'login_timeout') {
+          // Additional timeout-specific handling could go here
+          console.warn('Login timeout detected, user can retry');
+        }
       }
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -146,7 +177,7 @@ export function LoginForm() {
                           inputMode="email"
                           placeholder="이메일을 입력하세요"
                           className="pl-10"
-                          disabled={isLoading}
+                          disabled={loadingState.isLoading}
                           autoComplete="email"
                           aria-describedby={form.formState.errors.email ? "email-error" : undefined}
                         />
@@ -172,7 +203,7 @@ export function LoginForm() {
                           type="password"
                           placeholder="비밀번호를 입력하세요"
                           className="pl-10"
-                          disabled={isLoading}
+                          disabled={loadingState.isLoading}
                           autoComplete="current-password"
                           aria-describedby={form.formState.errors.password ? "password-error" : undefined}
                         />
@@ -186,10 +217,10 @@ export function LoginForm() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isLoading}
+                disabled={loadingState.isLoading}
                 aria-describedby="login-description"
               >
-                {isLoading ? (
+                {loadingState.isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                     로그인 중...

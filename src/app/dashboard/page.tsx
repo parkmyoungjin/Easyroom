@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import ReservationDashboard from '@/features/reservation/components/ReservationDashboard';
 import MobileHeader from '@/components/ui/mobile-header';
 import AuthPrompt from '@/components/ui/auth-prompt';
-import LoadingSpinner from '@/components/ui/loading-spinner';
+import { EnhancedLoadingState } from '@/components/ui/enhanced-loading-state';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart3 } from 'lucide-react';
 
@@ -27,7 +27,17 @@ export default function DashboardPage() {
 
   // 로딩 중인 경우
   if (loading) {
-    return <LoadingSpinner fullScreen text="대시보드를 불러오고 있습니다..." />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <EnhancedLoadingState
+          isLoading={true}
+          title="대시보드 로딩 중"
+          description="사용자 정보와 대시보드 데이터를 불러오고 있습니다..."
+          showNetworkStatus={true}
+          className="w-full max-w-md"
+        />
+      </div>
+    );
   }
 
   return (

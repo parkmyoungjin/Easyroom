@@ -1,29 +1,83 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthNavigation } from '@/hooks/useAuthNavigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import LoadingSpinner from '@/components/ui/loading-spinner';
+import { EnhancedLoadingState, useEnhancedLoadingState } from '@/components/ui/enhanced-loading-state';
 import { Calendar, Users, Clock, Settings, LogOut, BarChart3, LogIn, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function PageContent() {
   const router = useRouter();
-  const { userProfile, loading, signOut } = useAuth();
+  const { userProfile, loading, authStatus, signOut } = useAuth();
   const { navigateWithAuth, handlePostLogout } = useAuthNavigation();
   const [mounted, setMounted] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const { toast } = useToast();
+  const loadingManager = useEnhancedLoadingState();
+  const initializationRef = useRef(false);
 
+  // Handle component mounting
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // 마운트되지 않았거나 로딩 중일 때
-  if (!mounted || loading) {
-    return <LoadingSpinner fullScreen text="시스템을 준비하고 있습니다..." />;
+  // Enhanced loading state management with better synchronization
+  useEffect(() => {
+    // Don't process until component is mounted
+    if (!mounted) {
+      if (!initializationRef.current) {
+        loadingManager.setLoading(true);
+        initializationRef.current = true;
+      }
+      return;
+    }
+
+    // Handle authentication loading states
+    if (loading) {
+      if (authStatus === 'loading') {
+        loadingManager.setLoading(true);
+      } else if (userProfile === null && authStatus === 'authenticated') {
+        loadingManager.setLoading(true);
+      } else {
+        loadingManager.setLoading(true);
+      }
+      setIsReady(false);
+    } else {
+      // Authentication is complete, clear loading state and mark as ready
+      loadingManager.setLoading(false);
+      setIsReady(true);
+    }
+  }, [mounted, loading, authStatus, userProfile, loadingManager]);
+
+  // Show enhanced loading state when needed
+  if (!mounted || loading || !isReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <EnhancedLoadingState
+          isLoading={true}
+          title="시스템 준비 중"
+          description={
+            !mounted ? '페이지를 준비하고 있습니다...' :
+            authStatus === 'loading' ? '사용자 인증을 확인하고 있습니다...' :
+            userProfile === null && authStatus === 'authenticated' ? '사용자 프로필을 불러오고 있습니다...' :
+            '시스템을 준비하고 있습니다...'
+          }
+          showNetworkStatus={true}
+          onCancel={() => {
+            toast({
+              title: '새로고침',
+              description: '페이지를 새로고침합니다.',
+            });
+            window.location.reload();
+          }}
+          className="w-full max-w-md"
+        />
+      </div>
+    );
   }
 
   const handleLogout = async () => {

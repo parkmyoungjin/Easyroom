@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useNavigationController } from '@/hooks/useNavigationController';
 import { useToast } from '@/hooks/use-toast';
 import { useCallback } from 'react';
 
@@ -9,6 +10,7 @@ export function useAuthNavigation() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { userProfile, isAuthenticated, isLoading } = useAuth();
+  const { handlePostLoginRedirect: navHandlePostLoginRedirect, getRedirectPath } = useNavigationController();
   const { toast } = useToast();
 
   // 인증이 필요한 페이지로 이동
@@ -64,18 +66,14 @@ export function useAuthNavigation() {
     router.push(path);
   }, [router, userProfile, isAuthenticated, isLoading, toast]);
 
-  // 로그인 후 리디렉션 처리
-  const handlePostLoginRedirect = useCallback(() => {
+  // 로그인 후 리디렉션 처리 (중앙화된 네비게이션 컨트롤러 사용)
+  const handlePostLoginRedirect = useCallback(async () => {
     // Client-side only execution to avoid SSR issues
     if (typeof window === 'undefined') return;
     
     const redirectPath = searchParams.get('redirect');
-    if (redirectPath && redirectPath.startsWith('/')) {
-      router.push(redirectPath);
-    } else {
-      router.push('/'); // 메인 페이지로 리디렉션 (dashboard 대신)
-    }
-  }, [router, searchParams]);
+    await navHandlePostLoginRedirect(redirectPath || undefined);
+  }, [navHandlePostLoginRedirect, searchParams]);
 
   // 로그아웃 후 처리
   const handlePostLogout = useCallback((showToast = true) => {

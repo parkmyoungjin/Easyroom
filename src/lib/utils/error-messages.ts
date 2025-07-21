@@ -18,7 +18,17 @@ export type AuthErrorType =
   | 'SESSION_ERROR'
   | 'PROFILE_CREATION_FAILED'
   | 'UNKNOWN_ERROR'
-  | 'WINDOW_CLOSE_FAILED';
+  | 'WINDOW_CLOSE_FAILED'
+  | 'LOGIN_TIMEOUT'
+  | 'REDIRECT_TIMEOUT'
+  | 'AUTH_TIMEOUT'
+  | 'INVALID_CREDENTIALS'
+  | 'ACCOUNT_LOCKED'
+  | 'PASSWORD_WEAK'
+  | 'EMAIL_INVALID'
+  | 'RATE_LIMIT_EXCEEDED'
+  | 'SERVER_ERROR'
+  | 'DATABASE_ERROR';
 
 /**
  * 에러 타입별 사용자 친화적 메시지 매핑
@@ -85,6 +95,76 @@ export const ERROR_MESSAGES: Record<AuthErrorType, ErrorInfo> = {
     message: '자동으로 창을 닫을 수 없습니다. 브라우저 보안 설정으로 인한 제한일 수 있습니다.',
     action: '수동으로 창 닫기',
     severity: 'info'
+  },
+
+  LOGIN_TIMEOUT: {
+    title: '로그인 시간 초과',
+    message: '로그인 처리 시간이 초과되었습니다. 네트워크 연결을 확인하고 다시 시도해주세요.',
+    action: '다시 로그인 시도',
+    severity: 'warning'
+  },
+
+  REDIRECT_TIMEOUT: {
+    title: '페이지 이동 시간 초과',
+    message: '페이지 이동 처리 시간이 초과되었습니다. 새로고침하거나 다시 시도해주세요.',
+    action: '새로고침 후 다시 시도',
+    severity: 'warning'
+  },
+
+  AUTH_TIMEOUT: {
+    title: '인증 확인 시간 초과',
+    message: '인증 상태 확인 시간이 초과되었습니다. 다시 로그인해주세요.',
+    action: '다시 로그인',
+    severity: 'warning'
+  },
+
+  INVALID_CREDENTIALS: {
+    title: '로그인 정보 오류',
+    message: '이메일 또는 비밀번호가 올바르지 않습니다. 다시 확인해주세요.',
+    action: '로그인 정보 재입력',
+    severity: 'error'
+  },
+
+  ACCOUNT_LOCKED: {
+    title: '계정 잠금',
+    message: '보안상의 이유로 계정이 일시적으로 잠겼습니다. 잠시 후 다시 시도하거나 관리자에게 문의하세요.',
+    action: '관리자 문의',
+    severity: 'error'
+  },
+
+  PASSWORD_WEAK: {
+    title: '비밀번호 보안 강도 부족',
+    message: '비밀번호가 보안 요구사항을 충족하지 않습니다. 더 강력한 비밀번호를 설정해주세요.',
+    action: '비밀번호 재설정',
+    severity: 'warning'
+  },
+
+  EMAIL_INVALID: {
+    title: '유효하지 않은 이메일',
+    message: '입력하신 이메일 주소가 유효하지 않습니다. 올바른 이메일 형식으로 입력해주세요.',
+    action: '이메일 주소 확인',
+    severity: 'error'
+  },
+
+  RATE_LIMIT_EXCEEDED: {
+    title: '요청 한도 초과',
+    message: '너무 많은 요청을 보냈습니다. 잠시 후 다시 시도해주세요.',
+    action: '잠시 후 다시 시도',
+    severity: 'warning'
+  },
+
+  SERVER_ERROR: {
+    title: '서버 오류',
+    message: '서버에서 오류가 발생했습니다. 잠시 후 다시 시도하거나 관리자에게 문의하세요.',
+    action: '잠시 후 다시 시도',
+    severity: 'error'
+  },
+
+  DATABASE_ERROR: {
+    title: '데이터베이스 오류',
+    message: '데이터베이스 연결에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
+    action: '잠시 후 다시 시도',
+    severity: 'error'
   }
 };
 
@@ -97,11 +177,48 @@ export function analyzeSupabaseError(error: any): AuthErrorType {
   const errorMessage = error.message?.toLowerCase() || '';
   const errorCode = error.code || error.status;
   
+  // 타임아웃 관련 에러 (우선 처리)
+  if (errorMessage.includes('timeout') || errorCode === 'TIMEOUT') {
+    if (errorMessage.includes('login')) return 'LOGIN_TIMEOUT';
+    if (errorMessage.includes('redirect')) return 'REDIRECT_TIMEOUT';
+    if (errorMessage.includes('auth')) return 'AUTH_TIMEOUT';
+    return 'AUTH_TIMEOUT'; // 기본 타임아웃
+  }
+  
   // 네트워크 관련 에러
   if (errorMessage.includes('network') || 
       errorMessage.includes('fetch') || 
-      errorCode === 'NETWORK_ERROR') {
+      errorMessage.includes('connection') ||
+      errorMessage.includes('offline') ||
+      errorCode === 'NETWORK_ERROR' ||
+      errorCode === 'ECONNREFUSED' ||
+      errorCode === 'ENOTFOUND') {
     return 'NETWORK_ERROR';
+  }
+  
+  // 인증 자격 증명 관련 에러
+  if (errorMessage.includes('invalid login credentials') ||
+      errorMessage.includes('wrong password') ||
+      errorMessage.includes('incorrect password') ||
+      errorMessage.includes('authentication failed') ||
+      errorCode === 'INVALID_CREDENTIALS') {
+    return 'INVALID_CREDENTIALS';
+  }
+  
+  // 계정 잠금 관련 에러
+  if (errorMessage.includes('account locked') ||
+      errorMessage.includes('too many attempts') ||
+      errorMessage.includes('temporarily disabled') ||
+      errorCode === 'ACCOUNT_LOCKED') {
+    return 'ACCOUNT_LOCKED';
+  }
+  
+  // 요청 한도 초과 에러
+  if (errorMessage.includes('rate limit') ||
+      errorMessage.includes('too many requests') ||
+      errorCode === 'RATE_LIMIT_EXCEEDED' ||
+      errorCode === 429) {
+    return 'RATE_LIMIT_EXCEEDED';
   }
   
   // 토큰 관련 에러
@@ -114,16 +231,42 @@ export function analyzeSupabaseError(error: any): AuthErrorType {
     return 'TOKEN_INVALID';
   }
   
-  // 이메일 인증 관련 에러
+  // 이메일 관련 에러
   if (errorMessage.includes('email not confirmed') || 
       errorMessage.includes('email_confirmed_at')) {
     return 'EMAIL_NOT_CONFIRMED';
+  }
+  
+  if (errorMessage.includes('invalid email') ||
+      errorMessage.includes('email format') ||
+      errorMessage.includes('malformed email')) {
+    return 'EMAIL_INVALID';
+  }
+  
+  // 비밀번호 관련 에러
+  if (errorMessage.includes('password') && 
+      (errorMessage.includes('weak') || errorMessage.includes('strength'))) {
+    return 'PASSWORD_WEAK';
   }
   
   // 사용자 관련 에러
   if (errorMessage.includes('user not found') || 
       errorCode === 'USER_NOT_FOUND') {
     return 'USER_NOT_FOUND';
+  }
+  
+  // 서버 관련 에러
+  if (errorCode >= 500 && errorCode < 600) {
+    return 'SERVER_ERROR';
+  }
+  
+  // 데이터베이스 관련 에러
+  if (errorMessage.includes('database') ||
+      errorMessage.includes('connection pool') ||
+      errorMessage.includes('postgres') ||
+      errorCode === 'DATABASE_ERROR' ||
+      errorCode?.toString().startsWith('PGRST')) {
+    return 'DATABASE_ERROR';
   }
   
   // 세션 관련 에러

@@ -17,6 +17,7 @@ export function useAuth() {
   const [initialized, setInitialized] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [authStatus, setAuthStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
+  const [isInitializing, setIsInitializing] = useState(false)
 
   // 📝 user_metadata에서 프로필 생성 (이메일 기반)
   const createUserProfile = useCallback(async (authUser: User): Promise<UserProfile> => {
@@ -76,10 +77,14 @@ export function useAuth() {
 
   // 세션 초기화
   const initializeAuth = useCallback(async () => {
-    if (initialized) return;
+    if (initialized || isInitializing) return;
+    
+    setIsInitializing(true);
     
     try {
       setError(null);
+      setAuthStatus('loading');
+      
       const supabase = createClient();
       const { data: { session }, error } = await supabase.auth.getSession();
       
@@ -92,8 +97,15 @@ export function useAuth() {
       } else {
         const authUser = session?.user ?? null;
         setUser(authUser);
-        setUserProfile(authUser ? await createUserProfile(authUser) : null);
-        setAuthStatus(authUser ? 'authenticated' : 'unauthenticated');
+        
+        if (authUser) {
+          const profile = await createUserProfile(authUser);
+          setUserProfile(profile);
+          setAuthStatus('authenticated');
+        } else {
+          setUserProfile(null);
+          setAuthStatus('unauthenticated');
+        }
       }
     } catch (error) {
       console.error('Auth initialization error:', error);
@@ -104,8 +116,9 @@ export function useAuth() {
     } finally {
       setLoading(false);
       setInitialized(true);
+      setIsInitializing(false);
     }
-  }, [initialized, createUserProfile]);
+  }, [initialized, isInitializing, createUserProfile]);
 
   useEffect(() => {
     initializeAuth();
@@ -116,6 +129,11 @@ export function useAuth() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // 초기화 중이면 상태 변경 무시
+      if (isInitializing) {
+        return;
+      }
+
       const authUser = session?.user ?? null;
       
       // 현재 페이지에서 인증 상태 변경 감지가 허용되는지 확인
@@ -138,9 +156,28 @@ export function useAuth() {
         logAuthNavigationState(currentPath);
       }
       
+      // 로딩 상태 설정 (프로필 생성 중)
+      if (authUser && event !== 'INITIAL_SESSION') {
+        setLoading(true);
+      }
+      
       setUser(authUser);
-      setUserProfile(authUser ? await createUserProfile(authUser) : null);
-      setAuthStatus(authUser ? 'authenticated' : 'unauthenticated');
+      
+      if (authUser) {
+        try {
+          const profile = await createUserProfile(authUser);
+          setUserProfile(profile);
+          setAuthStatus('authenticated');
+        } catch (error) {
+          console.error('Profile creation error during auth state change:', error);
+          setError('프로필 생성 중 오류가 발생했습니다.');
+          setAuthStatus('unauthenticated');
+        }
+      } else {
+        setUserProfile(null);
+        setAuthStatus('unauthenticated');
+      }
+      
       setLoading(false);
       setError(null);
 
@@ -148,26 +185,50 @@ export function useAuth() {
     });
 
     return () => subscription.unsubscribe();
-  }, [createUserProfile, initializeAuth]);
+  }, [createUserProfile, initializeAuth, isInitializing]);
 
   // 로그인 함수 (이메일 기반, 리디렉션 없음)
   const signIn = useCallback(async (email: string, password: string) => {
     const supabase = createClient();
     
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    // Import timeout utilities and error handler
+    const { withTimeout, DEFAULT_TIMEOUT_CONFIG } = await import('@/lib/utils/auth-timeout');
+    const { getAuthErrorHandler } = await import('@/lib/utils/auth-error-handler');
+    
+    const loginOperation = async () => {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-    if (error) {
-      // 이메일 미인증 상태 체크
-      if (error.message.includes('Email not confirmed')) {
-        throw new Error('이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.');
+        if (error) {
+          // Use centralized error handler
+          const errorHandler = getAuthErrorHandler();
+          const authError = errorHandler.handleAuthError(error, { logError: true });
+          
+          // 이메일 미인증 상태 체크
+          if (error.message.includes('Email not confirmed')) {
+            throw new Error('이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.');
+          }
+          throw error;
+        }
+
+        return data;
+      } catch (error) {
+        // Log the error for debugging
+        const errorHandler = getAuthErrorHandler();
+        errorHandler.handleAuthError(error, { logError: true });
+        throw error;
       }
-      throw error;
-    }
+    };
 
-    return data;
+    // Wrap login operation with timeout
+    return withTimeout(
+      loginOperation(),
+      DEFAULT_TIMEOUT_CONFIG.loginTimeout,
+      'login_timeout'
+    );
   }, []);
 
   // 로그아웃 함수 (리디렉션 없음)
@@ -316,6 +377,36 @@ export function useAuth() {
     };
   }, []);
 
+  // 리디렉션 처리 함수들 (레거시 호환성용 - 실제 리디렉션은 NavigationController에서 처리)
+  const handlePostLoginRedirect = useCallback(() => {
+    console.warn('[useAuth] handlePostLoginRedirect is deprecated. Use NavigationController instead.');
+    if (typeof window === 'undefined') return;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectPath = urlParams.get('redirect');
+    
+    if (redirectPath && redirectPath.startsWith('/')) {
+      window.location.href = redirectPath;
+    } else {
+      window.location.href = '/';
+    }
+  }, []);
+
+  const redirectToLogin = useCallback((currentPath?: string) => {
+    if (typeof window === 'undefined') return;
+    
+    const loginUrl = new URL('/login', window.location.origin);
+    if (currentPath && currentPath !== '/login') {
+      loginUrl.searchParams.set('redirect', currentPath);
+    }
+    window.location.href = loginUrl.toString();
+  }, []);
+
+  const handlePostLogout = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    window.location.href = '/';
+  }, []);
+
   // 기존 호환성을 위한 래퍼 함수들 (사번 기반 → 이메일 기반 변환)
   const signInWithEmployeeId = useCallback(async (employeeId: string, password: string) => {
     // 기존 사번 기반 로그인을 이메일 기반으로 변환
@@ -364,5 +455,10 @@ export function useAuth() {
     isAdmin,
     isAuthenticated,
     isLoading,
+    
+    // 리디렉션 함수
+    handlePostLoginRedirect,
+    redirectToLogin,
+    handlePostLogout,
   };
 }
