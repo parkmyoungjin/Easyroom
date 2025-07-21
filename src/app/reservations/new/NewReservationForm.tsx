@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { startOfToday } from 'date-fns';
 import MobileHeader from '@/components/ui/mobile-header';
-import LoadingSpinner from '@/components/ui/loading-spinner';
+import { EnhancedLoadingState } from '@/components/ui/enhanced-loading-state';
 import ErrorMessage from '@/components/ui/error-message';
 import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
@@ -212,7 +212,15 @@ export default function NewReservationForm() {
 
   // 로딩 중일 때 (파라미터 준비 대기)
   if (!isParamsReady) {
-    return <LoadingSpinner fullScreen text="예약 폼을 준비하고 있습니다..." />;
+    return (
+      <EnhancedLoadingState
+        isLoading={true}
+        title="예약 폼을 준비하고 있습니다..."
+        description="잠시만 기다려주세요"
+        showNetworkStatus={true}
+        className="min-h-screen flex items-center justify-center"
+      />
+    );
   }
 
   async function onSubmit(data: NewReservationFormValues) {

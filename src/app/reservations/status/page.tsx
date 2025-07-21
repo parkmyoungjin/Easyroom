@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import ReservationCalendarView from '@/features/reservation/components/ReservationCalendarView';
 import MobileHeader from '@/components/ui/mobile-header';
 import AuthPrompt from '@/components/ui/auth-prompt';
-import LoadingSpinner from '@/components/ui/loading-spinner';
+import { EnhancedLoadingState } from '@/components/ui/enhanced-loading-state';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,7 +38,17 @@ export default function ReservationStatusPage() {
   };
 
   if (loading) {
-    return <LoadingSpinner fullScreen text="예약 현황을 불러오고 있습니다..." />;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <EnhancedLoadingState
+          isLoading={true}
+          title="예약 현황 로딩 중"
+          description="예약 현황을 불러오고 있습니다..."
+          showNetworkStatus={true}
+          showRetryButton={false}
+        />
+      </div>
+    );
   }
 
   return (

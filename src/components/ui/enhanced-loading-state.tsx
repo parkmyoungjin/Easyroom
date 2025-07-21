@@ -8,6 +8,13 @@ import { Progress } from '@/components/ui/progress';
 import { getNetworkStatus } from '@/lib/utils/auth-timeout';
 import { getAuthErrorHandler } from '@/lib/utils/auth-error-handler';
 
+export type LoadingStep = 
+  | 'initializing'
+  | 'authenticating' 
+  | 'loading-profile'
+  | 'redirecting'
+  | 'finalizing';
+
 export interface LoadingStateProps {
   isLoading: boolean;
   error?: string | null;
