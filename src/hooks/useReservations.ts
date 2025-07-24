@@ -223,22 +223,10 @@ export function useCreateReservation() {
   const { userProfile } = useAuth(); // ✅ 'user' 대신 'userProfile'을 직접 사용
 
   return useMutation({
-    mutationFn: async (data: ReservationFormData) => {
+    mutationFn: async (data: ReservationInsert) => {
       // ✅ userProfile에 dbId가 있는지 확인합니다. (useAuth 훅이 dbId를 제공한다고 가정)
-      if (!userProfile?.dbId) {
-        throw new Error('사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
-      }
 
-      const reservationData: ReservationInsert = {
-        room_id: data.room_id,
-        user_id: userProfile.dbId, // ✅ 불필요한 DB 조회 없이 바로 userProfile의 dbId 사용
-        title: data.title,
-        purpose: data.purpose,
-        start_time: data.start_time.toISOString(),
-        end_time: data.end_time.toISOString(),
-      };
-
-      return reservationService.createReservation(reservationData);
+      return reservationService.createReservation(data);
     },
     // ✅✅✅ 핵심 수정 부분: onSuccess 콜백 ✅✅✅
     onSuccess: () => {
