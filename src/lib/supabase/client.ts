@@ -243,7 +243,7 @@ class EnhancedSupabaseClientManager implements SupabaseClientManager {
     try {
       // Simple connectivity test - just check if we can create a query
       // This doesn't actually execute, just validates the client setup
-      const { error } = await client.from('profiles').select('id').limit(1);
+      const { error } = await client.from('users').select('id').limit(1);
       
       // If there's an auth error, that's actually expected for anonymous access
       // We're just testing that the client can communicate with Supabase
