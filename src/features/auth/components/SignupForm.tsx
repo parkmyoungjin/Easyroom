@@ -50,7 +50,6 @@ export function SignupForm() {
       password: '',
       name: '',
       department: '',
-      employeeId: '', // ✅ employeeId 추가
     },
   });
 

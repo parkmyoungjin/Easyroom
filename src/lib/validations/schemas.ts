@@ -179,7 +179,6 @@ export const signupSchema = z.object({
   password: passwordSchema,
   name: z.string().min(1, '이름을 입력해주세요'),
   department: z.string().min(1, '부서를 입력해주세요'),
-  employeeId: z.string().min(1, { message: "사번을 입력해주세요." }), // ✅ 이 라인을 추가하세요
 });
 
 export type SignupFormData = z.infer<typeof signupSchema>;

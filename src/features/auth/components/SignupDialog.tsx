@@ -28,7 +28,6 @@ export function SignupDialog({ onSuccess }: SignupDialogProps) {
       password: '',
       name: '',
       department: '',
-      employeeId: '', // ✅ 1. 사번(employeeId) 기본값 추가
     },
   });
 
@@ -73,7 +72,7 @@ export function SignupDialog({ onSuccess }: SignupDialogProps) {
           <DialogTitle>회원가입</DialogTitle>
           <DialogDescription>
             {/* ✅ 설명 문구 업데이트 */}
-            이메일, 비밀번호, 이름, 부서, 사번을 입력하여 회원가입을 완료해주세요.
+            이메일, 비밀번호, 이름, 부서를 입력하여 회원가입을 완료해주세요.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -128,21 +127,6 @@ export function SignupDialog({ onSuccess }: SignupDialogProps) {
                   <FormLabel>부서</FormLabel>
                   <FormControl>
                     <Input {...field} placeholder="부서를 입력하세요" disabled={isLoading} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* ✅ 3. 사번(employeeId)을 입력받는 폼 필드 추가 */}
-            <FormField
-              control={form.control}
-              name="employeeId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>사번</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="사번을 입력하세요" disabled={isLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
