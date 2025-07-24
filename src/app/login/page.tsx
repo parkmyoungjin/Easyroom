@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react'; // ✅ Suspense를 react에서 import 합니다.
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigationController } from '@/hooks/useNavigationController';
 
@@ -24,33 +24,36 @@ const DynamicLoginForm = dynamic(
   }
 );
 
-export default function LoginPage() {
-  // ✅ 1. 필요한 훅과 상태, 함수를 명확하게 가져옵니다.
+
+// ✅ 실제 로직을 담고 있는 클라이언트 컴포넌트를 분리합니다.
+function LoginContent() {
   const { isAuthenticated, isLoading } = useAuth();
   const { handlePostLoginRedirect } = useNavigationController();
 
-  // ✅ 2. useEffect 로직을 단순화합니다.
-  // 이 효과는 "인증 상태가 변경될 때마다" 실행됩니다.
   useEffect(() => {
-    // 아직 인증 상태를 확인 중이면 아무것도 하지 않습니다.
     if (isLoading()) {
       return;
     }
-
-    // 로딩이 끝났는데, 사용자가 로그인 상태라면?
     if (isAuthenticated()) {
-      // 컨트롤러에게 "로그인 후 리디렉션 처리해줘"라고 요청합니다.
       handlePostLoginRedirect();
     }
   }, [isLoading, isAuthenticated, handlePostLoginRedirect]);
 
-
-  // ✅ 3. 렌더링 조건을 단순화합니다.
-  // 로딩 중이거나, 이미 로그인되어서 리디렉션이 곧 일어날 상태라면 스피너를 보여줍니다.
   if (isLoading() || isAuthenticated()) {
     return <LoadingSpinner />;
   }
   
-  // ✅ 4. 위 모든 조건에 해당하지 않는 경우 (로딩이 끝났고, 비로그인 상태)에만 폼을 보여줍니다.
   return <DynamicLoginForm />;
+}
+
+
+// ✅ 최종적으로 export되는 페이지 컴포넌트입니다.
+export default function LoginPage() {
+  // Suspense로 동적 로직을 담고 있는 컴포넌트를 감싸줍니다.
+  // fallback은 LoginContent가 준비되기 전까지 보여줄 UI입니다.
+  return (
+    <Suspense fallback={<LoadingSpinner />}>
+      <LoginContent />
+    </Suspense>
+  );
 }
