@@ -1,3 +1,5 @@
+// src/app/reservations/my/page.tsx
+
 'use client';
 
 import { useRouter } from 'next/navigation';
@@ -6,16 +8,14 @@ import MobileHeader from '@/components/ui/mobile-header';
 
 export default function MyReservationsPage() {
   const router = useRouter();
-  const handleBack = () => {
-    router.push('/'); // 명시적으로 메인페이지로 이동
-  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MobileHeader title="내 예약" onBack={handleBack} />
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-background">
+      <MobileHeader title="내 예약 관리" />
+      <main className="container mx-auto p-4 py-8">
+        {/* ✅ Props 없이 호출합니다. 이제 이 컴포넌트가 모든 것을 알아서 처리합니다. */}
         <ReservationListView />
-      </div>
+      </main>
     </div>
   );
-} 
+}
