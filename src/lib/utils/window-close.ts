@@ -174,8 +174,12 @@ async function attemptWindowClose(): Promise<WindowCloseResult> {
 
   if (env.browser && env.browser.firefox) {
     try {
-      // Firefox: self.close() 시도
-      (self as any).close();
+      // Firefox: self.close() 시도 (서버 안전한 방식)
+      if (typeof self !== 'undefined') {
+        (self as any).close();
+      } else if (typeof window !== 'undefined') {
+        window.close();
+      }
       
       const closed = await checkWindowClosed();
       if (closed) {

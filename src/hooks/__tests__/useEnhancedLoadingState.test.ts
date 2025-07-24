@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { useEnhancedLoadingState } from '@/components/ui/enhanced-loading-state';
+import { useEnhancedLoadingState } from '../useEnhancedLoadingState';
 
 describe('useEnhancedLoadingState', () => {
   it('should initialize with default state', () => {

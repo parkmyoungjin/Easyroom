@@ -6,80 +6,201 @@ import { RoomFormData } from '@/lib/validations/schemas';
 import { useToast } from '@/hooks/use-toast';
 import { useUIStore } from '@/lib/store/ui';
 import { RoomAmenities } from '@/types/database';
+import { createClient } from '@/lib/supabase/client';
+import { 
+  createQueryKeyFactory, 
+  buildQueryOptions, 
+  createStandardFetch 
+} from '@/lib/utils/query-optimization';
 
-// Query keys
+// Optimized query keys using factory pattern
+const roomKeyFactory = createQueryKeyFactory<{
+  query?: string;
+  minCapacity?: number;
+  roomId?: string;
+  startDate?: string;
+  endDate?: string;
+}>('rooms');
+
 export const roomKeys = {
-  all: ['rooms'] as const,
-  lists: () => [...roomKeys.all, 'list'] as const,
-  list: (filters: Record<string, any>) => [...roomKeys.lists(), filters] as const,
-  details: () => [...roomKeys.all, 'detail'] as const,
-  detail: (id: string) => [...roomKeys.details(), id] as const,
-  active: () => [...roomKeys.all, 'active'] as const,
-  inactive: () => [...roomKeys.all, 'inactive'] as const,
-  search: (query: string) => [...roomKeys.all, 'search', query] as const,
-  capacity: (minCapacity: number) => [...roomKeys.all, 'capacity', minCapacity] as const,
+  ...roomKeyFactory,
+  active: () => roomKeyFactory.custom('active'),
+  inactive: () => roomKeyFactory.custom('inactive'),
+  search: (query: string) => roomKeyFactory.custom('search', query),
+  capacity: (minCapacity: number) => roomKeyFactory.custom('capacity', minCapacity),
   availability: (roomId: string, startDate: string, endDate: string) => 
-    [...roomKeys.all, 'availability', roomId, startDate, endDate] as const,
+    roomKeyFactory.custom('availability', roomId, startDate, endDate),
+  advancedSearch: (params: any) => roomKeyFactory.custom('advancedSearch', params),
 };
 
-// Get all active rooms
+// Get all active rooms - Optimized
 export function useRooms() {
-  return useQuery({
-    queryKey: ["rooms"],
-    queryFn: () => roomService.getActiveRooms(),
-  });
+  return useQuery(buildQueryOptions({
+    queryKey: roomKeys.active(),
+    queryFn: createStandardFetch(
+      () => roomService.getActiveRooms(),
+      {
+        operation: 'fetch active rooms',
+        params: {}
+      }
+    ),
+    dataType: 'static'
+  }));
 }
 
-// Get all rooms including inactive (admin only)
+// Get all rooms including inactive (admin only) - Optimized
 export function useAllRooms() {
-  return useQuery({
-    queryKey: [...roomKeys.all, 'admin'],
-    queryFn: () => roomService.getAllRoomsIncludingInactive(),
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-  });
+  return useQuery(buildQueryOptions({
+    queryKey: roomKeyFactory.custom('admin', 'all'),
+    queryFn: createStandardFetch(
+      () => roomService.getAllRoomsIncludingInactive(),
+      {
+        operation: 'fetch all rooms (admin)',
+        params: {}
+      }
+    ),
+    dataType: 'static',
+    cacheConfig: {
+      customStaleTime: 10 * 60 * 1000,
+      customGcTime: 30 * 60 * 1000
+    }
+  }));
 }
 
-// Get room by ID
+// Get room by ID - Optimized
 export function useRoom(id: string) {
-  return useQuery({
+  return useQuery(buildQueryOptions({
     queryKey: roomKeys.detail(id),
-    queryFn: () => roomService.getRoomById(id),
+    queryFn: createStandardFetch(
+      () => roomService.getRoomById(id),
+      {
+        operation: 'fetch room by ID',
+        params: { id }
+      }
+    ),
     enabled: !!id,
-  });
+    dataType: 'static'
+  }));
 }
 
-// Search rooms
+// Search rooms - Optimized
 export function useSearchRooms(query: string) {
-  return useQuery({
+  return useQuery(buildQueryOptions({
     queryKey: roomKeys.search(query),
-    queryFn: () => roomService.searchRooms(query),
+    queryFn: createStandardFetch(
+      () => roomService.searchRooms(query),
+      {
+        operation: 'search rooms',
+        params: { query }
+      }
+    ),
     enabled: !!query && query.length > 0,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  });
+    dataType: 'static',
+    cacheConfig: {
+      customStaleTime: 5 * 60 * 1000,
+      customGcTime: 10 * 60 * 1000
+    }
+  }));
 }
 
-// Get rooms by capacity
+// Get rooms by capacity - Optimized
 export function useRoomsByCapacity(minCapacity: number) {
-  return useQuery({
+  return useQuery(buildQueryOptions({
     queryKey: roomKeys.capacity(minCapacity),
-    queryFn: () => roomService.getRoomsByCapacity(minCapacity),
+    queryFn: createStandardFetch(
+      () => roomService.getRoomsByCapacity(minCapacity),
+      {
+        operation: 'fetch rooms by capacity',
+        params: { minCapacity }
+      }
+    ),
     enabled: minCapacity > 0,
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
-  });
+    dataType: 'static',
+    cacheConfig: {
+      customStaleTime: 10 * 60 * 1000,
+      customGcTime: 30 * 60 * 1000
+    }
+  }));
 }
 
-// Get room availability
+// Get room availability - Optimized with RPC function
 export function useRoomAvailability(roomId: string, startDate: string, endDate: string) {
-  return useQuery({
+  return useQuery(buildQueryOptions({
     queryKey: roomKeys.availability(roomId, startDate, endDate),
-    queryFn: () => roomService.getRoomAvailability(roomId, startDate, endDate),
+    queryFn: createStandardFetch(
+      async () => {
+        // Use optimized RPC function for detailed availability check
+        const supabase = await createClient();
+        const { data, error } = await supabase
+          .rpc('get_room_availability_detailed', {
+            room_id: roomId,
+            start_time: new Date(startDate).toISOString(),
+            end_time: new Date(endDate).toISOString()
+          });
+
+        if (error) {
+          // Fallback to original service method
+          return await roomService.getRoomAvailability(roomId, startDate, endDate);
+        }
+
+        return data;
+      },
+      {
+        operation: 'check room availability',
+        params: { roomId, startDate, endDate }
+      }
+    ),
     enabled: !!roomId && !!startDate && !!endDate,
-    staleTime: 1 * 60 * 1000, // 1 minute
-    gcTime: 5 * 60 * 1000, // 5 minutes
-  });
+    dataType: 'real-time',
+    cacheConfig: {
+      customStaleTime: 1 * 60 * 1000, // 1 minute
+      customGcTime: 5 * 60 * 1000 // 5 minutes
+    }
+  }));
+}
+
+// Advanced room search with RPC function
+export function useAdvancedRoomSearch(params: {
+  query?: string;
+  minCapacity?: number;
+  requiredAmenities?: string[];
+  availableFrom?: string;
+  availableTo?: string;
+}) {
+  const { query = '', minCapacity = 0, requiredAmenities = [], availableFrom, availableTo } = params;
+  
+  return useQuery(buildQueryOptions({
+    queryKey: roomKeys.advancedSearch(params),
+    queryFn: createStandardFetch(
+      async () => {
+        const supabase = await createClient();
+        const { data, error } = await supabase
+          .rpc('search_rooms_advanced', {
+            search_query: query,
+            min_capacity: minCapacity,
+            required_amenities: requiredAmenities,
+            available_from: availableFrom ? new Date(availableFrom).toISOString() : null,
+            available_to: availableTo ? new Date(availableTo).toISOString() : null
+          });
+
+        if (error) {
+          throw new Error(`Advanced room search failed: ${error.message}`);
+        }
+
+        return data;
+      },
+      {
+        operation: 'advanced room search',
+        params
+      }
+    ),
+    enabled: !!(query || minCapacity > 0 || requiredAmenities.length > 0 || (availableFrom && availableTo)),
+    dataType: 'dynamic',
+    cacheConfig: {
+      customStaleTime: 2 * 60 * 1000, // 2 minutes
+      customGcTime: 10 * 60 * 1000 // 10 minutes
+    }
+  }));
 }
 
 // Create room mutation (admin only)

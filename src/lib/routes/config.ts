@@ -8,9 +8,9 @@ export const routeConfigs: RouteConfig[] = [
   // Public routes - no authentication required
   {
     path: '/',
-    accessLevel: 'public',
+    accessLevel: 'semi-public',
     requiresAuth: false,
-    description: 'Main landing page'
+    description: 'Main landing page, acts as hub for logged-in users'
   },
   {
     path: '/login',

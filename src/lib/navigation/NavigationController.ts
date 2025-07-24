@@ -69,7 +69,7 @@ class NavigationControllerImpl implements NavigationController {
       case 'admin':
         return '/admin';
       case 'employee':
-        return '/dashboard';
+        return '/';
       default:
         return '/';
     }

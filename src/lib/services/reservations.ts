@@ -1,8 +1,9 @@
 'use client';
 
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 import { logger } from '@/lib/utils/logger';
 import { normalizeDateForQuery } from '@/lib/utils/date';
+import { UserIdGuards } from '@/lib/security/user-id-guards';
 import type { 
   Reservation, 
   ReservationInsert, 
@@ -14,9 +15,19 @@ import type {
 export const reservationService = {
   async createReservation(data: ReservationInsert): Promise<Reservation> {
     try {
+      // Validate and sanitize reservation data with strict user ID validation
+      const validatedData = await UserIdGuards.validateReservationData(data);
+      
+      logger.debug('Creating reservation with validated data', {
+        originalUserId: data.user_id,
+        validatedUserId: validatedData.user_id,
+        title: validatedData.title
+      });
+
+      const supabase = await createClient();
       const { data: result, error } = await supabase
         .from('reservations')
-        .insert(data)
+        .insert(validatedData)
         .select(`
           *,
           room:rooms!inner(*)
@@ -29,10 +40,13 @@ export const reservationService = {
 
       // 첫 번째 결과 반환 (ID로 조회했으므로 하나만 있어야 함)
       if (!result || result.length === 0) {
-      throw new Error('예약을 찾을 수 없습니다.');
+        throw new Error('예약을 찾을 수 없습니다.');
       }
 
-      logger.info('Reservation created successfully');
+      logger.info('Reservation created successfully with validated user_id', {
+        reservationId: result[0].id,
+        userId: validatedData.user_id
+      });
       return result[0] as Reservation;
     } catch (error) {
       logger.error('예약 생성 중 오류 발생', error instanceof Error ? error : new Error(String(error)));
@@ -42,6 +56,7 @@ export const reservationService = {
 
   async getReservations(startDate?: string, endDate?: string): Promise<PublicReservation[]> {
     try {
+      const supabase = await createClient();
       let query = supabase
         .from('reservations')
         .select(`
@@ -100,6 +115,7 @@ export const reservationService = {
   // ✅ 추가: 상세 정보가 포함된 예약 목록 (관리자용)
   async getReservationsWithDetails(startDate?: string, endDate?: string): Promise<Reservation[]> {
     try {
+      const supabase = await createClient();
       let query = supabase
         .from('reservations')
         .select(`
@@ -136,6 +152,7 @@ export const reservationService = {
   // ✅ 추가: 모든 예약 조회 (관리자용)
   async getAllReservations(): Promise<Reservation[]> {
     try {
+      const supabase = await createClient();
       const { data, error } = await supabase
         .from('reservations')
         .select(`
@@ -161,9 +178,19 @@ export const reservationService = {
     try {
       logger.debug('예약 수정 API 호출 시작', { reservationId: id, updateData: data });
 
+      // Validate and sanitize update data with strict user ID validation
+      const validatedData = await UserIdGuards.validateReservationUpdateData(data);
+      
+      logger.debug('Updating reservation with validated data', {
+        reservationId: id,
+        originalData: data,
+        validatedData
+      });
+
+      const supabase = await createClient();
       const { data: reservation, error } = await supabase
         .from('reservations')
-        .update(data)
+        .update(validatedData)
         .eq('id', id)
         .select(`
           *,
@@ -213,6 +240,7 @@ export const reservationService = {
     try {
       logger.debug('예약 취소 시작', { reservationId: id, reason });
 
+      const supabase = await createClient();
       const { error, count } = await supabase
         .from('reservations')
         .update({ 
@@ -264,6 +292,7 @@ export const reservationService = {
 
   async deleteReservation(id: string): Promise<void> {
     try {
+      const supabase = await createClient();
       const { error } = await supabase
         .from('reservations')
         .delete()
@@ -283,6 +312,7 @@ export const reservationService = {
 
   async checkConflict(roomId: string, startTime: string, endTime: string, excludeId?: string): Promise<boolean> {
     try {
+      const supabase = await createClient();
       let query = supabase
         .from('reservations')
         .select('id')
@@ -310,6 +340,7 @@ export const reservationService = {
 
   async getReservationById(id: string): Promise<Reservation | null> {
     try {
+      const supabase = await createClient();
       const { data, error } = await supabase
         .from('reservations')
         .select(`
@@ -332,13 +363,17 @@ export const reservationService = {
     }
   },
 
-  async getPublicReservations(startDate: string, endDate: string): Promise<PublicReservation[]> {
+  async getPublicReservations(startDate: string, endDate: string, isAuthenticated?: boolean): Promise<PublicReservation[]> {
     try {
-      logger.debug('공개 예약 조회 시작', { startDate, endDate });
+      logger.debug('공개 예약 조회 시작', { startDate, endDate, isAuthenticated });
       
-      // ✅ API 엔드포인트 호출로 RLS 우회
-      const url = `/api/reservations/public?startDate=${startDate}&endDate=${endDate}`;
-      logger.debug('API 호출 URL', { url });
+      // 보안 강화: 인증 상태에 따라 적절한 엔드포인트 선택
+      const endpoint = isAuthenticated 
+        ? '/api/reservations/public-authenticated'
+        : '/api/reservations/public-anonymous';
+      
+      const url = `${endpoint}?startDate=${startDate}&endDate=${endDate}`;
+      logger.debug('보안 API 호출 URL', { url, endpoint });
       
       const response = await fetch(url, {
         method: 'GET',
@@ -346,9 +381,14 @@ export const reservationService = {
           'Content-Type': 'application/json',
         },
         cache: 'no-store', // 캐시 비활성화로 최신 데이터 보장
+        credentials: isAuthenticated ? 'include' : 'omit', // 인증 상태에 따른 쿠키 처리
       });
       
-      logger.debug('API 응답 상태:', { status: response.status, statusText: response.statusText });
+      logger.debug('보안 API 응답 상태:', { 
+        status: response.status, 
+        statusText: response.statusText,
+        endpoint 
+      });
       
       if (!response.ok) {
         let errorData;
@@ -362,7 +402,8 @@ export const reservationService = {
         logger.error('공개 예약 목록 조회 실패', {
           status: response.status,
           statusText: response.statusText,
-          errorData
+          errorData,
+          endpoint
         });
         
         throw new Error(errorData.error || `서버 오류 (${response.status}): 예약 현황을 불러오는데 실패했습니다.`);
@@ -372,7 +413,9 @@ export const reservationService = {
       logger.debug('조회된 공개 예약 응답:', {
         hasData: !!responseData.data,
         count: responseData.data?.length || 0,
-        message: responseData.message
+        message: responseData.message,
+        authenticated: responseData.authenticated,
+        endpoint
       });
 
       return responseData.data || [];
@@ -380,7 +423,8 @@ export const reservationService = {
       logger.error('공개 예약 목록 조회 중 오류 발생', {
         error: error instanceof Error ? error.message : 'Unknown error',
         startDate,
-        endDate
+        endDate,
+        isAuthenticated
       });
       
       // 사용자에게 더 친화적인 오류 메시지 제공
@@ -400,6 +444,7 @@ export const reservationService = {
     }
 
     try {
+      const supabase = await createClient();
       const { data, error } = await supabase
         .from('reservations')
         .select(`

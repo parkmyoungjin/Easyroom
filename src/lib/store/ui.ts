@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { createSafeZustandStore } from '@/lib/utils/third-party-wrapper';
 
 interface UIState {
   // Modal states

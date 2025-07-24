@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthNavigation } from '@/hooks/useAuthNavigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EnhancedLoadingState, useEnhancedLoadingState } from '@/components/ui/enhanced-loading-state';
 import { Calendar, Users, Clock, Settings, LogOut, BarChart3, LogIn, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -17,68 +16,86 @@ export default function PageContent() {
   const [mounted, setMounted] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const { toast } = useToast();
-  const loadingManager = useEnhancedLoadingState();
-  const initializationRef = useRef(false);
 
   // Handle component mounting
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Enhanced loading state management with better synchronization
+  // Enhanced loading state management
   useEffect(() => {
-    // Don't process until component is mounted
     if (!mounted) {
-      if (!initializationRef.current) {
-        loadingManager.setLoading(true);
-        initializationRef.current = true;
-      }
       return;
     }
 
-    // Handle authentication loading states
-    if (loading) {
-      if (authStatus === 'loading') {
-        loadingManager.setLoading(true);
-      } else if (userProfile === null && authStatus === 'authenticated') {
-        loadingManager.setLoading(true);
-      } else {
-        loadingManager.setLoading(true);
-      }
+    const isLoadingInProgress = loading || (authStatus === 'authenticated' && userProfile === null);
+
+    if (isLoadingInProgress) {
       setIsReady(false);
+      // Force ready after 5 seconds to prevent infinite loading
+      const forceReadyTimeout = setTimeout(() => {
+        console.log('Force ready timeout - setting ready state');
+        setIsReady(true);
+      }, 5000);
+      
+      return () => {
+        clearTimeout(forceReadyTimeout);
+      };
     } else {
-      // Authentication is complete, clear loading state and mark as ready
-      loadingManager.setLoading(false);
       setIsReady(true);
     }
-  }, [mounted, loading, authStatus, userProfile, loadingManager]);
+  }, [mounted, loading, authStatus, userProfile]);
 
-  // Show enhanced loading state when needed
-  if (!mounted || loading || !isReady) {
+  // Debug current state
+  console.log('PageContent: Render decision', {
+    mounted,
+    loading,
+    isReady,
+    authStatus,
+    hasUserProfile: !!userProfile,
+    shouldShowLoading: !mounted || loading || !isReady
+  });
+
+  // Show loading state only when actually loading
+  if (!mounted || !isReady) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <EnhancedLoadingState
-          isLoading={true}
-          title="시스템 준비 중"
-          description={
-            !mounted ? '페이지를 준비하고 있습니다...' :
-            authStatus === 'loading' ? '사용자 인증을 확인하고 있습니다...' :
-            userProfile === null && authStatus === 'authenticated' ? '사용자 프로필을 불러오고 있습니다...' :
-            '시스템을 준비하고 있습니다...'
-          }
-          showNetworkStatus={true}
-          onCancel={() => {
-            toast({
-              title: '새로고침',
-              description: '페이지를 새로고침합니다.',
-            });
-            window.location.reload();
-          }}
-          className="w-full max-w-md"
-        />
+        <div className="w-full max-w-md mx-auto">
+          <div className="bg-white rounded-lg p-6 shadow-sm text-center">
+            <div className="flex justify-center mb-4">
+              <div className="p-3 bg-blue-100 rounded-full">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              </div>
+            </div>
+            <h2 className="text-lg font-semibold text-blue-800 mb-2">시스템 준비 중</h2>
+            <p className="text-blue-600 mb-4">
+              {!mounted ? '페이지를 준비하고 있습니다...' :
+               authStatus === 'loading' ? '사용자 인증을 확인하고 있습니다...' :
+               userProfile === null && authStatus === 'authenticated' ? '사용자 프로필을 불러오고 있습니다...' :
+               '시스템을 준비하고 있습니다...'}
+            </p>
+            <div className="text-xs text-gray-500 mb-4">
+              Debug: mounted={mounted.toString()}, loading={loading.toString()}, isReady={isReady.toString()}, authStatus={authStatus}
+            </div>
+            <button
+              onClick={() => {
+                toast({
+                  title: '새로고침',
+                  description: '페이지를 새로고침합니다.',
+                });
+                window.location.reload();
+              }}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+            >
+              새로고침
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
+
+  console.log('PageContent: Showing main content');
 
   const handleLogout = async () => {
     try {
@@ -103,33 +120,63 @@ export default function PageContent() {
   };
 
   const navigateToNewReservation = () => {
-    navigateWithAuth('/reservations/new', {
-      requireAuth: true,
-      showToast: true
-    });
+    console.log('navigateToNewReservation clicked', { userProfile, authStatus });
+    if (!userProfile) {
+      toast({
+        title: '로그인이 필요합니다',
+        description: '예약하려면 로그인해주세요.',
+        variant: 'destructive',
+      });
+      router.push('/login');
+      return;
+    }
+    router.push('/reservations/new');
   };
 
   const navigateToMyReservations = () => {
-    navigateWithAuth('/reservations/my', {
-      requireAuth: true,
-      showToast: true
-    });
+    console.log('navigateToMyReservations clicked', { userProfile, authStatus });
+    if (!userProfile) {
+      toast({
+        title: '로그인이 필요합니다',
+        description: '내 예약을 보려면 로그인해주세요.',
+        variant: 'destructive',
+      });
+      router.push('/login');
+      return;
+    }
+    router.push('/reservations/my');
   };
 
   const navigateToReservationStatus = () => {
+    console.log('navigateToReservationStatus clicked');
     router.push('/reservations/status');
   };
 
   const navigateToDashboard = () => {
+    console.log('navigateToDashboard clicked');
     router.push('/dashboard');
   };
 
   const navigateToAdmin = () => {
-    navigateWithAuth('/admin', {
-      requireAuth: true,
-      requireAdmin: true,
-      showToast: true
-    });
+    console.log('navigateToAdmin clicked', { userProfile, authStatus });
+    if (!userProfile) {
+      toast({
+        title: '로그인이 필요합니다',
+        description: '관리자 기능을 사용하려면 로그인해주세요.',
+        variant: 'destructive',
+      });
+      router.push('/login');
+      return;
+    }
+    if (userProfile.role !== 'admin') {
+      toast({
+        title: '권한이 없습니다',
+        description: '관리자만 접근할 수 있습니다.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    router.push('/admin');
   };
 
   return (

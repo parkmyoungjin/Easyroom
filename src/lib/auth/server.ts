@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { User } from '@supabase/supabase-js'
 import { UserMetadata, UserProfile } from '@/types/auth'
+import { AuthId } from '@/types/enhanced-types'
 import { cache } from 'react'
 
 /**
@@ -37,7 +38,7 @@ export const getUserProfile = cache(async (): Promise<UserProfile | null> => {
   
   return {
     id: user.id,  
-    authId: user.id, // camelCase로 수정
+    authId: user.id as AuthId, // 브랜드 타입으로 명시적 변환
     employeeId: undefined, // 선택사항으로 변경 (기존 호환성)
     email: user.email || '',
     name: metadata.fullName || '',

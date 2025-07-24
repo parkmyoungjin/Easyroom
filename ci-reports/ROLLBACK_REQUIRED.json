@@ -1,0 +1,9 @@
+{
+  "timestamp": "2025-07-22T22:59:38.478Z",
+  "stage": "pre_deployment",
+  "environment": "production",
+  "reason": "Critical issues exceed threshold: 1 > 0",
+  "criticalIssues": 1,
+  "errorIssues": 3,
+  "exitCode": 2
+}

@@ -1,110 +1,85 @@
+// src/hooks/useAuthNavigation.ts
+
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
-import { useNavigationController } from '@/hooks/useNavigationController';
-import { useToast } from '@/hooks/use-toast';
 import { useCallback } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigationController } from '@/hooks/useNavigationController'; // 수정된 컨트롤러를 가져옴
+import { useToast } from '@/hooks/use-toast';
 
 export function useAuthNavigation() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { userProfile, isAuthenticated, isLoading } = useAuth();
-  const { handlePostLoginRedirect: navHandlePostLoginRedirect, getRedirectPath } = useNavigationController();
+  // ✅ 각 훅에서 필요한 함수와 상태만 가져옵니다.
+  const { isAuthenticated, userProfile, isLoading } = useAuth();
+  const { redirectToLogin, handlePostLogout: ctrlPostLogout } = useNavigationController();
   const { toast } = useToast();
 
-  // 인증이 필요한 페이지로 이동
+  /**
+   * 인증/권한을 확인하고 페이지를 이동시키는 함수.
+   * UI 컴포넌트에서 이 함수를 호출하여 안전하게 페이지를 이동시킬 수 있습니다.
+   */
   const navigateWithAuth = useCallback((path: string, options?: {
-    requireAuth?: boolean;
     requireAdmin?: boolean;
-    fallbackPath?: string;
-    showToast?: boolean;
   }) => {
-    const {
-      requireAuth = true,
-      requireAdmin = false,
-      fallbackPath = '/login',
-      showToast = true
-    } = options || {};
+    const { requireAdmin = false } = options || {};
 
-    // 로딩 중이면 대기
+    // 데이터 로딩 중이면 아무것도 하지 않음
     if (isLoading()) {
       return;
     }
 
-    // 인증이 필요한 경우
-    if (requireAuth && !isAuthenticated()) {
-      if (showToast) {
-        toast({
-          title: '로그인이 필요합니다',
-          description: '이 기능을 사용하려면 로그인해주세요.',
-          variant: 'destructive',
-        });
-      }
-      
-      // 원래 경로를 쿼리 파라미터로 저장
-      const loginUrl = new URL(fallbackPath, window.location.origin);
-      loginUrl.searchParams.set('redirect', path);
-      router.push(loginUrl.toString());
-      return;
-    }
-
-    // 관리자 권한이 필요한 경우
-    if (requireAdmin && userProfile?.role !== 'admin') {
-      if (showToast) {
-        toast({
-          title: '권한이 없습니다',
-          description: '관리자만 접근할 수 있는 페이지입니다.',
-          variant: 'destructive',
-        });
-      }
-      router.push('/');
-      return;
-    }
-
-    // 정상적으로 이동
-    router.push(path);
-  }, [router, userProfile, isAuthenticated, isLoading, toast]);
-
-  // 로그인 후 리디렉션 처리 (중앙화된 네비게이션 컨트롤러 사용)
-  const handlePostLoginRedirect = useCallback(async () => {
-    // Client-side only execution to avoid SSR issues
-    if (typeof window === 'undefined') return;
-    
-    const redirectPath = searchParams.get('redirect');
-    await navHandlePostLoginRedirect(redirectPath || undefined);
-  }, [navHandlePostLoginRedirect, searchParams]);
-
-  // 로그아웃 후 처리
-  const handlePostLogout = useCallback((showToast = true) => {
-    if (showToast) {
+    // 1. 로그인이 되어있는가?
+    if (!isAuthenticated()) {
       toast({
-        title: '로그아웃 완료',
-        description: '안전하게 로그아웃되었습니다.',
+        title: '로그인이 필요합니다',
+        description: '이 기능을 사용하려면 로그인해주세요.',
+        variant: 'destructive',
       });
+      // 로그인이 안되어 있으면, 컨트롤러에게 로그인 페이지로 보내달라고 요청
+      redirectToLogin(path); 
+      return;
     }
-    router.push('/');
-  }, [router, toast]);
 
-  // 인증 상태에 따른 조건부 네비게이션
-  const getNavigationOptions = useCallback(() => {
-    return {
-      canAccessReservations: isAuthenticated(),
-      canAccessAdmin: userProfile?.role === 'admin',
-      canAccessMyReservations: isAuthenticated(),
-      showAuthPrompts: !isAuthenticated(),
-      isLoading: isLoading()
-    };
-  }, [userProfile, isAuthenticated, isLoading]);
+    // 2. (로그인 된 사용자 대상) 관리자 권한이 필요한가?
+    if (requireAdmin && userProfile?.role !== 'admin') {
+      toast({
+        title: '권한이 없습니다',
+        description: '관리자만 접근할 수 있는 페이지입니다.',
+        variant: 'destructive',
+      });
+      // 권한이 없으면 메인 페이지로 보냄 (컨트롤러 직접 호출 대신 router.push 사용도 가능)
+      ctrlPostLogout(); // 로그아웃 후 메인으로 가는 로직을 재사용
+      return;
+    }
+
+    // 모든 조건을 통과하면 해당 경로로 이동
+    // 여기서는 컨트롤러를 거치지 않고 직접 router를 사용해도 무방합니다.
+    // (useNavigationController에서 router를 export해서 사용하거나, 여기서 직접 useRouter를 사용)
+    window.location.href = path; // 가장 확실한 이동 방법
+
+  }, [isAuthenticated, userProfile, isLoading, redirectToLogin, ctrlPostLogout, toast]);
+
+
+  /**
+   * 로그아웃을 처리하고 토스트 메시지를 보여준 뒤, 컨트롤러에게 후속 처리를 위임하는 함수.
+   */
+  const handlePostLogout = useCallback(() => {
+    toast({
+      title: '로그아웃 완료',
+      description: '안전하게 로그아웃되었습니다.',
+    });
+    // 컨트롤러의 로그아웃 후처리 함수 호출
+    ctrlPostLogout(); 
+  }, [ctrlPostLogout, toast]);
 
   return {
+    // ✅ UI 컴포넌트에 제공할 최종 함수들
     navigateWithAuth,
-    handlePostLoginRedirect,
     handlePostLogout,
-    getNavigationOptions,
+
+    // ✅ UI 상태 렌더링에 필요한 정보들
     isAuthenticated: isAuthenticated(),
     isAdmin: userProfile?.role === 'admin',
     isLoading: isLoading(),
-    userProfile
+    userProfile,
   };
 }

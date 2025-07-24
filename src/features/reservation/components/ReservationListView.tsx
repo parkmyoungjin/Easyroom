@@ -72,7 +72,7 @@ export function ReservationListView() {
 
   return (
     <div className="space-y-4">
-      {reservations.map((reservation) => (
+      {reservations.map((reservation: ReservationWithDetails) => (
         <Card key={reservation.id}>
           <CardHeader>
             <div className="flex items-start justify-between">

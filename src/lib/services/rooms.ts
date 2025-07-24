@@ -1,6 +1,6 @@
 'use client';
 
-import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/types/database";
 import { RoomInsert, RoomUpdate, RoomAmenities } from '@/types/database';
 import { RoomFormData } from '@/lib/validations/schemas';
@@ -21,6 +21,7 @@ export class RoomService {
   }
 
   async getActiveRooms(): Promise<Room[]> {
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from("rooms")
       .select("*")
@@ -35,6 +36,7 @@ export class RoomService {
   }
 
   async createRoom(data: RoomFormData): Promise<Room> {
+    const supabase = await createClient();
     const roomData: RoomInsert = {
       name: data.name,
       description: data.description,
@@ -57,6 +59,7 @@ export class RoomService {
   }
 
   async updateRoom(id: string, data: Partial<RoomFormData>): Promise<Room> {
+    const supabase = await createClient();
     const updateData: RoomUpdate = {
       ...(data.name && { name: data.name }),
       ...(data.description !== undefined && { description: data.description }),
@@ -80,6 +83,7 @@ export class RoomService {
   }
 
   async deleteRoom(id: string): Promise<void> {
+    const supabase = await createClient();
     const { error } = await supabase
       .from('rooms')
       .delete()
@@ -92,6 +96,7 @@ export class RoomService {
 
   async getAllRoomsIncludingInactive(): Promise<Room[]> {
     // Admin only function - 권한 체크는 호출하는 쪽에서 처리
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('rooms')
       .select('*')
@@ -105,6 +110,7 @@ export class RoomService {
   }
 
   async getRoomById(id: string): Promise<Room | null> {
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('rooms')
       .select('*')
@@ -122,6 +128,7 @@ export class RoomService {
   async deactivateRoom(id: string): Promise<Room> {
     // Admin only function - 권한 체크는 호출하는 쪽에서 처리
     try {
+      const supabase = await createClient();
       const { data, error } = await supabase
         .from('rooms')
         .update({ is_active: false })
@@ -143,6 +150,7 @@ export class RoomService {
   async activateRoom(id: string): Promise<Room> {
     // Admin only function - 권한 체크는 호출하는 쪽에서 처리
     try {
+      const supabase = await createClient();
       const { data, error } = await supabase
         .from('rooms')
         .update({ is_active: true })
@@ -166,6 +174,7 @@ export class RoomService {
     startDate: string,
     endDate: string
   ): Promise<{ available: boolean; conflictingReservations: any[] }> {
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('reservations')
       .select('*')
@@ -192,6 +201,7 @@ export class RoomService {
   async updateRoomAmenities(id: string, amenities: RoomAmenities): Promise<Room> {
     // Admin only function - 권한 체크는 호출하는 쪽에서 처리
     try {
+      const supabase = await createClient();
       const { data, error } = await supabase
         .from('rooms')
         .update({ amenities })
@@ -212,6 +222,7 @@ export class RoomService {
 
   // Search rooms by name or location
   async searchRooms(query: string): Promise<Room[]> {
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('rooms')
       .select('*')
@@ -228,6 +239,7 @@ export class RoomService {
 
   // Get rooms by capacity
   async getRoomsByCapacity(minCapacity: number): Promise<Room[]> {
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('rooms')
       .select('*')
@@ -244,16 +256,24 @@ export class RoomService {
 
   // Realtime subscription for rooms
   subscribeToRooms(callback: (payload: any) => void): () => void {
-    const channel = supabase
-      .channel('rooms')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'rooms' },
-        callback
-      )
-      .subscribe();
+    let channel: any;
+    
+    createClient().then(supabase => {
+      channel = supabase
+        .channel('rooms')
+        .on('postgres_changes', 
+          { event: '*', schema: 'public', table: 'rooms' },
+          callback
+        )
+        .subscribe();
+    }).catch(console.error);
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        createClient().then(supabase => {
+          supabase.removeChannel(channel);
+        }).catch(console.error);
+      }
     };
   }
 }

@@ -40,6 +40,7 @@ import {
 import { logger } from '@/lib/utils/logger';
 import { debugUserIdMapping, debugPermissionCheck } from '@/lib/utils/debug';
 import { canEditReservation, getPermissionErrorMessage } from '@/lib/utils/reservation-permissions';
+import { ReservationErrorHandler } from '@/lib/utils/error-handler';
 
 export default function EditReservationPage() {
   const router = useRouter();
@@ -57,7 +58,8 @@ export default function EditReservationPage() {
   const reservationId = params.id as string;
 
   // 예약 정보 가져오기 - 내 예약 목록에서 찾기
-  const { data: myReservations } = useMyReservations();
+  const { data: myReservationsData } = useMyReservations();
+  const myReservations: ReservationWithDetails[] = myReservationsData || [];
 
   const form = useForm<NewReservationFormValues>({
     resolver: zodResolver(newReservationFormSchema),
@@ -75,11 +77,12 @@ export default function EditReservationPage() {
   const selectedDate = form.watch('date');
   const selectedRoomId = form.watch('roomId');
   
-  // 선택된 날짜의 예약 데이터 가져오기
+  // 선택된 날짜의 예약 데이터 가져오기 - 보안 강화된 버전
   const dateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
   const { data: reservations = [] } = usePublicReservations(
     dateString || '',
-    dateString || ''
+    dateString || '',
+    !!userProfile // 인증된 사용자이므로 true
   );
 
   // 선택된 날짜와 회의실의 예약된 시간 계산 (현재 수정 중인 예약은 제외)
@@ -165,32 +168,33 @@ export default function EditReservationPage() {
 
   // 예약 정보 로딩 및 폼 설정
   useEffect(() => {
-    if (!userProfile || !myReservations || !reservationId) return;
+    const loadReservationData = async () => {
+      if (!userProfile || !myReservations || !reservationId) return;
 
-    // 내 예약 중에서 해당 ID 찾기
-    const targetReservation = myReservations.find(r => r.id === reservationId);
-    
-    if (!targetReservation) {
-      toast({
-        variant: "destructive",
-        title: "예약을 찾을 수 없습니다",
-        description: "해당 예약이 존재하지 않습니다.",
+      // 내 예약 중에서 해당 ID 찾기
+      const targetReservation = myReservations.find((r: ReservationWithDetails) => r.id === reservationId);
+      
+      if (!targetReservation) {
+        toast({
+          variant: "destructive",
+          title: "예약을 찾을 수 없습니다",
+          description: "해당 예약이 존재하지 않습니다.",
+        });
+        router.push('/reservations/my');
+        return;
+      }
+
+      // ✅ 디버깅: 사용자 ID 매핑 상태 확인
+      const mappingDebugInfo = await debugUserIdMapping(userProfile, targetReservation);
+
+      // ✅ 사용자 ID 매핑 로깅
+      logger.debug('사용자 ID 매핑 상태', {
+        authId: userProfile.authId,
+        dbId: userProfile.dbId,
+        profileId: userProfile.id,
+        mappingSuccess: mappingDebugInfo.issues.length === 0,
+        issues: mappingDebugInfo.issues,
       });
-      router.push('/reservations/my');
-      return;
-    }
-
-    // ✅ 디버깅: 사용자 ID 매핑 상태 확인
-    const mappingDebugInfo = debugUserIdMapping(userProfile, targetReservation);
-
-    // ✅ 사용자 ID 매핑 로깅
-    logger.debug('사용자 ID 매핑 상태', {
-      authId: userProfile.authId,
-      dbId: userProfile.dbId,
-      profileId: userProfile.id,
-      mappingSuccess: mappingDebugInfo.issues.length === 0,
-      issues: mappingDebugInfo.issues,
-    });
 
     // ✅ 개선된 권한 검증 로직 사용
     const permissionResult = canEditReservation(targetReservation, userProfile);
@@ -272,7 +276,10 @@ export default function EditReservationPage() {
       roomId: targetReservation.room_id,
     });
 
-    setIsLoading(false);
+      setIsLoading(false);
+    };
+
+    loadReservationData();
   }, [userProfile, myReservations, reservationId, form, toast, router]);
 
   // 로딩 중일 때
@@ -397,35 +404,28 @@ export default function EditReservationPage() {
           router.replace('/reservations/my');
         },
         onError: (error) => {
+          const reservationError = ReservationErrorHandler.handleReservationError(error, {
+            action: 'edit',
+            reservationId: reservation.id,
+            userId: userProfile.id,
+            userDbId: userProfile.dbId,
+            timestamp: new Date().toISOString()
+          });
+
+          const userMessage = ReservationErrorHandler.getUserFriendlyMessage(reservationError, 'edit');
+
           logger.error('예약 수정 실패', {
             reservationId: reservation.id,
-            error: error instanceof Error ? error.message : 'Unknown error',
-            errorType: error?.constructor?.name || 'Unknown',
+            structuredError: reservationError,
+            originalError: error instanceof Error ? error.message : 'Unknown error',
             userId: userProfile.id,
             userDbId: userProfile.dbId
           });
           
-          // ✅ 구체적인 오류 메시지 제공
-          let errorTitle = "예약 수정 실패";
-          let errorDescription = "예약 수정 중 오류가 발생했습니다.";
-          
-          if (error instanceof Error) {
-            if (error.message.includes('permission') || error.message.includes('권한')) {
-              errorTitle = "권한 오류";
-              errorDescription = "예약을 수정할 권한이 없습니다.";
-            } else if (error.message.includes('conflict') || error.message.includes('충돌')) {
-              errorTitle = "시간 충돌";
-              errorDescription = "선택한 시간에 다른 예약이 있습니다.";
-            } else if (error.message.includes('network') || error.message.includes('fetch')) {
-              errorTitle = "네트워크 오류";
-              errorDescription = "네트워크 연결을 확인하고 다시 시도해주세요.";
-            }
-          }
-          
           toast({
             variant: "destructive",
-            title: errorTitle,
-            description: errorDescription,
+            title: userMessage.title,
+            description: userMessage.description,
           });
         }
       });

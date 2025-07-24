@@ -1,9 +1,38 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { checkRouteAccess } from '@/lib/routes/matcher'
+import { AuthContext, UserRole } from '@/types/routes'
+// ✅ getPublicEnvVar 대신 getPublicEnvVarSecure를 import 합니다.
+import { getPublicEnvVarSecure } from '@/lib/security/secure-environment-access' 
+import { securityMonitor } from '@/lib/monitoring/security-monitor'
+import { canServeRequest } from '@/lib/startup/server-startup-validator'
 
 export async function middleware(request: NextRequest) {
-  // API 경로는 건드리지 않음
-  if (request.nextUrl.pathname.startsWith('/api/')) {
+  const { pathname } = new URL(request.url);
+
+  const serverCheck = await canServeRequest(pathname, {
+    caller: `middleware_${pathname}`,
+    strictMode: process.env.NODE_ENV === 'production'
+  });
+
+  if (!serverCheck.canServe) {
+    return new NextResponse(
+      JSON.stringify({
+        error: 'Service Temporarily Unavailable',
+        message: serverCheck.reason || 'Server environment validation failed',
+        code: 'ENV_VALIDATION_FAILED'
+      }),
+      {
+        status: 503,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': '60'
+        }
+      }
+    );
+  }
+
+  if (pathname.startsWith('/api/')) {
     return NextResponse.next()
   }
 
@@ -11,9 +40,13 @@ export async function middleware(request: NextRequest) {
     request,
   });
 
+  // ✅ getPublicEnvVar를 getPublicEnvVarSecure로 변경하고 3개의 인자를 전달합니다.
+  const supabaseUrl = await getPublicEnvVarSecure('NEXT_PUBLIC_SUPABASE_URL', 'middleware', pathname);
+  const supabaseAnonKey = await getPublicEnvVarSecure('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'middleware', pathname);
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -32,49 +65,63 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // 사용자 세션 새로고침
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // 현재 경로
-  const currentPath = request.nextUrl.pathname;
+  let userRole: UserRole | undefined;
+  if (user?.user_metadata?.role) {
+    userRole = user.user_metadata.role === 'admin' ? 'admin' : 'user';
+  }
 
-  // 간단한 인증 체크만 수행
-  // 로그인이 필요한 경로들
-  const protectedPaths = ['/admin', '/reservations/new', '/reservations/my'];
-  const isProtectedPath = protectedPaths.some(path => currentPath.startsWith(path));
+  const authContext: AuthContext = {
+    isAuthenticated: !!user,
+    userRole,
+    userId: user?.id,
+  };
 
-  // 인증이 필요한 경로인데 로그인하지 않은 경우
-  if (isProtectedPath && !user) {
-    const redirectUrl = new URL('/login', request.url);
-    redirectUrl.searchParams.set('redirect', currentPath);
+  const accessResult = checkRouteAccess(pathname, authContext);
+
+  if (!accessResult.allowed && accessResult.redirectTo) {
+    securityMonitor.recordEvent({
+      type: 'suspicious_access',
+      severity: 'medium',
+      userId: user?.id,
+      endpoint: pathname,
+      userAgent: request.headers.get('user-agent') || 'unknown',
+      ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+      details: {
+        attemptedPath: pathname,
+        redirectTo: accessResult.redirectTo,
+        userRole: userRole || 'none',
+        isAuthenticated: !!user
+      }
+    });
+
+    const redirectUrl = new URL(accessResult.redirectTo, request.url);
     return NextResponse.redirect(redirectUrl);
   }
 
-  // 이미 로그인한 사용자가 로그인/회원가입 페이지에 접근하는 경우
-  if (user && isAuthPath(currentPath)) {
-    const redirectUrl = new URL('/', request.url); // 메인 페이지로 리디렉션
-    return NextResponse.redirect(redirectUrl);
+  if (authContext.isAuthenticated && (pathname.startsWith('/admin') || pathname.startsWith('/dashboard'))) {
+    securityMonitor.recordEvent({
+      type: 'authenticated_api_access',
+      severity: 'low',
+      userId: user?.id,
+      endpoint: pathname,
+      userAgent: request.headers.get('user-agent') || 'unknown',
+      ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+      metadata: {
+        userRole: userRole || 'user',
+        accessGranted: true
+      }
+    });
   }
 
   return supabaseResponse;
 }
 
-/**
- * 인증 관련 페이지인지 확인
- */
-function isAuthPath(path: string): boolean {
-  const authPaths = ['/login', '/signup'];
-  // /auth/callback은 예외 처리 (인증 완료 후 UI 표시를 위해)
-  if (path.startsWith('/auth/callback')) {
-    return false;
-  }
-  return authPaths.some(authPath => path.startsWith(authPath));
-}
-
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|sw.js|icons/|manifest.json|auth/callback|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

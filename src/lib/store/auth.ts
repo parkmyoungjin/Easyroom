@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { UserProfile } from '@/types/auth';
+import { safeBrowserUtils } from '@/lib/utils/third-party-wrapper';
+import { environment } from '@/lib/polyfills/server-isolation';
 
 interface AuthState {
   user: UserProfile | null;
@@ -54,15 +56,26 @@ export const useAuth = create<AuthState>()(
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => {
-        // 서버에서는 빈 storage 반환
-        if (typeof window === 'undefined') {
+        // Use safer environment detection
+        if (environment.isServer) {
           return {
             getItem: () => null,
             setItem: () => {},
             removeItem: () => {},
           };
         }
-        return localStorage;
+        
+        // Use safe browser API access
+        try {
+          return localStorage;
+        } catch (error) {
+          console.warn('localStorage not available:', error);
+          return {
+            getItem: () => null,
+            setItem: () => {},
+            removeItem: () => {},
+          };
+        }
       }),
       partialize: (state) => ({
         user: state.user,

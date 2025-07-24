@@ -29,10 +29,10 @@ export interface UserIdMappingDebugInfo {
 /**
  * 사용자 ID 매핑 상태를 분석하고 디버깅 정보를 출력
  */
-export function debugUserIdMapping(
+export async function debugUserIdMapping(
   userProfile: UserProfile, 
   reservation?: ReservationWithDetails
-): UserIdMappingDebugInfo {
+): Promise<UserIdMappingDebugInfo> {
   const debugInfo: UserIdMappingDebugInfo = {
     userProfile: {
       id: userProfile.id,
@@ -69,7 +69,11 @@ export function debugUserIdMapping(
   }
 
   // 개발 환경에서만 콘솔에 출력
-  if (process.env.NODE_ENV === 'development') {
+  const nodeEnv = await import('@/lib/security/secure-environment-access')
+    .then(({ getPublicEnvVar }) => getPublicEnvVar('NODE_ENV', 'debug-utils'))
+    .catch(() => 'production');
+  
+  if (nodeEnv === 'development') {
     console.group('🔍 사용자 ID 매핑 디버깅');
     console.log('사용자 정보:', debugInfo.userProfile);
     if (debugInfo.reservation) {
@@ -93,7 +97,7 @@ export function debugUserIdMapping(
 /**
  * 권한 검증 과정을 시각화하는 디버깅 함수
  */
-export function debugPermissionCheck(
+export async function debugPermissionCheck(
   action: 'edit' | 'cancel',
   userProfile: UserProfile,
   reservation: ReservationWithDetails,
@@ -122,7 +126,11 @@ export function debugPermissionCheck(
     result,
   };
 
-  if (process.env.NODE_ENV === 'development') {
+  const nodeEnv = await import('@/lib/security/secure-environment-access')
+    .then(({ getPublicEnvVar }) => getPublicEnvVar('NODE_ENV', 'debug-utils'))
+    .catch(() => 'production');
+  
+  if (nodeEnv === 'development') {
     console.group(`🔐 권한 검증 디버깅 - ${action.toUpperCase()}`);
     console.log('사용자:', debugInfo.user);
     console.log('예약:', debugInfo.reservation);
@@ -139,7 +147,7 @@ export function debugPermissionCheck(
 /**
  * API 호출 상태를 추적하는 디버깅 함수
  */
-export function debugApiCall(
+export async function debugApiCall(
   method: string,
   endpoint: string,
   payload?: any,
@@ -159,7 +167,11 @@ export function debugApiCall(
     } : null,
   };
 
-  if (process.env.NODE_ENV === 'development') {
+  const nodeEnv = await import('@/lib/security/secure-environment-access')
+    .then(({ getPublicEnvVar }) => getPublicEnvVar('NODE_ENV', 'debug-utils'))
+    .catch(() => 'production');
+  
+  if (nodeEnv === 'development') {
     console.group(`🌐 API 호출 디버깅 - ${method} ${endpoint}`);
     console.log('시간:', debugInfo.timestamp);
     if (debugInfo.payload) {

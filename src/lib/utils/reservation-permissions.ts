@@ -193,7 +193,8 @@ export async function fixReservationUserId(
   correctDbId: string
 ): Promise<boolean> {
   try {
-    const { supabase } = await import('@/lib/supabase/client');
+    const { createClient } = await import('@/lib/supabase/client');
+    const supabase = await createClient();
     
     const { error } = await supabase
       .from('reservations')

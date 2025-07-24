@@ -282,41 +282,63 @@ export function useEnhancedLoadingState() {
   });
 
   const setLoading = (loading: boolean, progress?: number) => {
-    setState(prev => ({ 
-      ...prev, 
-      isLoading: loading, 
-      error: null, 
-      success: false,
-      progress 
-    }));
+    setState(prev => {
+      // Only update if there's actually a change to prevent unnecessary re-renders
+      if (prev.isLoading === loading && prev.progress === progress && !prev.error && !prev.success) {
+        return prev;
+      }
+      return { 
+        ...prev, 
+        isLoading: loading, 
+        error: null, 
+        success: false,
+        progress 
+      };
+    });
   };
 
   const setError = (error: string | null) => {
-    setState(prev => ({ 
-      ...prev, 
-      isLoading: false, 
-      error, 
-      success: false,
-      progress: undefined 
-    }));
+    setState(prev => {
+      if (prev.error === error && !prev.isLoading && !prev.success) {
+        return prev;
+      }
+      return { 
+        ...prev, 
+        isLoading: false, 
+        error, 
+        success: false,
+        progress: undefined 
+      };
+    });
   };
 
   const setSuccess = (success: boolean = true) => {
-    setState(prev => ({ 
-      ...prev, 
-      isLoading: false, 
-      error: null, 
-      success,
-      progress: success ? 100 : undefined 
-    }));
+    setState(prev => {
+      if (prev.success === success && !prev.isLoading && !prev.error) {
+        return prev;
+      }
+      return { 
+        ...prev, 
+        isLoading: false, 
+        error: null, 
+        success,
+        progress: success ? 100 : undefined 
+      };
+    });
   };
 
   const reset = () => {
-    setState({
-      isLoading: false,
-      error: null,
-      success: false,
-      progress: undefined
+    setState(prev => {
+      // Only reset if there's something to reset
+      if (!prev.isLoading && !prev.error && !prev.success && prev.progress === undefined) {
+        return prev;
+      }
+      return {
+        isLoading: false,
+        error: null,
+        success: false,
+        progress: undefined
+      };
     });
   };
 

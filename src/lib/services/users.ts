@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 import type { User, UserInsert, UserUpdate } from '@/types/database';
 import { LoginFormData } from '@/lib/validations/schemas';
 
@@ -15,6 +15,7 @@ export class UserService {
   }
 
   async login(data: LoginFormData): Promise<User> {
+    const supabase = await createClient();
     const { data: user, error } = await supabase
       .from('users')
       .select()
@@ -29,6 +30,7 @@ export class UserService {
   }
 
   async createUser(data: UserInsert): Promise<User> {
+    const supabase = await createClient();
     const { data: user, error } = await supabase
       .from('users')
       .insert(data)
@@ -43,6 +45,7 @@ export class UserService {
   }
 
   async updateUser(id: string, data: UserUpdate): Promise<User> {
+    const supabase = await createClient();
     const { data: user, error } = await supabase
       .from('users')
       .update(data)
@@ -58,6 +61,7 @@ export class UserService {
   }
 
   async getUsers(): Promise<User[]> {
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -71,6 +75,7 @@ export class UserService {
   }
 
   async getUser(id: string): Promise<User> {
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -85,6 +90,7 @@ export class UserService {
   }
 
   async getUserByEmployeeId(employeeId: string): Promise<User> {
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -99,6 +105,7 @@ export class UserService {
   }
 
   async isAdmin(userId: string): Promise<boolean> {
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from('users')
       .select('role')

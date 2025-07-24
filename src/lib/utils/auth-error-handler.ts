@@ -16,7 +16,27 @@ export interface AuthLogger {
 
 // Default logger implementation
 class DefaultAuthLogger implements AuthLogger {
-  private isDevelopment = process.env.NODE_ENV === 'development';
+  private isDevelopment: boolean = false;
+  
+  constructor() {
+    // ✅ 비동기 초기화 함수를 호출합니다.
+    this.initializeDevelopmentFlag();
+  }
+  
+  private async initializeDevelopmentFlag() {
+    try {
+      const { getPublicEnvVar } = await import('@/lib/security/secure-environment-access');
+      // ✅ try...catch로 감싸서 에러를 처리합니다.
+      try {
+        const nodeEnv = getPublicEnvVar('NODE_ENV', 'auth-error-handler');
+        this.isDevelopment = nodeEnv === 'development';
+      } catch (e) {
+        this.isDevelopment = false; // 에러 발생 시 false로 폴백
+      }
+    } catch {
+      this.isDevelopment = false;
+    }
+  }
   
   debug(message: string, data?: any): void {
     if (this.isDevelopment) {
@@ -72,11 +92,30 @@ export class AuthErrorHandler {
 
   constructor(logger?: AuthLogger) {
     this.logger = logger || new DefaultAuthLogger();
-    this.debugMode = process.env.NODE_ENV === 'development' || 
-                     (typeof window !== 'undefined' && window.localStorage?.getItem('auth-debug') === 'true');
+    this.debugMode = (typeof window !== 'undefined' && window.localStorage?.getItem('auth-debug') === 'true') || false;
+    
+    // Initialize debug mode asynchronously
+    this.initializeDebugMode();
+  }
+  
+  private async initializeDebugMode() {
+    try {
+      const { getPublicEnvVar } = await import('@/lib/security/secure-environment-access');
+      // ✅ try...catch로 감싸서 에러를 처리합니다.
+      try {
+        const nodeEnv = getPublicEnvVar('NODE_ENV', 'auth-error-handler');
+        this.debugMode = nodeEnv === 'development' || 
+                         (typeof window !== 'undefined' && window.localStorage?.getItem('auth-debug') === 'true');
+      } catch (e) {
+        // 에러 발생 시 기존 값 유지 (localStorage 값에 의존)
+      }
+    } catch {
+      // import 실패 시 기존 값 유지
+    }
   }
 
-  static getInstance(logger?: AuthLogger): AuthErrorHandler {
+  // ... 이하 모든 코드는 변경 없이 그대로 유지 ...
+    static getInstance(logger?: AuthLogger): AuthErrorHandler {
     if (!AuthErrorHandler.instance) {
       AuthErrorHandler.instance = new AuthErrorHandler(logger);
     }

@@ -92,7 +92,7 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        const supabase = createClient()
+        const supabase = await createClient()
         
         // URL 해시에서 인증 토큰 처리
         const { data, error } = await supabase.auth.getSession()

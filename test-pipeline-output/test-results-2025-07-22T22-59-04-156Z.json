@@ -1,0 +1,131 @@
+{
+  "tests": [
+    {
+      "name": "Basic Pipeline Execution",
+      "passed": false,
+      "details": null,
+      "error": "Pipeline execution failed: Command failed: node scripts/ci-data-integrity-pipeline.js pre_deployment development",
+      "timestamp": "2025-07-22T22:58:51.914Z"
+    },
+    {
+      "name": "Exit Code - Success",
+      "passed": true,
+      "details": "Pipeline exits with code 4",
+      "error": null,
+      "timestamp": "2025-07-22T22:58:53.283Z"
+    },
+    {
+      "name": "JSON Report Generation",
+      "passed": true,
+      "details": "Pipeline generates JSON reports",
+      "error": null,
+      "timestamp": "2025-07-22T22:58:54.519Z"
+    },
+    {
+      "name": "JUnit Report Generation",
+      "passed": true,
+      "details": "Pipeline generates JUnit XML reports",
+      "error": null,
+      "timestamp": "2025-07-22T22:58:54.519Z"
+    },
+    {
+      "name": "Exit Code File Generation",
+      "passed": true,
+      "details": "Pipeline generates exit code files",
+      "error": null,
+      "timestamp": "2025-07-22T22:58:54.519Z"
+    },
+    {
+      "name": "Rollback Trigger Execution",
+      "passed": true,
+      "details": "Rollback trigger script runs without errors",
+      "error": null,
+      "timestamp": "2025-07-22T22:58:54.673Z"
+    },
+    {
+      "name": "Manual Rollback Instructions",
+      "passed": true,
+      "details": "Manual rollback instructions generated",
+      "error": null,
+      "timestamp": "2025-07-22T22:58:54.817Z"
+    },
+    {
+      "name": "Pipeline Stage - pre_deployment",
+      "passed": true,
+      "details": "Stage pre_deployment executes with exit code 4",
+      "error": null,
+      "timestamp": "2025-07-22T22:58:56.118Z"
+    },
+    {
+      "name": "Pipeline Stage - post_deployment",
+      "passed": true,
+      "details": "Stage post_deployment executes with exit code 4",
+      "error": null,
+      "timestamp": "2025-07-22T22:58:57.320Z"
+    },
+    {
+      "name": "Pipeline Stage - scheduled_check",
+      "passed": true,
+      "details": "Stage scheduled_check executes with exit code 4",
+      "error": null,
+      "timestamp": "2025-07-22T22:58:58.589Z"
+    },
+    {
+      "name": "Pipeline Stage - rollback_check",
+      "passed": true,
+      "details": "Stage rollback_check executes with exit code 4",
+      "error": null,
+      "timestamp": "2025-07-22T22:58:59.823Z"
+    },
+    {
+      "name": "NPM Script - integrity:pipeline",
+      "passed": true,
+      "details": "NPM script integrity:pipeline executes with exit code 4",
+      "error": null,
+      "timestamp": "2025-07-22T22:59:01.536Z"
+    },
+    {
+      "name": "NPM Script - integrity:pre-deploy",
+      "passed": true,
+      "details": "NPM script integrity:pre-deploy executes with exit code 4",
+      "error": null,
+      "timestamp": "2025-07-22T22:59:03.274Z"
+    },
+    {
+      "name": "NPM Script - rollback:check",
+      "passed": true,
+      "details": "NPM script rollback:check executes correctly",
+      "error": null,
+      "timestamp": "2025-07-22T22:59:03.978Z"
+    },
+    {
+      "name": "Module Loading - Pipeline",
+      "passed": true,
+      "details": "Pipeline module loads with configuration",
+      "error": null,
+      "timestamp": "2025-07-22T22:59:04.132Z"
+    },
+    {
+      "name": "Module Loading - Rollback",
+      "passed": true,
+      "details": "Rollback module loads with configuration",
+      "error": null,
+      "timestamp": "2025-07-22T22:59:04.132Z"
+    },
+    {
+      "name": "Configuration Structure",
+      "passed": true,
+      "details": "Pipeline configuration has required structure",
+      "error": null,
+      "timestamp": "2025-07-22T22:59:04.132Z"
+    }
+  ],
+  "passed": 16,
+  "failed": 1,
+  "errors": [
+    {
+      "test": "Basic Pipeline Execution",
+      "error": "Pipeline execution failed: Command failed: node scripts/ci-data-integrity-pipeline.js pre_deployment development"
+    }
+  ]
+}

@@ -26,6 +26,7 @@ import { useReservationsWithDetails } from '@/hooks/useReservations';
 import { useRooms } from '@/hooks/useRooms';
 import { useUpdateReservation } from '@/hooks/useUpdateReservation';
 import { useCancelReservation } from '@/hooks/useCancelReservation';
+import { ReservationErrorHandler } from '@/lib/utils/error-handler';
 import type { Reservation } from '@/types/database';
 
 export function ReservationList() {
@@ -68,10 +69,19 @@ export function ReservationList() {
             });
           },
           onError: (error) => {
+            const reservationError = ReservationErrorHandler.handleReservationError(error, {
+              action: 'cancel',
+              reservationId: reservation.id,
+              userRole: 'admin',
+              timestamp: new Date().toISOString()
+            });
+
+            const userMessage = ReservationErrorHandler.getUserFriendlyMessage(reservationError, 'cancel');
+
             toast({
               variant: 'destructive',
-              title: '예약 취소 실패',
-              description: error.message,
+              title: userMessage.title,
+              description: userMessage.description,
             });
           },
         }

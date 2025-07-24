@@ -35,8 +35,8 @@ export default function ReservationDashboard({ readOnly = false }: ReservationDa
   const startDate = today;
   const endDate = today;
 
-  // 데이터 가져오기
-  const { data: reservations = [], isLoading: reservationsLoading, error: reservationsError } = usePublicReservations(startDate, endDate);
+  // 데이터 가져오기 - 보안 강화된 버전
+  const { data: reservations = [], isLoading: reservationsLoading, error: reservationsError } = usePublicReservations(startDate, endDate, !!user);
   const { data: rooms = [], isLoading: roomsLoading, error: roomsError } = useRooms();
 
   // 실시간 구독

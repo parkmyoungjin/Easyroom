@@ -5,7 +5,7 @@ import PageContent from './page-content';
 export default function HomePage() {
   return (
     <Suspense fallback={
-      <EnhancedLoadingState 
+      <EnhancedLoadingState
         isLoading={true}
         title="시스템을 준비하고 있습니다..."
         description="잠시만 기다려주세요"

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 import { roomKeys } from './useRooms';
 
 import { RoomFormData } from '@/lib/validations/schemas';
@@ -17,6 +17,7 @@ export function useCreateRoom() {
 
   return useMutation({
     mutationFn: async (data: any) => {
+      const supabase = await createClient();
       const { error, data: room } = await supabase
         .from('rooms')
         .insert({

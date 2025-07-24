@@ -2,7 +2,6 @@
 
 import { Lock, LogIn, Mail, UserPlus } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -18,32 +17,26 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigationController } from '@/hooks/useNavigationController';
-import { EnhancedLoadingState, useEnhancedLoadingState } from '@/components/ui/enhanced-loading-state';
+// ✅ useNavigationController는 더 이상 이 컴포넌트에서 필요하지 않습니다.
+// import { useNavigationController } from '@/hooks/useNavigationController';
 import { loginSchema, type LoginFormData } from '@/lib/validations/schemas';
 import { handleAuthError } from '@/lib/utils/auth-error-handler';
 import Link from 'next/link';
 
 export function LoginForm() {
-  const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [loginError, setLoginError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const { toast } = useToast();
-  const { userProfile, signIn, loading } = useAuth();
-  const { handlePostLoginRedirect, isRedirecting: navIsRedirecting } = useNavigationController();
-  const loadingState = useEnhancedLoadingState();
+  // ✅ signIn 함수만 필요합니다. 로그인 상태 확인은 상위 페이지(LoginPage)가 담당합니다.
+  const { signIn } = useAuth(); 
 
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '' },
   });
 
-  // 클라이언트 마운트 확인
+  // ✅ URL의 timeout 파라미터를 확인하는 로직은 유용하므로 유지합니다.
   useEffect(() => {
-    setMounted(true);
-    
-    // Check for timeout parameter in URL
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('timeout') === 'true') {
@@ -53,7 +46,6 @@ export function LoginForm() {
           variant: 'destructive',
         });
         
-        // Clean up URL parameter
         const newUrl = new URL(window.location.href);
         newUrl.searchParams.delete('timeout');
         window.history.replaceState({}, '', newUrl.toString());
@@ -61,88 +53,37 @@ export function LoginForm() {
     }
   }, [toast]);
 
-
-
-  // 이미 로그인된 사용자는 메인 페이지로 리디렉션 (한 번만)
-  useEffect(() => {
-    if (mounted && userProfile && !loading && !loadingState.isLoading && !navIsRedirecting) {
-      console.log('이미 로그인된 사용자, 메인 페이지로 이동:', userProfile.name);
-      loadingState.setLoading(true);
-      handlePostLoginRedirect();
-    }
-  }, [userProfile, loading, mounted, loadingState, navIsRedirecting, handlePostLoginRedirect]);
-
-  // 마운트되지 않았거나 로딩 중일 때
-  if (!mounted || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">로딩 중...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // 이미 로그인된 사용자 또는 리디렉션 중
-  if (userProfile || loadingState.isLoading || navIsRedirecting) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <EnhancedLoadingState
-          isLoading={true}
-          title="페이지 이동 중"
-          description={navIsRedirecting ? '페이지 이동 중...' : '메인 페이지로 이동 중...'}
-          showNetworkStatus={true}
-        />
-      </div>
-    );
-  }
-
+  // ✅ 로그인 시도 로직을 단순화합니다.
   const onSubmit = async (data: LoginFormData) => {
-    loadingState.setLoading(true);
-    setLoginError(null);
+    setIsLoading(true);
 
     try {
-      console.log('로그인 시도:', data.email);
-
+      // 1. 로그인 시도
       await signIn(data.email, data.password);
 
+      // 2. 성공 토스트 메시지 표시
       toast({
         title: '로그인 성공',
-        description: '환영합니다!',
+        description: '환영합니다! 잠시 후 페이지가 이동됩니다.',
       });
 
-      console.log('로그인 성공, 리디렉션 처리');
-      
-      // 중앙화된 리디렉션 로직 사용
-      await handlePostLoginRedirect();
+      // 3. 끝! 리디렉션은 다른 곳에서 처리합니다.
+      // 이 컴포넌트는 로딩 상태를 해제할 필요도 없습니다. 
+      // 페이지가 곧 이동되어 컴포넌트 자체가 사라질 것이기 때문입니다.
 
     } catch (error) {
+      // ✅ 에러 핸들링은 유지합니다.
       console.error('로그인 에러:', error);
-
-      // Use centralized error handler for better error handling
       const userFriendlyError = handleAuthError(error);
 
-      // Set error state for enhanced loading component
-      setLoginError(userFriendlyError.message);
-      loadingState.setError(userFriendlyError.message);
-
-      // Show user-friendly error message
       toast({
         title: userFriendlyError.title,
         description: userFriendlyError.message,
-        variant: userFriendlyError.severity === 'error' ? 'destructive' : 'default',
+        variant: 'destructive',
       });
-
-      // Handle timeout errors specifically
-      if (error instanceof Error && error.name === 'AuthTimeoutError') {
-        // Show recovery options for timeout errors
-        const timeoutError = error as any;
-        if (timeoutError.type === 'login_timeout') {
-          // Additional timeout-specific handling could go here
-          console.warn('Login timeout detected, user can retry');
-        }
-      }
+      
+      // 에러 발생 시 로딩 상태를 풀어주어 다시 시도할 수 있게 합니다.
+      setIsLoading(false);
     }
   };
 
@@ -174,16 +115,14 @@ export function LoginForm() {
                           {...field}
                           id="email"
                           type="email"
-                          inputMode="email"
                           placeholder="이메일을 입력하세요"
                           className="pl-10"
-                          disabled={loadingState.isLoading}
+                          disabled={isLoading}
                           autoComplete="email"
-                          aria-describedby={form.formState.errors.email ? "email-error" : undefined}
                         />
                       </div>
                     </FormControl>
-                    <FormMessage id="email-error" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -203,13 +142,12 @@ export function LoginForm() {
                           type="password"
                           placeholder="비밀번호를 입력하세요"
                           className="pl-10"
-                          disabled={loadingState.isLoading}
+                          disabled={isLoading}
                           autoComplete="current-password"
-                          aria-describedby={form.formState.errors.password ? "password-error" : undefined}
                         />
                       </div>
                     </FormControl>
-                    <FormMessage id="password-error" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -217,10 +155,9 @@ export function LoginForm() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={loadingState.isLoading}
-                aria-describedby="login-description"
+                disabled={isLoading}
               >
-                {loadingState.isLoading ? (
+                {isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                     로그인 중...
@@ -229,10 +166,6 @@ export function LoginForm() {
                   '로그인'
                 )}
               </Button>
-
-              <div id="login-description" className="sr-only">
-                이메일과 비밀번호를 입력하여 회의실 예약 시스템에 로그인합니다
-              </div>
             </form>
           </Form>
 

@@ -1,5 +1,8 @@
 // Database Types for Meeting Room Booking System
 // Generated from Supabase schema
+// Enhanced with branded types for type safety
+
+import type { AuthId, DatabaseUserId } from './enhanced-types';
 
 export type Json =
   | string
@@ -117,9 +120,38 @@ export interface Database {
         Args: {
           start_date: string;
           end_date: string;
+          page_limit?: number;
+          page_offset?: number;
         };
         Returns: PublicReservation[];
-      }
+      };
+      get_public_reservations_paginated: {
+        Args: {
+          start_date: string;
+          end_date: string;
+          page_limit: number;
+          page_offset: number;
+        };
+        Returns: PublicReservationPaginated[];
+      };
+      get_public_reservations_anonymous: {
+        Args: {
+          start_date: string;
+          end_date: string;
+          page_limit?: number;
+          page_offset?: number;
+        };
+        Returns: PublicReservationAnonymous[];
+      };
+      get_public_reservations_anonymous_paginated: {
+        Args: {
+          start_date: string;
+          end_date: string;
+          page_limit: number;
+          page_offset: number;
+        };
+        Returns: PublicReservationAnonymousPaginated[];
+      };
     }
     Enums: {
       user_role: 'employee' | 'admin'
@@ -163,6 +195,39 @@ export type PublicReservation = {
   is_mine: boolean
 }
 
+// Paginated version with metadata
+export type PublicReservationPaginated = PublicReservation & {
+  total_count: number
+  has_more: boolean
+}
+
+// Anonymous public reservation type
+export type PublicReservationAnonymous = {
+  id: string
+  room_id: string
+  title: string
+  start_time: string
+  end_time: string
+  room_name: string
+  is_mine: boolean
+}
+
+// Anonymous paginated version with metadata
+export type PublicReservationAnonymousPaginated = PublicReservationAnonymous & {
+  total_count: number
+  has_more: boolean
+}
+
+// Pagination metadata type
+export type PaginationMetadata = {
+  limit: number
+  offset: number
+  total_count: number
+  has_more: boolean
+  current_page: number
+  total_pages: number
+}
+
 // Enums
 export type UserRole = Database['public']['Enums']['user_role']
 export type ReservationStatus = Database['public']['Enums']['reservation_status']
@@ -181,4 +246,99 @@ export type RoomAmenities = {
   microphone?: boolean
   speakers?: boolean
   [key: string]: boolean | undefined
+}
+
+// ============================================================================
+// ENHANCED TYPES WITH BRANDED TYPE SAFETY
+// ============================================================================
+
+/**
+ * Enhanced User type with branded IDs for type safety
+ */
+export interface EnhancedUser {
+  id: DatabaseUserId
+  auth_id: AuthId
+  employee_id: string
+  name: string
+  email: string
+  department: string
+  role: 'employee' | 'admin'
+  is_active: boolean
+  created_at: Date
+  updated_at: Date
+}
+
+/**
+ * Enhanced Reservation type with branded user_id for type safety
+ */
+export interface EnhancedReservation {
+  id: string
+  room_id: string
+  user_id: DatabaseUserId
+  title: string
+  purpose?: string
+  start_time: Date
+  end_time: Date
+  status: 'confirmed' | 'cancelled'
+  cancellation_reason?: string
+  created_at: Date
+  updated_at: Date
+}
+
+/**
+ * Enhanced PublicReservation with branded types
+ */
+export interface EnhancedPublicReservation {
+  id: string
+  room_id: string
+  user_id: DatabaseUserId
+  title: string
+  purpose: string | null
+  department: string
+  user_name: string
+  start_time: Date
+  end_time: Date
+  is_mine: boolean
+}
+
+/**
+ * Enhanced reservation insert type with branded user_id
+ */
+export interface EnhancedReservationInsert {
+  room_id: string
+  user_id: DatabaseUserId
+  title: string
+  purpose?: string
+  start_time: string
+  end_time: string
+  status?: 'confirmed' | 'cancelled'
+  cancellation_reason?: string
+}
+
+/**
+ * Enhanced reservation update type with branded user_id
+ */
+export interface EnhancedReservationUpdate {
+  room_id?: string
+  user_id?: DatabaseUserId
+  title?: string
+  purpose?: string
+  start_time?: string
+  end_time?: string
+  status?: 'confirmed' | 'cancelled'
+  cancellation_reason?: string
+}
+
+/**
+ * Type conversion utilities for database operations
+ */
+export interface DatabaseTypeConverters {
+  // Convert enhanced types to database-compatible types
+  reservationToInsert: (reservation: EnhancedReservationInsert) => ReservationInsert
+  reservationToUpdate: (reservation: EnhancedReservationUpdate) => ReservationUpdate
+  
+  // Convert database types to enhanced types
+  userFromDatabase: (user: User) => EnhancedUser
+  reservationFromDatabase: (reservation: Reservation) => EnhancedReservation
+  publicReservationFromDatabase: (reservation: PublicReservation) => EnhancedPublicReservation
 }

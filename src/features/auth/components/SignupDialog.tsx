@@ -28,17 +28,19 @@ export function SignupDialog({ onSuccess }: SignupDialogProps) {
       password: '',
       name: '',
       department: '',
+      employeeId: '', // ✅ 1. 사번(employeeId) 기본값 추가
     },
   });
 
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
     try {
+      // ✅ 2. signUp 함수에 5개의 인자를 순서대로 전달
       await signUp(
         data.email,
         data.password,
         data.name,
-        data.department
+        data.department,
       );
       
       toast({
@@ -70,7 +72,8 @@ export function SignupDialog({ onSuccess }: SignupDialogProps) {
         <DialogHeader>
           <DialogTitle>회원가입</DialogTitle>
           <DialogDescription>
-            이메일, 비밀번호, 이름, 부서를 입력하여 회원가입을 완료해주세요.
+            {/* ✅ 설명 문구 업데이트 */}
+            이메일, 비밀번호, 이름, 부서, 사번을 입력하여 회원가입을 완료해주세요.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -130,6 +133,21 @@ export function SignupDialog({ onSuccess }: SignupDialogProps) {
                 </FormItem>
               )}
             />
+
+            {/* ✅ 3. 사번(employeeId)을 입력받는 폼 필드 추가 */}
+            <FormField
+              control={form.control}
+              name="employeeId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>사번</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="사번을 입력하세요" disabled={isLoading} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
@@ -146,4 +164,4 @@ export function SignupDialog({ onSuccess }: SignupDialogProps) {
       </DialogContent>
     </Dialog>
   );
-} 
+}

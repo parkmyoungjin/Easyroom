@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import Providers from './providers';
 import { Toaster } from '@/components/ui/toaster';
+import { ClientPolyfillManager } from '@/lib/polyfills/ClientPolyfillManager';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -48,43 +49,12 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className={`${inter.className} min-h-screen bg-background antialiased`}>
-        <Providers>
-          {children}
-          <Toaster />
-        </Providers>
-        
-        {/* 🔧 Service Worker 등록 스크립트 */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js')
-                    .then(function(registration) {
-                      console.log('Service Worker 등록 성공:', registration.scope);
-                      
-                      // 🔧 백그라운드 동기화 등록
-                      if ('sync' in registration) {
-                        console.log('백그라운드 동기화 지원됨');
-                      }
-                      
-                      // 🔧 Service Worker 메시지 수신
-                      navigator.serviceWorker.addEventListener('message', function(event) {
-                        if (event.data.type === 'QR_REFRESH_REQUEST') {
-                          console.log('QR 갱신 요청 수신');
-                          // QR 갱신 이벤트 발생
-                          window.dispatchEvent(new CustomEvent('qr-refresh'));
-                        }
-                      });
-                    })
-                    .catch(function(error) {
-                      console.log('Service Worker 등록 실패:', error);
-                    });
-                });
-              }
-            `,
-          }}
-        />
+        <ClientPolyfillManager enableServiceWorker={true} enablePWAComponents={true}>
+          <Providers>
+            {children}
+            <Toaster />
+          </Providers>
+        </ClientPolyfillManager>
       </body>
     </html>
   );

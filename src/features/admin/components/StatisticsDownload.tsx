@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import { useReservationStatistics } from '@/hooks/useReservationStatistics';
+import { ReservationErrorHandler } from '@/lib/utils/error-handler';
 
 export function StatisticsDownload() {
   const { toast } = useToast();
@@ -30,10 +31,19 @@ export function StatisticsDownload() {
           });
         },
         onError: (error) => {
+          const reservationError = ReservationErrorHandler.handleReservationError(error, {
+            action: 'download_statistics',
+            startDate: format(startDate, "yyyy-MM-dd"),
+            endDate: format(endDate, "yyyy-MM-dd"),
+            timestamp: new Date().toISOString()
+          });
+
+          const userMessage = ReservationErrorHandler.getUserFriendlyMessage(reservationError, 'download');
+
           toast({
             variant: 'destructive',
-            title: '다운로드 실패',
-            description: error.message,
+            title: userMessage.title,
+            description: userMessage.description,
           });
         },
       }

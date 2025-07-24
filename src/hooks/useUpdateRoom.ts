@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 import { roomKeys } from './useRooms';
 
 interface UpdateRoomData {
@@ -17,6 +17,7 @@ export function useUpdateRoom() {
 
   return useMutation({
     mutationFn: async ({ id, data }: UpdateRoomData) => {
+      const supabase = await createClient();
       const { error, data: room } = await supabase
         .from('rooms')
         .update(data)

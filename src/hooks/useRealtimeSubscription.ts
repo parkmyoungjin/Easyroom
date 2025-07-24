@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
 /**
  * Subscribes to real-time updates for reservations.
@@ -15,43 +15,60 @@ export function useRealtimeSubscription() {
   const reconnectAttemptsRef = useRef(0);
 
   useEffect(() => {
+    let channel: any;
+    let mounted = true;
+
     // Clear existing polling interval
     if (pollingIntervalRef.current) {
       clearInterval(pollingIntervalRef.current);
       pollingIntervalRef.current = null;
     }
 
-    const channel = supabase
-      .channel("reservations_realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "reservations" },
-        (payload) => {
-          queryClient.invalidateQueries({ queryKey: ["reservations"] });
-        }
-      )
-      .subscribe((status, err) => {
-        if (status === 'SUBSCRIBED') {
-          isConnectedRef.current = true;
-          reconnectAttemptsRef.current = 0; // ✅ 연결 성공 시 재시도 카운터 리셋
-          // Stop polling when realtime is connected
-          if (pollingIntervalRef.current) {
-            clearInterval(pollingIntervalRef.current);
-            pollingIntervalRef.current = null;
-          }
-        }
-        if (status === 'CHANNEL_ERROR') {
-          console.error("Realtime channel error:", err);
-          isConnectedRef.current = false;
-          // Start polling fallback
-          startPollingFallback();
-        }
-        if (status === 'CLOSED') {
-          isConnectedRef.current = false;
-          // Start polling fallback
-          startPollingFallback();
-        }
-      });
+    const initializeSubscription = async () => {
+      try {
+        const supabase = await createClient();
+        
+        if (!mounted) return;
+
+        channel = supabase
+          .channel("reservations_realtime")
+          .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "reservations" },
+            (payload) => {
+              queryClient.invalidateQueries({ queryKey: ["reservations"] });
+            }
+          )
+          .subscribe((status, err) => {
+            if (status === 'SUBSCRIBED') {
+              isConnectedRef.current = true;
+              reconnectAttemptsRef.current = 0; // ✅ 연결 성공 시 재시도 카운터 리셋
+              // Stop polling when realtime is connected
+              if (pollingIntervalRef.current) {
+                clearInterval(pollingIntervalRef.current);
+                pollingIntervalRef.current = null;
+              }
+            }
+            if (status === 'CHANNEL_ERROR') {
+              console.error("Realtime channel error:", err);
+              isConnectedRef.current = false;
+              // Start polling fallback
+              startPollingFallback();
+            }
+            if (status === 'CLOSED') {
+              isConnectedRef.current = false;
+              // Start polling fallback
+              startPollingFallback();
+            }
+          });
+      } catch (error) {
+        console.error("Failed to initialize realtime subscription:", error);
+        // Start polling fallback on initialization error
+        startPollingFallback();
+      }
+    };
+
+    initializeSubscription();
 
     // Function to start polling fallback
     const startPollingFallback = () => {
@@ -76,12 +93,20 @@ export function useRealtimeSubscription() {
     }, 5000);
 
     return () => {
+      mounted = false;
       clearTimeout(fallbackTimer);
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
       }
-      supabase.removeChannel(channel);
+      
+      // Clean up channel if it exists
+      if (channel) {
+        createClient().then(supabase => {
+          supabase.removeChannel(channel);
+        }).catch(console.error);
+      }
+      
       isConnectedRef.current = false;
     };
   }, [queryClient]);

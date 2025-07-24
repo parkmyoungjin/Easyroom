@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRooms } from '@/hooks/useRooms';
 import { useCreateRoom } from '@/hooks/useCreateRoom';
 import { useUpdateRoom } from '@/hooks/useUpdateRoom';
+import { ReservationErrorHandler } from '@/lib/utils/error-handler';
 import type { Room } from '@/types/database';
 
 const roomFormSchema = z.object({
@@ -56,10 +57,17 @@ export function RoomManagement() {
         form.reset();
       },
       onError: (error) => {
+        const reservationError = ReservationErrorHandler.handleReservationError(error, {
+          action: 'create_room',
+          timestamp: new Date().toISOString()
+        });
+
+        const userMessage = ReservationErrorHandler.getUserFriendlyMessage(reservationError, 'create');
+
         toast({
           variant: 'destructive',
-          title: '회의실 추가 실패',
-          description: error.message,
+          title: userMessage.title,
+          description: userMessage.description,
         });
       },
     });
@@ -81,10 +89,18 @@ export function RoomManagement() {
           });
         },
         onError: (error) => {
+          const reservationError = ReservationErrorHandler.handleReservationError(error, {
+            action: 'update_room',
+            roomId: room.id,
+            timestamp: new Date().toISOString()
+          });
+
+          const userMessage = ReservationErrorHandler.getUserFriendlyMessage(reservationError, 'update');
+
           toast({
             variant: 'destructive',
-            title: '상태 변경 실패',
-            description: error.message,
+            title: userMessage.title,
+            description: userMessage.description,
           });
         },
       }

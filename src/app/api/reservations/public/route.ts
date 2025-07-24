@@ -1,160 +1,78 @@
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient, createAdminClient } from '@/lib/supabase/server';
-import { normalizeDateForQuery } from '@/lib/utils/date';
-import type { PublicReservation } from '@/types/database';
+import { createClient } from '@/lib/supabase/server';
+import { logger } from '@/lib/utils/logger';
+import { ReservationErrorHandler } from '@/lib/utils/error-handler';
 
+/**
+ * @deprecated This endpoint is deprecated for security reasons.
+ * Use /api/reservations/public-anonymous for unauthenticated access
+ * or /api/reservations/public-authenticated for authenticated access.
+ * 
+ * This endpoint will redirect to the appropriate secure endpoint based on authentication status.
+ */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-
-    console.log('공개 예약 API 호출:', { startDate, endDate });
-
-    if (!startDate || !endDate) {
-      return NextResponse.json(
-        { error: 'startDate와 endDate가 필요합니다' },
-        { status: 400 }
-      );
-    }
-
-    // ✅ 선택적 인증: 인증된 사용자와 비인증 사용자 모두 지원
-    // 공개 API이므로 관리자 클라이언트 사용 (RLS 우회)
-    const supabase = await createAdminClient();
-    
-    // 인증 상태 확인을 위한 일반 클라이언트도 생성
-    const userSupabase = await createClient();
-    
-    // 사용자 인증 상태 확인 (실패해도 계속 진행)
-    const { data: { user }, error: authError } = await userSupabase.auth.getUser();
-    
-    // 인증 실패는 로그만 남기고 계속 진행 (공개 API이므로)
-    if (authError) {
-      console.log('인증되지 않은 사용자의 공개 예약 조회:', authError.message);
-    }
-    
-    const isAuthenticated = !authError && !!user;
-    console.log('사용자 인증 상태:', { 
-      isAuthenticated, 
-      userId: user?.id || 'anonymous' 
+    logger.warn('레거시 공개 예약 API 호출 감지', {
+      url: request.url,
+      userAgent: request.headers.get('user-agent'),
+      timestamp: new Date().toISOString()
     });
 
-    // 날짜 범위 정규화
-    let normalizedStartDate: string;
-    let normalizedEndDate: string;
+    // 쿼리 파라미터 추출
+    const { searchParams } = new URL(request.url);
+    const queryString = searchParams.toString();
 
-    try {
-      normalizedStartDate = normalizeDateForQuery(startDate, false);
-      normalizedEndDate = normalizeDateForQuery(endDate, true);
-      console.log('정규화된 날짜:', { normalizedStartDate, normalizedEndDate });
-    } catch (error) {
-      console.error('날짜 정규화 실패:', error);
-      return NextResponse.json(
-        { error: error instanceof Error ? error.message : '날짜 형식이 올바르지 않습니다' },
-        { status: 400 }
-      );
-    }
+    // 사용자 인증 상태 확인
+    const supabase = await createClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    // ✅ RPC 함수 사용 (데이터베이스에 이미 구현되어 있음)
-    try {
-      const { data, error } = await supabase.rpc(
-        'get_public_reservations',
-        {
-          start_date: normalizedStartDate,
-          end_date: normalizedEndDate
-        }
-      );
-      
-      if (error) {
-        console.error('RPC 함수 호출 실패:', error);
-        throw error;
-      }
+    const isAuthenticated = !authError && !!user;
 
-      console.log('RPC로 조회된 예약 데이터:', { count: data?.length || 0 });
+    // 인증 상태에 따라 적절한 엔드포인트로 리디렉션
+    const targetEndpoint = isAuthenticated 
+      ? '/api/reservations/public-authenticated'
+      : '/api/reservations/public-anonymous';
 
-      // RPC 함수에서 이미 is_mine이 설정되어 반환됨
-      return NextResponse.json({ 
-        data: data || [],
-        message: `${data?.length || 0}개의 예약을 조회했습니다.`
-      });
-
-    } catch (rpcError) {
-      console.warn('RPC 함수를 사용할 수 없습니다. 직접 쿼리를 시도합니다:', rpcError);
-      
-      // ✅ RPC 함수가 없다면 직접 쿼리 실행 (fallback)
-      const { data, error } = await supabase
-        .from('reservations')
-        .select(`
-          id,
-          room_id,
-          user_id,
-          title,
-          purpose,
-          start_time,
-          end_time,
-          user:users!inner(department, name),
-          room:rooms!inner(name)
-        `)
-        .eq('status', 'confirmed')
-        .gte('start_time', normalizedStartDate)
-        .lte('end_time', normalizedEndDate)
-        .order('start_time', { ascending: true });
-
-      if (error) {
-        console.error('직접 쿼리 실패:', error);
-        return NextResponse.json(
-          { error: '예약 현황을 불러오는데 실패했습니다' },
-          { status: 500 }
-        );
-      }
-
-      console.log('직접 쿼리로 조회된 예약 데이터:', { count: data?.length || 0 });
-
-      // ✅ 현재 사용자의 데이터베이스 ID를 찾기 위해 users 테이블 조회 (인증된 경우만)
-      let currentUser = null;
-      if (isAuthenticated && user) {
-        const { data: userData } = await supabase
-          .from('users')
-          .select('id')
-          .eq('auth_id', user.id) // 스키마에 맞게 auth_id 사용
-          .single();
-        currentUser = userData;
-      }
-      
-      // PublicReservation 형태로 변환 (인증 상태에 따라 정보 마스킹)
-      const publicReservations: PublicReservation[] = (data || []).map((reservation: any) => ({
-        id: reservation.id,
-        room_id: reservation.room_id,
-        user_id: reservation.user_id,
-        title: isAuthenticated && currentUser && reservation.user_id === currentUser.id 
-          ? reservation.title 
-          : 'Booked', // 비인증 사용자나 다른 사용자의 예약은 마스킹
-        purpose: isAuthenticated && currentUser && reservation.user_id === currentUser.id 
-          ? reservation.purpose 
-          : null, // 자신의 예약만 목적 표시
-        start_time: reservation.start_time,
-        end_time: reservation.end_time,
-        department: reservation.user?.department || '',
-        user_name: reservation.user?.name || '',
-        is_mine: currentUser ? reservation.user_id === currentUser.id : false
-      }));
-
-      return NextResponse.json({ 
-        data: publicReservations,
-        message: `${publicReservations.length}개의 예약을 조회했습니다.`
-      });
+    const redirectUrl = new URL(targetEndpoint, request.url);
+    
+    // 기존 쿼리 파라미터 유지
+    if (queryString) {
+      redirectUrl.search = queryString;
     }
+
+    logger.info('보안 엔드포인트로 리디렉션', {
+      from: '/api/reservations/public',
+      to: targetEndpoint,
+      authenticated: isAuthenticated,
+      userId: user?.id || 'anonymous'
+    });
+
+    // 임시 리디렉션 (307) - POST 요청도 유지됨
+    return NextResponse.redirect(redirectUrl, { status: 307 });
 
   } catch (error) {
-    console.error('공개 예약 목록 조회 중 치명적 오류:', error);
-    return NextResponse.json(
-      { 
-        error: '서버 오류가 발생했습니다',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
+    const structuredError = ReservationErrorHandler.handleApiError(error, {
+      action: 'redirect_legacy_api',
+      endpoint: '/api/reservations/public',
+      timestamp: new Date().toISOString()
+    });
+
+    logger.error('레거시 API 리디렉션 중 구조화된 오류', {
+      error: structuredError,
+      originalError: error instanceof Error ? error.message : String(error)
+    });
+    
+    // 오류 발생 시 안전한 기본값으로 비인증 엔드포인트 사용
+    const { searchParams } = new URL(request.url);
+    const queryString = searchParams.toString();
+    const fallbackUrl = new URL('/api/reservations/public-anonymous', request.url);
+    
+    if (queryString) {
+      fallbackUrl.search = queryString;
+    }
+
+    return NextResponse.redirect(fallbackUrl, { status: 307 });
   }
 }

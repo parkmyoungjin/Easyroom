@@ -24,6 +24,13 @@ export interface ErrorContext {
 
 export class ReservationErrorHandler {
   /**
+   * API 오류를 분석하고 구조화된 오류 객체를 반환합니다
+   */
+  static handleApiError(error: unknown, context: ErrorContext): ReservationError {
+    return this.handleReservationError(error, context);
+  }
+
+  /**
    * 예약 관련 오류를 분석하고 구조화된 오류 객체를 반환합니다
    */
   static handleReservationError(error: unknown, context: ErrorContext): ReservationError {
@@ -136,9 +143,31 @@ export class ReservationErrorHandler {
   private static isValidationError(message: string): boolean {
     const validationKeywords = [
       'validation', 'invalid', 'required', 'format',
-      '검증', '유효하지', '필수', '형식'
+      '검증', '유효하지', '필수', '형식', 'zod',
+      'expected', 'received', 'string must contain',
+      'number must be', 'array must contain'
     ];
     return validationKeywords.some(keyword => message.includes(keyword));
+  }
+
+  /**
+   * Zod validation 오류를 처리합니다
+   */
+  static handleZodValidationError(error: any, context: ErrorContext): ReservationError {
+    const validationError: ReservationError = {
+      type: 'validation',
+      code: 'VALIDATION_ERROR',
+      message: error.message || 'Validation failed',
+      userMessage: '입력 데이터가 올바르지 않습니다.',
+      retryable: false,
+      details: {
+        validationErrors: error.errors || [],
+        originalError: error.name,
+      }
+    };
+
+    this.logError(validationError, context);
+    return validationError;
   }
 
   /**
@@ -236,9 +265,58 @@ export class ReservationErrorHandler {
       create: '생성',
       delete: '삭제',
       update: '업데이트',
+      download: '다운로드',
+      download_statistics: '통계 다운로드',
+      create_room: '회의실 생성',
+      update_room: '회의실 업데이트',
+      delete_user: '사용자 삭제',
+      query_reservations: '예약 조회',
+      normalize_date: '날짜 처리',
+      redirect_legacy_api: 'API 리디렉션',
+      get_public_reservations_anonymous: '공개 예약 조회',
+      get_public_reservations_authenticated: '인증 예약 조회',
     };
     
     return actionMap[action] || action;
+  }
+
+  /**
+   * 재시도 가능한 오류에 대한 재시도 핸들러를 생성합니다
+   */
+  static createRetryableErrorHandler<T extends any[]>(
+    originalFunction: (...args: T) => Promise<void>,
+    maxRetries: number = 3,
+    delay: number = 1000
+  ) {
+    return async (...args: T): Promise<void> => {
+      let lastError: Error;
+      
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          await originalFunction(...args);
+          return; // 성공시 종료
+        } catch (error) {
+          lastError = error instanceof Error ? error : new Error('Unknown error');
+          
+          // 재시도 불가능한 오류인지 확인
+          const structuredError = this.handleReservationError(lastError, {
+            action: 'retry_attempt',
+            attempt: attempt.toString(),
+            maxRetries: maxRetries.toString(),
+            timestamp: new Date().toISOString()
+          });
+          
+          if (!structuredError.retryable || attempt === maxRetries) {
+            throw lastError; // 재시도 불가능하거나 마지막 시도에서 실패시 오류 던지기
+          }
+          
+          // 지연 후 재시도 (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, attempt - 1)));
+        }
+      }
+      
+      throw lastError!;
+    };
   }
 }
 

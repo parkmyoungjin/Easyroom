@@ -192,8 +192,12 @@ export function getRedirectPath(options: RedirectOptions): string | null {
 /**
  * 디버깅을 위한 현재 인증 네비게이션 상태를 로깅합니다.
  */
-export function logAuthNavigationState(pathname?: string): void {
-  if (process.env.NODE_ENV !== 'development') {
+export async function logAuthNavigationState(pathname?: string): Promise<void> {
+  const nodeEnv = await import('@/lib/security/secure-environment-access')
+    .then(({ getPublicEnvVar }) => getPublicEnvVar('NODE_ENV', 'auth-navigation'))
+    .catch(() => 'production');
+  
+  if (nodeEnv !== 'development') {
     return;
   }
 

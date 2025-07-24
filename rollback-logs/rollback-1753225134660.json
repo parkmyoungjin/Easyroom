@@ -1,0 +1,63 @@
+{
+  "trigger": "Critical issues exceed threshold: 1 > 0",
+  "strategy": "immediate",
+  "timestamp": "2025-07-22T22:58:54.646Z",
+  "success": true,
+  "actions": [
+    {
+      "action": "Stop running deployments",
+      "success": true,
+      "details": "Deployment processes halted",
+      "timestamp": "2025-07-22T22:58:54.646Z"
+    },
+    {
+      "action": "State backup created",
+      "success": true,
+      "details": "Backup saved to rollback-backups\\backup-2025-07-22T22-58-54-649Z",
+      "timestamp": "2025-07-22T22:58:54.656Z"
+    },
+    {
+      "action": "Git revert initiated",
+      "success": true,
+      "details": "Reverting to last stable commit",
+      "timestamp": "2025-07-22T22:58:54.656Z"
+    },
+    {
+      "action": "Database restore initiated",
+      "success": true,
+      "details": "Restoring from last backup",
+      "timestamp": "2025-07-22T22:58:54.656Z"
+    },
+    {
+      "action": "Service restart initiated",
+      "success": true,
+      "details": "Restarting application services",
+      "timestamp": "2025-07-22T22:58:54.656Z"
+    },
+    {
+      "action": "Rollback verification",
+      "success": true,
+      "details": "Data integrity checks passed",
+      "timestamp": "2025-07-22T22:58:54.657Z"
+    },
+    {
+      "action": "Immediate rollback completed",
+      "success": true,
+      "details": "System reverted to stable state",
+      "timestamp": "2025-07-22T22:58:54.657Z"
+    }
+  ],
+  "errors": [],
+  "recommendations": [
+    {
+      "recommendation": "Investigate root cause of data integrity issues",
+      "priority": "high",
+      "timestamp": "2025-07-22T22:58:54.657Z"
+    },
+    {
+      "recommendation": "Run full data integrity validation before next deployment",
+      "priority": "high",
+      "timestamp": "2025-07-22T22:58:54.657Z"
+    }
+  ]
+}

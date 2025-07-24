@@ -1,0 +1,443 @@
+'use client'
+
+import { useEffect, useState, useCallback } from 'react'
+import { User } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/client'
+import { UserMetadata, UserProfile } from '@/types/auth'
+import { 
+  shouldDetectAuthStateChange, 
+  isAuthCallbackPage, 
+  logAuthNavigationState 
+} from '@/lib/utils/auth-navigation'
+import { createAuthId } from '@/types/enhanced-types'
+
+export function useAuth() {
+  const [user, setUser] = useState<User | null>(null)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [initialized, setInitialized] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [authStatus, setAuthStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
+  const [isInitializing, setIsInitializing] = useState(false)
+
+  const createUserProfile = useCallback(async (authUser: User): Promise<UserProfile> => {
+    console.log('[DEBUG] createUserProfile 시작. 사용자:', authUser.email);
+    const metadata = authUser.user_metadata as UserMetadata || {};
+
+    try {
+      const supabase = await createClient();
+
+      // ✨ 최종 수정: 데이터베이스 함수가 기대하는 모든 파라미터를 전달합니다.
+      console.log('[DEBUG] 1단계: upsert_user_profile RPC 호출 시도...');
+      const { error: rpcError } = await supabase.rpc('upsert_user_profile', {
+        p_auth_id: authUser.id,
+        p_email: authUser.email,
+        p_user_name: metadata.fullName,
+        p_user_department: metadata.department,
+        p_user_employee_id: metadata.employeeId || null
+      });
+
+      if (rpcError) {
+        console.error('[ERROR] 1-1단계: upsert_user_profile RPC 실패!', rpcError);
+        throw rpcError;
+      }
+      console.log('[DEBUG] 1단계: RPC 호출 성공.');
+
+      console.log('[DEBUG] 2단계: users 테이블에서 프로필 조회 시도...');
+      const { data: userProfileData, error: selectError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('auth_id', authUser.id)
+        .single();
+
+      if (selectError) {
+        console.error('[ERROR] 2-1단계: 프로필 조회 실패!', selectError);
+        throw selectError;
+      }
+      console.log('[DEBUG] 2단계: 프로필 조회 성공. 데이터:', userProfileData);
+
+      console.log('[DEBUG] 3단계: 수신된 데이터로 UserProfile 객체 생성 시도...');
+      if (!userProfileData) {
+        throw new Error('프로필 조회 후 데이터가 null입니다.');
+      }
+
+      const finalProfile: UserProfile = {
+        id: userProfileData.auth_id,
+        authId: createAuthId(userProfileData.auth_id),
+        dbId: userProfileData.id,
+        employeeId: userProfileData.employee_id,
+        email: userProfileData.email,
+        name: userProfileData.name,
+        department: userProfileData.department,
+        role: userProfileData.role,
+        createdAt: userProfileData.created_at,
+        updatedAt: userProfileData.updated_at,
+      };
+    
+      console.log('[DEBUG] 3단계: UserProfile 객체 생성 성공.');
+      return finalProfile;
+
+    } catch (error) {
+      console.error('[FATAL] createUserProfile 함수 내 최종 에러:', error);
+      throw new Error(`createUserProfile failed: ${JSON.stringify(error)}`);
+    }
+  }, []);
+
+  // (이하 다른 함수들은 변경할 필요가 없으므로 그대로 유지합니다)
+  // 세션 초기화
+  const initializeAuth = useCallback(async () => {
+    if (initialized || isInitializing) return;
+    
+    setIsInitializing(true);
+    
+    try {
+      setError(null);
+      setAuthStatus('loading');
+      
+      const supabase = await createClient();
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Auth session error:', error);
+        setError(error.message);
+        setUser(null);
+        setUserProfile(null);
+        setAuthStatus('unauthenticated');
+      } else {
+        const authUser = session?.user ?? null;
+        setUser(authUser);
+        
+        if (authUser) {
+          const profile = await createUserProfile(authUser);
+          setUserProfile(profile);
+          setAuthStatus('authenticated');
+        } else {
+          setUserProfile(null);
+          setAuthStatus('unauthenticated');
+        }
+      }
+    } catch (error) {
+      console.error('Auth initialization error:', error);
+      setError(error instanceof Error ? error.message : 'Authentication initialization failed');
+      setUser(null);
+      setUserProfile(null);
+      setAuthStatus('unauthenticated');
+    } finally {
+      setLoading(false);
+      setInitialized(true);
+      setIsInitializing(false);
+    }
+  }, [initialized, isInitializing, createUserProfile]);
+
+  useEffect(() => {
+    let subscription: any = null;
+    let visibilityHandler: (() => void) | null = null;
+
+    const setupAuthListener = async () => {
+      initializeAuth();
+
+      const supabase = await createClient();
+      
+      const {
+        data: { subscription: authSubscription },
+      } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (isInitializing) {
+          return;
+        }
+
+        const authUser = session?.user ?? null;
+        
+        if (typeof window !== 'undefined') {
+          const currentPath = window.location.pathname;
+          
+          if (isAuthCallbackPage(currentPath)) {
+            console.log('Auth state change ignored on callback page');
+            return;
+          }
+          
+          if (!shouldDetectAuthStateChange(currentPath)) {
+            console.log(`Auth state change ignored on ${currentPath} (policy disabled)`);
+            return;
+          }
+          
+          logAuthNavigationState(currentPath);
+        }
+        
+        if (authUser && event !== 'INITIAL_SESSION') {
+          setLoading(true);
+        }
+        
+        setUser(authUser);
+        
+        if (authUser) {
+          try {
+            const profile = await createUserProfile(authUser);
+            setUserProfile(profile);
+            setAuthStatus('authenticated');
+          } catch (error) {
+            console.error('Profile creation error during auth state change:', error);
+            setError('프로필 생성 중 오류가 발생했습니다.');
+            setAuthStatus('unauthenticated');
+          }
+        } else {
+          setUserProfile(null);
+          setAuthStatus('unauthenticated');
+        }
+        
+        setLoading(false);
+        setError(null);
+      });
+
+      subscription = authSubscription;
+    };
+
+    // Handle browser tab visibility changes
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && !document.hidden) {
+        // Tab became visible - recheck auth state if needed
+        console.log('Tab became visible, rechecking auth state');
+        if (initialized && !isInitializing) {
+          // Reset initialization state to allow re-checking
+          setInitialized(false);
+          setIsInitializing(false);
+          // Trigger re-initialization
+          setTimeout(() => {
+            initializeAuth();
+          }, 100);
+        }
+      }
+    };
+
+    setupAuthListener();
+
+    // Add visibility change listener for tab switching detection
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      visibilityHandler = handleVisibilityChange;
+    }
+
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+      if (visibilityHandler && typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', visibilityHandler);
+      }
+    };
+  }, [createUserProfile, initializeAuth, isInitializing, initialized]);
+
+  const signIn = useCallback(async (email: string, password: string) => {
+    const supabase = await createClient();
+    const { withTimeout, DEFAULT_TIMEOUT_CONFIG } = await import('@/lib/utils/auth-timeout');
+    const { getAuthErrorHandler } = await import('@/lib/utils/auth-error-handler');
+    
+    const loginOperation = async () => {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          const errorHandler = getAuthErrorHandler();
+          errorHandler.handleAuthError(error, { logError: true });
+          
+          if (error.message.includes('Email not confirmed')) {
+            throw new Error('이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.');
+          }
+          throw error;
+        }
+        return data;
+      } catch (error) {
+        const errorHandler = getAuthErrorHandler();
+        errorHandler.handleAuthError(error, { logError: true });
+        throw error;
+      }
+    };
+
+    return withTimeout(
+      loginOperation(),
+      DEFAULT_TIMEOUT_CONFIG.loginTimeout,
+      'login_timeout'
+    );
+  }, []);
+
+  const signOut = useCallback(async () => {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      throw error;
+    }
+  }, []);
+
+  const checkEmailExists = useCallback(async (email: string): Promise<boolean> => {
+    const { checkEmailExists: enhancedCheckEmailExists } = await import('@/lib/email-validation/email-validation-service');
+    const result = await enhancedCheckEmailExists(email);
+    
+    if (result.error) {
+      const error = new Error(result.error.message);
+      (error as any).type = result.error.type;
+      (error as any).userMessage = result.error.userMessage;
+      (error as any).canRetry = result.error.canRetry;
+      (error as any).technicalDetails = result.error.technicalDetails;
+      throw error;
+    }
+    return result.exists;
+  }, []);
+
+  const signUp = useCallback(async (
+    email: string,
+    password: string,
+    fullName: string, 
+    department: string, 
+    employeeId: string,
+    role: 'employee' | 'admin' = 'employee'
+  ) => {
+    const supabase = await createClient();
+    const userMetadata: UserMetadata = { fullName, department, employeeId, role };
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: userMetadata,
+        emailRedirectTo: `${window.location.origin}/auth/callback`
+      },
+    });
+
+    if (error) {
+      if (error.message.includes('User already registered')) {
+        throw new Error('이미 가입된 이메일입니다. 로그인해주세요.');
+      }
+      throw error;
+    }
+
+    if (!data.user && !error) {
+      throw new Error('이미 가입된 이메일입니다. 로그인해주세요.');
+    }
+    return data;
+  }, []);
+
+  const updateProfile = useCallback(async (updates: Partial<Pick<UserMetadata, 'fullName' | 'department' | 'role'>>) => {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.updateUser({ data: updates });
+
+    if (error) throw error;
+
+    if (data.user) {
+      setUser(data.user);
+      const profile = await createUserProfile(data.user);
+      setUserProfile(profile);
+    }
+    return data;
+  }, [createUserProfile]);
+
+  const requireAuth = useCallback((redirectTo?: string) => {
+    if (!userProfile) {
+      if (redirectTo) window.location.href = redirectTo;
+      return false;
+    }
+    return true;
+  }, [userProfile]);
+
+  const hasPermission = useCallback((requiredRole: 'admin' | 'employee') => {
+    if (!userProfile) return false;
+    if (requiredRole === 'admin') return userProfile.role === 'admin';
+    return true;
+  }, [userProfile]);
+
+  const isAdmin = useCallback(() => {
+    return userProfile?.role === 'admin';
+  }, [userProfile]);
+
+  const isAuthenticated = useCallback(() => {
+    return authStatus === 'authenticated' && !!userProfile;
+  }, [authStatus, userProfile]);
+
+  const isLoading = useCallback(() => {
+    return authStatus === 'loading' || loading;
+  }, [authStatus, loading]);
+
+  const resendEmailConfirmation = useCallback(async (email: string) => {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
+    });
+    if (error) throw error;
+  }, []);
+
+  const checkEmailConfirmation = useCallback(async () => {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    return {
+      isConfirmed: !!user?.email_confirmed_at,
+      confirmedAt: user?.email_confirmed_at || null,
+      email: user?.email || null
+    };
+  }, []);
+
+  const handlePostLoginRedirect = useCallback(() => {
+    console.warn('[useAuth] handlePostLoginRedirect is deprecated. Use NavigationController instead.');
+    if (typeof window === 'undefined') return;
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectPath = urlParams.get('redirect');
+    window.location.href = redirectPath && redirectPath.startsWith('/') ? redirectPath : '/';
+  }, []);
+
+  const redirectToLogin = useCallback((currentPath?: string) => {
+    if (typeof window === 'undefined') return;
+    const loginUrl = new URL('/login', window.location.origin);
+    if (currentPath && currentPath !== '/login') {
+      loginUrl.searchParams.set('redirect', currentPath);
+    }
+    window.location.href = loginUrl.toString();
+  }, []);
+
+  const handlePostLogout = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    window.location.href = '/';
+  }, []);
+
+  const signInWithEmployeeId = useCallback(async (employeeId: string, password: string) => {
+    const email = `${employeeId}@company.com`;
+    return signIn(email, password);
+  }, [signIn]);
+
+  const signUpWithEmployeeId = useCallback(async (
+    employeeId: string, 
+    fullName: string, 
+    department: string, 
+    role: 'employee' | 'admin' = 'employee'
+  ) => {
+    const email = `${employeeId}@company.com`;
+    const password = `pnuh${employeeId}`;
+    return signUp(email, password, fullName, department, employeeId, role); // employeeId 추가
+  }, [signUp]);
+
+  return {
+    user,
+    userProfile,
+    loading,
+    error,
+    authStatus,
+    signIn,
+    signOut,
+    signUp,
+    updateProfile,
+    resendEmailConfirmation,
+    checkEmailConfirmation,
+    checkEmailExists,
+    signInWithEmployeeId,
+    signUpWithEmployeeId,
+    requireAuth,
+    hasPermission,
+    isAdmin,
+    isAuthenticated,
+    isLoading,
+    handlePostLoginRedirect,
+    redirectToLogin,
+    handlePostLogout,
+  };
+}

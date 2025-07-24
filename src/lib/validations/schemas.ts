@@ -179,6 +179,7 @@ export const signupSchema = z.object({
   password: passwordSchema,
   name: z.string().min(1, '이름을 입력해주세요'),
   department: z.string().min(1, '부서를 입력해주세요'),
+  employeeId: z.string().min(1, { message: "사번을 입력해주세요." }), // ✅ 이 라인을 추가하세요
 });
 
 export type SignupFormData = z.infer<typeof signupSchema>;
@@ -237,3 +238,64 @@ export const timeSlots = Array.from({ length: 23 }, (_, i) => {
   const minute = i % 2 === 0 ? "00" : "30";
   return `${hour.toString().padStart(2, "0")}:${minute}`;
 }); 
+
+// ============================================================================
+// PAGINATION SCHEMAS
+// ============================================================================
+
+// Pagination request schema
+export const paginationRequestSchema = z.object({
+  limit: z.number().int().min(1).max(100).optional().default(20),
+  offset: z.number().int().min(0).optional().default(0),
+  sortBy: z.string().optional(),
+  sortOrder: z.enum(['asc', 'desc']).optional().default('asc'),
+  search: z.string().optional(),
+});
+
+// Pagination metadata schema
+export const paginationMetadataSchema = z.object({
+  limit: z.number().int(),
+  offset: z.number().int(),
+  total_count: z.number().int(),
+  has_more: z.boolean(),
+  current_page: z.number().int(),
+  total_pages: z.number().int(),
+  current_count: z.number().int(),
+});
+
+// Generic paginated response schema factory
+export function createPaginatedResponseSchema<T extends z.ZodTypeAny>(dataSchema: T) {
+  return z.object({
+    data: z.array(dataSchema),
+    pagination: paginationMetadataSchema,
+    message: z.string().optional(),
+    metadata: z.record(z.any()).optional(),
+  });
+}
+
+// Specific paginated response schemas
+export const paginatedReservationsSchema = createPaginatedResponseSchema(
+  z.object({
+    id: z.string().uuid(),
+    room_id: z.string().uuid(),
+    user_id: z.string().uuid(),
+    title: z.string(),
+    purpose: z.string().nullable(),
+    start_time: z.string().datetime(),
+    end_time: z.string().datetime(),
+    department: z.string(),
+    user_name: z.string(),
+    is_mine: z.boolean(),
+  })
+);
+
+export const paginatedRoomsSchema = createPaginatedResponseSchema(roomSchema);
+
+export const paginatedUsersSchema = createPaginatedResponseSchema(userSchema);
+
+// Type exports for pagination
+export type PaginationRequestData = z.infer<typeof paginationRequestSchema>;
+export type PaginationMetadata = z.infer<typeof paginationMetadataSchema>;
+export type PaginatedReservationsResponse = z.infer<typeof paginatedReservationsSchema>;
+export type PaginatedRoomsResponse = z.infer<typeof paginatedRoomsSchema>;
+export type PaginatedUsersResponse = z.infer<typeof paginatedUsersSchema>;

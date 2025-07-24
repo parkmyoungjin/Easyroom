@@ -5,183 +5,233 @@ import { reservationService } from '@/lib/services/reservations';
 import { ReservationFormData } from '@/lib/validations/schemas';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from "@/lib/supabase/client";
-import type { ReservationInsert, ReservationUpdate } from "@/types/database";
+import { createClient } from "@/lib/supabase/client";
+import type { ReservationInsert, ReservationUpdate, ReservationWithDetails } from "@/types/database";
 import { format } from 'date-fns';
 import { logger } from '@/lib/utils/logger';
+import { 
+  createQueryKeyFactory, 
+  buildQueryOptions, 
+  createStandardFetch,
+  optimizeForDateRange 
+} from '@/lib/utils/query-optimization';
 
 
-// Query keys
+// Optimized query keys using factory pattern
+const reservationKeyFactory = createQueryKeyFactory<{
+  startDate?: string;
+  endDate?: string;
+  isAuthenticated?: boolean;
+  userId?: string;
+}>('reservations');
+
 export const reservationKeys = {
-  all: ['reservations'] as const,
-  lists: () => [...reservationKeys.all, 'list'] as const,
-  list: (filters: Record<string, any>) => [...reservationKeys.lists(), filters] as const,
-  details: () => [...reservationKeys.all, 'detail'] as const,
-  detail: (id: string) => [...reservationKeys.details(), id] as const,
-  public: (startDate: string, endDate: string) =>
-    [...reservationKeys.all, 'public', startDate, endDate] as const,
-  my: () => [...reservationKeys.all, 'my'] as const,
+  ...reservationKeyFactory,
+  public: (startDate: string, endDate: string, isAuthenticated?: boolean) =>
+    reservationKeyFactory.custom('public', startDate, endDate, 'auth', isAuthenticated),
+  my: (userId?: string) => reservationKeyFactory.custom('my', userId),
   withDetails: (startDate: string, endDate: string) =>
-    [...reservationKeys.all, 'withDetails', startDate, endDate] as const,
+    reservationKeyFactory.custom('withDetails', startDate, endDate),
+  statistics: (startDate: string, endDate: string) =>
+    reservationKeyFactory.custom('statistics', startDate, endDate),
 };
 
-// Get public reservations (for calendar view)
-export function usePublicReservations(startDate: string, endDate: string) {
-  return useQuery({
-    queryKey: reservationKeys.public(startDate, endDate),
-    queryFn: () => reservationService.getPublicReservations(startDate, endDate),
-    staleTime: 10 * 60 * 1000, // 10분으로 연장장 (캐시 강화)
-    gcTime: 30 * 60 * 1000, // 30분으로 연장장 (캐시 강화)
+// Get public reservations (for calendar view) - Optimized with standardized patterns
+export function usePublicReservations(startDate: string, endDate: string, isAuthenticated?: boolean) {
+  const dateOptimization = optimizeForDateRange(startDate, endDate);
+  
+  return useQuery(buildQueryOptions({
+    queryKey: reservationKeys.public(startDate, endDate, isAuthenticated),
+    queryFn: createStandardFetch(
+      () => reservationService.getPublicReservations(startDate, endDate, isAuthenticated),
+      {
+        operation: 'fetch public reservations',
+        params: { startDate, endDate, isAuthenticated, dateRangeSize: dateOptimization.dateRangeSize }
+      }
+    ),
     enabled: !!startDate && !!endDate,
-    retry: 2, // 1번으로 줄임 (3번)
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    refetchOnMount: true, // 마운트시 새 데이터 가져오기 (중요)
-    refetchOnWindowFocus: false, // 도커시 동작 refetch 비활화
-    refetchOnReconnect: true, // 네트워크 재연결시 새 데이터 가져오기
-    refetchInterval: false, // 동작 간격 refetch 비활화
-    refetchIntervalInBackground: false, // 백그운도 refetch 비활화
-  });
+    dataType: 'dynamic',
+    cacheConfig: {
+      customStaleTime: dateOptimization.staleTime,
+      customGcTime: dateOptimization.gcTime
+    },
+    retryConfig: {
+      maxRetries: 2,
+      baseDelay: 1000
+    }
+  }));
 }
 
-// Get reservations with details (for admin view)
+// Get reservations with details (for admin view) - Optimized
 export function useReservationsWithDetails(startDate: string, endDate: string) {
-  return useQuery({
+  const dateOptimization = optimizeForDateRange(startDate, endDate);
+  
+  return useQuery(buildQueryOptions({
     queryKey: reservationKeys.withDetails(startDate, endDate),
-    queryFn: () => reservationService.getReservationsWithDetails(startDate, endDate),
-    staleTime: 1 * 60 * 1000, // 1분간 fresh ?�태 ?��? (?�짜 변�???빠른 반응)
-    gcTime: 5 * 60 * 1000, // 5분간 캐시 ?��?
+    queryFn: createStandardFetch(
+      () => reservationService.getReservationsWithDetails(startDate, endDate),
+      {
+        operation: 'fetch detailed reservations',
+        params: { startDate, endDate, dateRangeSize: dateOptimization.dateRangeSize }
+      }
+    ),
     enabled: !!startDate && !!endDate,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    refetchOnMount: true, // 마운?????�로???�이??가?�오�?
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: true,
-  });
+    dataType: 'dynamic',
+    cacheConfig: {
+      customStaleTime: Math.min(dateOptimization.staleTime, 2 * 60 * 1000), // Max 2 minutes for admin data
+      customGcTime: dateOptimization.gcTime
+    }
+  }));
 }
 
-// Get my reservations
-export function useMyReservations() {
+// Get my reservations - Optimized with RPC function
+export function useMyReservations(): { data: ReservationWithDetails[] | undefined; isLoading: boolean; isError: boolean; error: any } {
   const { userProfile } = useAuth();
 
-  return useQuery({
-    queryKey: reservationKeys.my(),
-    queryFn: async () => {
-      if (!userProfile?.id) {
-        logger.warn('사용자 ID가 없어 내 예약을 조회할 수 없습니다');
-        return [];
+  return useQuery(buildQueryOptions({
+    queryKey: reservationKeys.my(userProfile?.authId),
+    queryFn: createStandardFetch(
+      async () => {
+        if (!userProfile?.id) {
+          logger.warn('사용자 ID가 없어 내 예약을 조회할 수 없습니다');
+          return [];
+        }
+
+        // Auth ID로 users 테이블에서 실제 데이터베이스 ID 조회
+        const supabase = await createClient();
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('auth_id', userProfile.authId)
+          .single();
+
+        if (userError || !userData) {
+          logger.error('사용자 정보 조회 실패:', {
+            error: userError,
+            userProfileAuthId: userProfile.authId,
+            userProfileId: userProfile.id
+          });
+          throw new Error('사용자 정보를 찾을 수 없습니다.');
+        }
+
+        // Use optimized RPC function for better performance
+        const { data: result, error: rpcError } = await supabase
+          .rpc('get_user_reservations_detailed', {
+            user_id: userData.id,
+            limit_count: 50,
+            offset_count: 0
+          });
+
+        if (rpcError) {
+          // Fallback to original service method
+          logger.warn('RPC function failed, falling back to service method', rpcError);
+          return await reservationService.getMyReservations(userData.id);
+        }
+
+        return result?.data || [];
+      },
+      {
+        operation: 'fetch my reservations',
+        params: { 
+          userProfileId: userProfile?.id,
+          userProfileAuthId: userProfile?.authId 
+        }
       }
-
-      // ✅ 디버깅: 내 예약 조회 시작
-      logger.debug('내 예약 조회 시작', {
-        userProfileId: userProfile.id,
-        userProfileAuthId: userProfile.authId,
-        userEmail: userProfile.email,
-        userEmployeeId: userProfile.employeeId || ''
-      });
-
-      // Auth ID로 users 테이블에서 실제 데이터베이스 ID 조회
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('auth_id', userProfile.authId) // camelCase 프로퍼티 사용
-        .single();
-
-      // ✅ 디버깅: 사용자 DB ID 조회 결과
-      logger.debug('사용자 DB ID 조회 결과', {
-        success: !userError && !!userData,
-        userData: userData ? { id: userData.id } : null,
-        userError: userError ? {
-          message: userError.message,
-          code: userError.code,
-          details: userError.details
-        } : null,
-        authIdUsed: userProfile.authId
-      });
-
-      if (userError || !userData) {
-        logger.error('사용자 정보 조회 실패:', {
-          error: userError,
-          userProfileAuthId: userProfile.authId,
-          userProfileId: userProfile.id
-        });
-        throw new Error('사용자 정보를 찾을 수 없습니다.');
-      }
-
-      // ✅ 디버깅: 예약 조회 전 상태
-      logger.debug('예약 조회 실행', {
-        dbUserId: userData.id,
-        authUserId: userProfile.authId
-      });
-
-      const reservations = await reservationService.getMyReservations(userData.id);
-
-      // ✅ 디버깅: 예약 조회 결과
-      logger.debug('내 예약 조회 완료', {
-        reservationCount: reservations.length,
-        dbUserId: userData.id,
-        reservationIds: reservations.map(r => r.id)
-      });
-
-      return reservations;
-    },
-    staleTime: 2 * 60 * 1000, // 2분간 fresh 상태 유지
-    gcTime: 5 * 60 * 1000, // 5분간 캐시 유지
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: true,
-    enabled: !!userProfile?.id, // 사용자 Auth ID가 있을 때만 실행
-  });
+    ),
+    enabled: !!userProfile?.id,
+    dataType: 'semi-static',
+    cacheConfig: {
+      customStaleTime: 0, // 2 minutes
+      customGcTime: 5 * 60 * 1000 // 5 minutes
+    }
+  }));
 }
 
-// Get reservation by ID
+// Get reservation by ID - Optimized
 export function useReservation(id: string) {
-  return useQuery({
+  return useQuery(buildQueryOptions({
     queryKey: reservationKeys.detail(id),
-    queryFn: () => reservationService.getReservationById(id),
+    queryFn: createStandardFetch(
+      () => reservationService.getReservationById(id),
+      {
+        operation: 'fetch reservation by ID',
+        params: { id }
+      }
+    ),
     enabled: !!id,
-  });
+    dataType: 'semi-static'
+  }));
 }
 
-// Get all reservations (admin only)
+// Get all reservations (admin only) - Optimized
 export function useAllReservations() {
-  return useQuery({
-    queryKey: [...reservationKeys.all, 'admin'],
-    queryFn: () => reservationService.getAllReservations(),
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  });
+  return useQuery(buildQueryOptions({
+    queryKey: reservationKeyFactory.custom('admin', 'all'),
+    queryFn: createStandardFetch(
+      () => reservationService.getAllReservations(),
+      {
+        operation: 'fetch all reservations (admin)',
+        params: {}
+      }
+    ),
+    dataType: 'dynamic',
+    cacheConfig: {
+      customStaleTime: 5 * 60 * 1000,
+      customGcTime: 10 * 60 * 1000
+    }
+  }));
+}
+
+// Get reservation statistics using optimized RPC function
+export function useReservationStatistics(startDate: string, endDate: string) {
+  return useQuery(buildQueryOptions({
+    queryKey: reservationKeys.statistics(startDate, endDate),
+    queryFn: createStandardFetch(
+      async () => {
+        const supabase = await createClient();
+        const { data, error } = await supabase
+          .rpc('get_reservation_statistics', {
+            start_date: startDate,
+            end_date: endDate
+          });
+
+        if (error) {
+          logger.error('Statistics RPC failed', error);
+          throw new Error(`통계 조회 실패: ${error.message}`);
+        }
+
+        return data;
+      },
+      {
+        operation: 'fetch reservation statistics',
+        params: { startDate, endDate }
+      }
+    ),
+    enabled: !!startDate && !!endDate,
+    dataType: 'dynamic',
+    cacheConfig: {
+      customStaleTime: 10 * 60 * 1000, // 10 minutes for statistics
+      customGcTime: 30 * 60 * 1000 // 30 minutes
+    }
+  }));
 }
 
 // Create reservation mutation
 export function useCreateReservation() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { userProfile: user } = useAuth();
+  const { userProfile } = useAuth(); // ✅ 'user' 대신 'userProfile'을 직접 사용
 
   return useMutation({
     mutationFn: async (data: ReservationFormData) => {
-      if (!user?.authId) {
-        throw new Error('사용자 정보를 찾을 수 없습니다');
+      // ✅ userProfile에 dbId가 있는지 확인합니다. (useAuth 훅이 dbId를 제공한다고 가정)
+      if (!userProfile?.dbId) {
+        throw new Error('사용자 정보를 찾을 수 없습니다. 다시 로그인해주세요.');
       }
 
-      // Auth ID로 users 테이블에서 실제 데이터베이스 ID 조회
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('auth_id', user.authId)
-        .single();
-
-      if (userError || !userData) {
-        logger.error('사용자 정보 조회 실패:', userError);
-        throw new Error('사용자 정보를 찾을 수 없습니다.');
-      }
-
-      // Convert Date objects to ISO strings and add user_id
       const reservationData: ReservationInsert = {
         room_id: data.room_id,
-        user_id: userData.id, // 데이터베이스 사용자 ID 사용
+        user_id: userProfile.dbId, // ✅ 불필요한 DB 조회 없이 바로 userProfile의 dbId 사용
         title: data.title,
         purpose: data.purpose,
         start_time: data.start_time.toISOString(),
@@ -190,21 +240,21 @@ export function useCreateReservation() {
 
       return reservationService.createReservation(reservationData);
     },
+    // ✅✅✅ 핵심 수정 부분: onSuccess 콜백 ✅✅✅
     onSuccess: () => {
-      // ????구체?�으�?무효??(?�체가 ?�닌 ?�요??부분만)
-      queryClient.invalidateQueries({
-        queryKey: reservationKeys.all,
-        exact: false // 'reservations'�??�작?�는 모든 쿼리 무효??
-      });
       toast({
-        title: '?�약 ?�료',
-        description: '?�의???�약???�공?�으�??�료?�었?�니??',
+        title: '예약 완료',
+        description: '회의실 예약이 성공적으로 완료되었습니다.',
       });
+
+      // ✅ 'reservations'로 시작하는 모든 쿼리를 무효화하여
+      // '내 예약' 목록과 '공용 캘린더' 등 관련된 모든 화면을 최신 상태로 유지합니다.
+      queryClient.invalidateQueries({ queryKey: reservationKeys.all });
     },
     onError: (error: Error) => {
-      logger.error('?�약 ?�성 ?�패', error);
+      logger.error('예약 생성 실패', error);
       toast({
-        title: '?�약 ?�패',
+        title: '예약 실패',
         description: error.message,
         variant: 'destructive',
       });
@@ -215,10 +265,10 @@ export function useCreateReservation() {
 // Update reservation mutation
 export function useUpdateReservation() {
   const queryClient = useQueryClient();
+  const { toast } = useToast(); // ✅ 토스트 추가
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<ReservationFormData> }) => {
-      // Convert Date objects to ISO strings if they exist
       const updateData: ReservationUpdate = {
         ...(data.room_id && { room_id: data.room_id }),
         ...(data.title && { title: data.title }),
@@ -227,19 +277,29 @@ export function useUpdateReservation() {
         ...(data.end_time && { end_time: data.end_time.toISOString() }),
       };
 
-      // ???�전??로깅?�로 변�?(민감???�보 ?�거)
       logger.debug('Updating reservation', { id, hasData: !!updateData });
       return reservationService.updateReservation(id, updateData);
     },
-    onSuccess: () => {
-      // ????구체?�으�?무효??(?�체가 ?�닌 ?�요??부분만)
-      queryClient.invalidateQueries({
-        queryKey: reservationKeys.all,
-        exact: false // 'reservations'�??�작?�는 모든 쿼리 무효??
+    // ✅✅✅ 핵심 수정 부분: onSuccess 콜백 ✅✅✅
+    onSuccess: (updatedReservation) => {
+      toast({
+        title: '예약 변경 완료',
+        description: '예약 정보가 성공적으로 변경되었습니다.',
       });
+      
+      // ✅ 관련된 모든 목록을 한번에 갱신합니다.
+      queryClient.invalidateQueries({ queryKey: reservationKeys.all });
+
+      // ✅ (선택적) 상세 보기 페이지가 있다면 해당 페이지만 따로 갱신할 수도 있습니다.
+      // queryClient.invalidateQueries({ queryKey: reservationKeys.detail(updatedReservation.id) });
     },
     onError: (error: Error) => {
-      logger.error('?�약 ?�정 ?�패', error);
+      logger.error('예약 수정 실패', error);
+      toast({
+        title: '변경 실패',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 }
@@ -247,50 +307,28 @@ export function useUpdateReservation() {
 // Cancel reservation mutation
 export function useCancelReservation() {
   const queryClient = useQueryClient();
+  const { toast } = useToast(); // ✅ 토스트 추가
 
   return useMutation({
     mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
       reservationService.cancelReservation(id, reason),
+    // ✅✅✅ 핵심 수정 부분: onSuccess 콜백 ✅✅✅
     onSuccess: () => {
-      // 캐시 무효화로 최신 데이터 반영
-      queryClient.invalidateQueries({
-        queryKey: reservationKeys.all,
-        exact: false // 'reservations'로 시작하는 모든 쿼리 무효화
+      toast({
+          title: '예약 취소 완료',
+          description: '예약이 성공적으로 취소되었습니다.',
       });
+
+      // ✅ 관련된 모든 목록을 한번에 갱신합니다.
+      queryClient.invalidateQueries({ queryKey: reservationKeys.all });
     },
     onError: (error: Error) => {
       logger.error('예약 취소 실패', error);
-      // 토스트는 컴포넌트에서 처리하므로 여기서는 로깅만
+      toast({
+        title: '취소 실패',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 }
-
-// ??PublicReservation ?�?��? @/types/database?�서 import
-
-export function useReservations(startDate?: string, endDate?: string) {
-  const today = new Date();
-  const defaultStartDate = format(today, 'yyyy-MM-dd');
-  const defaultEndDate = format(today, 'yyyy-MM-dd');
-
-  const query = useQuery({
-    queryKey: ['reservations', startDate || defaultStartDate, endDate || defaultEndDate],
-    queryFn: async () => {
-      try {
-        return await reservationService.getReservations(startDate || defaultStartDate, endDate || defaultEndDate);
-      } catch (error) {
-        logger.error('예약 목록 조회 실패', error instanceof Error ? error : new Error(String(error)));
-        throw error;
-      }
-    },
-    staleTime: 1 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
-    enabled: true,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: true,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-  });
-
-  return query;
-} 

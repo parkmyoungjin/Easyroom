@@ -29,7 +29,7 @@ export function createUserProfile(user: any): UserProfile | null {
  */
 export async function getCurrentUserProfile(): Promise<UserProfile | null> {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     const { data: { user }, error } = await supabase.auth.getUser()
     
     if (error || !user) {
@@ -64,7 +64,7 @@ export async function checkClientUserRole(requiredRole: 'admin' | 'employee' = '
  * 클라이언트에서 프로필 업데이트
  */
 export async function updateClientUserProfile(updates: Partial<Pick<UserMetadata, 'fullName' | 'department' | 'role'>>) {
-  const supabase = createClient()
+  const supabase = await createClient()
   
   const { data, error } = await supabase.auth.updateUser({
     data: updates

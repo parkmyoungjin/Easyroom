@@ -1,121 +1,98 @@
-import { useMutation } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase/client';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { createClient } from '@/lib/supabase/client';
+import { logger } from '@/lib/utils/logger';
+import { 
+  createQueryKeyFactory, 
+  buildQueryOptions, 
+  createStandardFetch 
+} from '@/lib/utils/query-optimization';
 
 interface StatisticsParams {
   startDate: string;
   endDate: string;
 }
 
+// Optimized query keys using factory pattern
+const statisticsKeyFactory = createQueryKeyFactory<{
+  startDate?: string;
+  endDate?: string;
+}>('statistics');
+
+export const statisticsKeys = {
+  ...statisticsKeyFactory,
+  reservations: (startDate: string, endDate: string) => 
+    statisticsKeyFactory.custom('reservations', startDate, endDate),
+};
+
+// Optimized hook using RPC function for better performance
+export function useReservationStatisticsQuery(startDate: string, endDate: string) {
+  return useQuery(buildQueryOptions({
+    queryKey: statisticsKeys.reservations(startDate, endDate),
+    queryFn: createStandardFetch(
+      async () => {
+        const supabase = await createClient();
+        const { data, error } = await supabase
+          .rpc('get_reservation_statistics', {
+            start_date: startDate,
+            end_date: endDate
+          });
+
+        if (error) {
+          logger.error('Statistics RPC failed', error);
+          throw new Error(`통계 조회 실패: ${error.message}`);
+        }
+
+        return data;
+      },
+      {
+        operation: 'fetch reservation statistics',
+        params: { startDate, endDate }
+      }
+    ),
+    enabled: !!startDate && !!endDate,
+    dataType: 'dynamic',
+    cacheConfig: {
+      customStaleTime: 10 * 60 * 1000, // 10 minutes for statistics
+      customGcTime: 30 * 60 * 1000 // 30 minutes
+    }
+  }));
+}
+
+// Legacy mutation hook for CSV download functionality
 export function useReservationStatistics() {
   return useMutation({
     mutationFn: async ({ startDate, endDate }: StatisticsParams) => {
-      // 회의실별 예약 건수
-      const { data: reservations, error: roomError } = await supabase
-        .from('reservations')
-        .select(`
-          room_id,
-          rooms (name)
-        `)
-        .gte('start_time', `${startDate}T00:00:00`)
-        .lte('start_time', `${endDate}T23:59:59`)
-        .eq('status', 'confirmed');
+      // Use the optimized RPC function instead of multiple queries
+      const supabase = await createClient();
+      const { data: statisticsData, error } = await supabase
+        .rpc('get_reservation_statistics', {
+          start_date: startDate,
+          end_date: endDate
+        });
 
-      if (roomError) throw roomError;
+      if (error) {
+        logger.error('Statistics RPC failed', error);
+        throw new Error(`통계 조회 실패: ${error.message}`);
+      }
 
-      // 클라이언트에서 그룹화
-      const roomStats = reservations?.reduce((acc: any[], reservation: any) => {
-        const existing = acc.find(item => item.room_id === reservation.room_id);
-        if (existing) {
-          existing.count += 1;
-        } else {
-          acc.push({
-            room_id: reservation.room_id,
-            rooms: reservation.rooms,
-            count: 1
-          });
-        }
-        return acc;
-      }, []) || [];
-
-      // 시간대별 예약 분포
-      const { data: timeReservations, error: timeError } = await supabase
-        .from('reservations')
-        .select('start_time')
-        .gte('start_time', `${startDate}T00:00:00`)
-        .lte('start_time', `${endDate}T23:59:59`)
-        .eq('status', 'confirmed');
-
-      if (timeError) throw timeError;
-
-      // 시간대별 그룹화
-      const timeStats = timeReservations?.reduce((acc: any[], reservation: any) => {
-        const hour = new Date(reservation.start_time).getHours();
-        const existing = acc.find(item => item.hour === hour);
-        if (existing) {
-          existing.count += 1;
-        } else {
-          acc.push({ hour, count: 1 });
-        }
-        return acc;
-      }, []) || [];
-
-      // 부서별 사용 통계
-      const { data: deptReservations, error: deptError } = await supabase
-        .from('reservations')
-        .select('users (department)')
-        .gte('start_time', `${startDate}T00:00:00`)
-        .lte('start_time', `${endDate}T23:59:59`)
-        .eq('status', 'confirmed');
-
-      if (deptError) throw deptError;
-
-      // 부서별 그룹화
-      const deptStats = deptReservations?.reduce((acc: any[], reservation: any) => {
-        const department = reservation.users?.department;
-        if (!department) return acc;
-        const existing = acc.find(item => item.department === department);
-        if (existing) {
-          existing.count += 1;
-        } else {
-          acc.push({ department, count: 1 });
-        }
-        return acc;
-      }, []) || [];
-
-      // 취소율 및 사유
-      const { data: cancelReservations, error: cancelError } = await supabase
-        .from('reservations')
-        .select('status, cancellation_reason')
-        .gte('start_time', `${startDate}T00:00:00`)
-        .lte('start_time', `${endDate}T23:59:59`)
-        .eq('status', 'cancelled');
-
-      if (cancelError) throw cancelError;
-
-      // 취소 사유별 그룹화
-      const cancelStats = cancelReservations?.reduce((acc: any[], reservation: any) => {
-        const reason = reservation.cancellation_reason || '사유 없음';
-        const existing = acc.find(item => item.reason === reason);
-        if (existing) {
-          existing.count += 1;
-        } else {
-          acc.push({ reason, count: 1 });
-        }
-        return acc;
-      }, []) || [];
+      // Extract data from RPC response
+      const roomStats = statisticsData?.room_stats || [];
+      const timeStats = statisticsData?.time_stats || [];
+      const deptStats = statisticsData?.dept_stats || [];
+      const cancelStats = statisticsData?.cancel_stats || [];
 
       // CSV 데이터 생성
       const csvData = [
         // 헤더
         ['구분', '항목', '건수'],
         // 회의실별 통계
-        ...roomStats.map((stat) => ['회의실', stat.rooms.name, stat.count]),
+        ...roomStats.map((stat: any) => ['회의실', stat.room_name, stat.reservation_count]),
         // 시간대별 통계
-        ...timeStats.map((stat) => ['시간대', `${stat.hour}시`, stat.count]),
+        ...timeStats.map((stat: any) => ['시간대', `${stat.hour}시`, stat.reservation_count]),
         // 부서별 통계
-        ...deptStats.map((stat) => ['부서', stat.department, stat.count]),
+        ...deptStats.map((stat: any) => ['부서', stat.department, stat.reservation_count]),
         // 취소 통계
-        ...cancelStats.map((stat) => ['취소사유', stat.reason, stat.count]),
+        ...cancelStats.map((stat: any) => ['취소사유', stat.reason, stat.count]),
       ];
 
       // CSV 파일 생성 및 다운로드 (브라우저에서만 실행)
@@ -127,6 +104,8 @@ export function useReservationStatistics() {
         link.download = `회의실_통계_${startDate}_${endDate}.csv`;
         link.click();
       }
+
+      return statisticsData;
     },
   });
 } 

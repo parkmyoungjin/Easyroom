@@ -1,0 +1,16 @@
+{
+  "version": "0.1.0-20250724.2149-fb4456dd",
+  "buildId": "fb4456dd08455241e0c5e563e1bd54b05aaa3d47",
+  "timestamp": 1753361362591,
+  "buildTime": "2025-07-24T12:49:22.591Z",
+  "environment": "production",
+  "gitCommit": "fb4456dd08455241e0c5e563e1bd54b05aaa3d47",
+  "gitBranch": "main",
+  "gitCommitDate": "2025-07-22T00:16:10+09:00",
+  "packageVersion": "0.1.0",
+  "nodeVersion": "v18.20.8",
+  "platform": "win32",
+  "arch": "x64",
+  "vercel": {},
+  "netlify": {}
+}

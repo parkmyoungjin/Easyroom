@@ -10,11 +10,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { signupSchema, type SignupFormData } from '@/lib/validations/schemas';
-import { UserPlus, ArrowLeft, CheckCircle, XCircle, Mail, Lock } from 'lucide-react';
+import { UserPlus, ArrowLeft, CheckCircle, XCircle, Mail, Lock, AlertTriangle, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
+import { handleEnvironmentError, type ErrorContext } from '@/lib/error-handling/environment-error-handler';
+import type { EmailCheckResult } from '@/lib/email-validation/email-validation-service';
 
 export function SignupForm() {
   const router = useRouter();
@@ -23,6 +26,20 @@ export function SignupForm() {
   const [showProgressModal, setShowProgressModal] = useState(false);
   const [progressStatus, setProgressStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [progressMessage, setProgressMessage] = useState('회원가입을 처리하고 있습니다...');
+  
+  // Environment error handling states
+  const [environmentError, setEnvironmentError] = useState<{
+    title: string;
+    message: string;
+    canRetry: boolean;
+    retryDelay?: number;
+    actions: Array<{ label: string; action: string; priority?: string }>;
+    technicalDetails?: string;
+  } | null>(null);
+  const [isRetrying, setIsRetrying] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [showEnvironmentError, setShowEnvironmentError] = useState(false);
+  
   const { toast } = useToast();
   const { user, signUp, checkEmailExists } = useAuth();
 
@@ -33,6 +50,7 @@ export function SignupForm() {
       password: '',
       name: '',
       department: '',
+      employeeId: '', // ✅ employeeId 추가
     },
   });
 
@@ -76,7 +94,7 @@ export function SignupForm() {
       data.email,
       data.password,
       data.name,
-      data.department
+      data.department,
     );
 
     try {
@@ -151,31 +169,180 @@ export function SignupForm() {
     );
   }
 
-  const onSubmit = async (data: SignupFormData) => {
-    setIsLoading(true);
+  // Enhanced email check with environment error handling
+  const performEmailCheck = async (email: string): Promise<EmailCheckResult> => {
+    try {
+      const result = await checkEmailExists(email);
+      return { exists: result };
+    } catch (error) {
+      // Handle environment-related errors using the environment error handler
+      const errorContext: ErrorContext = {
+        operation: 'email_check',
+        environment: process.env.NODE_ENV === 'production' ? 'production' : 
+                    process.env.NODE_ENV === 'test' ? 'test' : 'development',
+        timestamp: new Date(),
+        endpoint: '/api/auth/check-email',
+        //metadata: { email: email.substring(0, 3) + '***' } // Partial email for debugging
+      };
+
+      const userFriendlyError = handleEnvironmentError(error as Error, errorContext);
+      
+      // Return error result in EmailCheckResult format
+      return {
+        exists: false,
+        error: {
+          type: userFriendlyError.errorCode === 'STARTUP_VALIDATION_FAILED' ? 'client_not_ready' :
+                userFriendlyError.errorCode === 'NETWORK_ERROR' ? 'network_error' : 'database_error',
+          message: userFriendlyError.message,
+          userMessage: userFriendlyError.message,
+          canRetry: userFriendlyError.canRetry,
+          technicalDetails: userFriendlyError.technicalDetails
+        }
+      };
+    }
+  };
+
+  // Handle retry functionality with exponential backoff
+  const handleRetryWithDelay = async (retryFn: () => Promise<void>, delay: number = 2000) => {
+    setIsRetrying(true);
+    
+    // Show countdown if delay is significant
+    if (delay > 1000) {
+      let countdown = Math.ceil(delay / 1000);
+      const countdownInterval = setInterval(() => {
+        countdown--;
+        if (countdown <= 0) {
+          clearInterval(countdownInterval);
+        }
+      }, 1000);
+    }
+    
+    await new Promise(resolve => setTimeout(resolve, delay));
+    setIsRetrying(false);
     
     try {
-      // 1. 먼저 이메일 중복 체크
-      const emailExists = await checkEmailExists(data.email);
-      if (emailExists) {
+      await retryFn();
+    } catch (error) {
+      // If retry fails, increment retry count and handle accordingly
+      setRetryCount(prev => prev + 1);
+      throw error;
+    }
+  };
+
+  // Clear environment error state
+  const clearEnvironmentError = () => {
+    setEnvironmentError(null);
+    setShowEnvironmentError(false);
+    setRetryCount(0);
+  };
+
+  // Handle environment error actions
+  const handleEnvironmentErrorAction = async (action: string) => {
+    switch (action) {
+      case 'retry':
+        if (environmentError?.canRetry && retryCount < 3) {
+          const delay = environmentError.retryDelay || 2000;
+          await handleRetryWithDelay(async () => {
+            const formData = form.getValues();
+            await onSubmit(formData);
+          }, delay);
+        }
+        break;
+      case 'reload_page':
+        window.location.reload();
+        break;
+      case 'contact_support':
+        // In a real app, this would open a support dialog or redirect
+        toast({
+          title: '지원팀 연락',
+          description: '지원팀에 문의하려면 help@example.com으로 연락해주세요.',
+        });
+        break;
+      default:
+        clearEnvironmentError();
+    }
+  };
+
+  const onSubmit = async (data: SignupFormData) => {
+    setIsLoading(true);
+    clearEnvironmentError();
+    
+    try {
+      // 1. Enhanced email duplicate check with environment error handling
+      const emailCheckResult = await performEmailCheck(data.email);
+      
+      // Handle email check errors
+      if (emailCheckResult.error) {
+        const error = emailCheckResult.error;
+        
+        // Set environment error state for display
+        setEnvironmentError({
+          title: error.type === 'client_not_ready' ? '서비스 연결 오류' :
+                 error.type === 'network_error' ? '네트워크 오류' :
+                 error.type === 'database_error' ? '서버 오류' : '오류 발생',
+          message: error.userMessage,
+          canRetry: error.canRetry,
+          retryDelay: error.type === 'network_error' ? 2000 : 
+                     error.type === 'database_error' ? 5000 : 3000,
+          actions: [
+            ...(error.canRetry ? [{
+              label: '다시 시도',
+              action: 'retry',
+              priority: 'primary'
+            }] : []),
+            {
+              label: '새로고침',
+              action: 'reload_page',
+              priority: 'secondary'
+            }
+          ],
+          technicalDetails: error.technicalDetails
+        });
+        
+        setShowEnvironmentError(true);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Check if email exists
+      if (emailCheckResult.exists) {
         toast({
           title: '이미 가입된 이메일',
           description: '해당 이메일로 이미 가입된 계정이 있습니다. 로그인해주세요.',
           variant: 'destructive',
         });
         setIsLoading(false);
-        return; // 여기서 중단
+        return;
       }
       
-      // 2. 중복이 아니면 기존 회원가입 진행
+      // 2. Proceed with signup if email check passed
       await handleSignupWithProgress(data);
-    } catch (error) {
-      console.error('이메일 중복 체크 오류:', error);
-      toast({
-        title: '오류 발생',
-        description: '이메일 확인 중 오류가 발생했습니다. 다시 시도해주세요.',
-        variant: 'destructive',
+      
+    } catch (error: any) {
+      console.error('회원가입 오류:', error);
+      
+      // Handle unexpected errors with environment error handler
+      const errorContext: ErrorContext = {
+        operation: 'email_check',
+        environment: process.env.NODE_ENV === 'production' ? 'production' : 
+                    process.env.NODE_ENV === 'test' ? 'test' : 'development',
+        timestamp: new Date(),
+      };
+
+      const userFriendlyError = handleEnvironmentError(error, errorContext);
+      
+      setEnvironmentError({
+        title: userFriendlyError.title,
+        message: userFriendlyError.message,
+        canRetry: userFriendlyError.canRetry,
+        actions: userFriendlyError.actions.map(action => ({
+          label: action.label,
+          action: action.action,
+        })),
+        technicalDetails: userFriendlyError.technicalDetails
       });
+      
+      setShowEnvironmentError(true);
       setIsLoading(false);
     }
   };
@@ -373,6 +540,97 @@ export function SignupForm() {
                 </Button>
               </div>
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Environment Error Modal */}
+      <Dialog open={showEnvironmentError} onOpenChange={setShowEnvironmentError}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {environmentError?.title.includes('네트워크') ? (
+                <WifiOff className="h-5 w-5 text-orange-600" />
+              ) : environmentError?.title.includes('서비스 연결') ? (
+                <Wifi className="h-5 w-5 text-blue-600" />
+              ) : (
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              )}
+              {environmentError?.title}
+            </DialogTitle>
+            <DialogDescription>
+              {environmentError?.message}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Retry Status */}
+            {isRetrying && (
+              <Alert>
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                <AlertTitle>재시도 중...</AlertTitle>
+                <AlertDescription>
+                  잠시만 기다려주세요. 연결을 다시 시도하고 있습니다.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Retry Count Warning */}
+            {retryCount > 0 && retryCount < 3 && (
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>재시도 횟수: {retryCount}/3</AlertTitle>
+                <AlertDescription>
+                  문제가 지속되면 새로고침하거나 잠시 후 다시 시도해주세요.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Max Retries Reached */}
+            {retryCount >= 3 && (
+              <Alert variant="destructive">
+                <XCircle className="h-4 w-4" />
+                <AlertTitle>최대 재시도 횟수 초과</AlertTitle>
+                <AlertDescription>
+                  문제가 지속되고 있습니다. 페이지를 새로고침하거나 잠시 후 다시 시도해주세요.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Technical Details (Development Only) */}
+            {environmentError?.technicalDetails && process.env.NODE_ENV === 'development' && (
+              <Alert>
+                <AlertTitle>기술적 세부사항 (개발자용)</AlertTitle>
+                <AlertDescription className="text-xs font-mono bg-gray-100 p-2 rounded mt-2 whitespace-pre-wrap">
+                  {environmentError.technicalDetails}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              {environmentError?.actions.map((action, index) => (
+                <Button
+                  key={index}
+                  variant={action.priority === 'primary' ? 'default' : 'outline'}
+                  onClick={() => handleEnvironmentErrorAction(action.action)}
+                  disabled={isRetrying || (action.action === 'retry' && retryCount >= 3)}
+                  className="flex items-center gap-2"
+                >
+                  {action.action === 'retry' && <RefreshCw className="h-4 w-4" />}
+                  {action.action === 'reload_page' && <RefreshCw className="h-4 w-4" />}
+                  {action.label}
+                </Button>
+              ))}
+              
+              <Button
+                variant="ghost"
+                onClick={clearEnvironmentError}
+                disabled={isRetrying}
+              >
+                닫기
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

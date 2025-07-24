@@ -39,10 +39,11 @@ export default function ReservationCalendarView({ onCellClick, readOnly = false 
     };
   }, [date]);
 
-  // 주간 예약 데이터 조회
+  // 주간 예약 데이터 조회 - 보안 강화된 버전
   const { data: reservations, isLoading } = usePublicReservations(
     weekRange.start,
-    weekRange.end
+    weekRange.end,
+    !!user
   );
 
   // 실시간 업데이트 구독

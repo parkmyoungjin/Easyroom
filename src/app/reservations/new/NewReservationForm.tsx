@@ -42,6 +42,7 @@ import {
 import { format } from "date-fns";
 import { useAuth } from '@/hooks/useAuth';
 import { createClient } from '@/lib/supabase/client';
+import { ReservationErrorHandler } from '@/lib/utils/error-handler';
 
 export default function NewReservationForm() {
   const router = useRouter();
@@ -74,11 +75,12 @@ export default function NewReservationForm() {
   const selectedDate = form.watch('date');
   const selectedRoomId = form.watch('roomId');
   
-  // 선택된 날짜의 예약 데이터 가져오기
+  // 선택된 날짜의 예약 데이터 가져오기 - 보안 강화된 버전
   const dateString = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : null;
   const { data: reservations = [] } = usePublicReservations(
     dateString || '',
-    dateString || ''
+    dateString || '',
+    !!user // 인증된 사용자이므로 true
   );
 
   // 선택된 날짜와 회의실의 예약된 시간 계산
@@ -240,7 +242,7 @@ export default function NewReservationForm() {
       console.log('2. useAuth user:', user);
   
       // users 테이블에서 실제 ID 조회
-      const supabase = createClient();
+      const supabase = await createClient();
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('id, auth_id, name, employee_id')
@@ -312,12 +314,22 @@ export default function NewReservationForm() {
           router.push('/');
         },
         onError: (error: Error) => {
+          const reservationError = ReservationErrorHandler.handleReservationError(error, {
+            action: 'create',
+            userId: user?.id,
+            userDbId: userData?.id,
+            timestamp: new Date().toISOString()
+          });
+
+          const userMessage = ReservationErrorHandler.getUserFriendlyMessage(reservationError, 'create');
+
           console.error("9. 예약 실패:", error);
-          console.error("9-1. 에러 스택:", error.stack);
+          console.error("9-1. 구조화된 오류:", reservationError);
+          
           toast({
             variant: "destructive",
-            title: "예약 실패",
-            description: "예약 생성에 실패했습니다. 다시 시도해주세요.",
+            title: userMessage.title,
+            description: userMessage.description,
           });
         },
       });

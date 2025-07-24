@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { useCancelReservation } from "@/hooks/useCancelReservation";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { ReservationErrorHandler } from "@/lib/utils/error-handler";
 import type { PublicReservation } from "@/types/database";
 
 interface ReservationDetailDialogProps {
@@ -99,10 +100,19 @@ export function ReservationDetailDialog({
       onClose();
       },
       onError: (error) => {
+        const reservationError = ReservationErrorHandler.handleReservationError(error, {
+          action: 'cancel',
+          reservationId: reservation.id,
+          userId: user?.id,
+          timestamp: new Date().toISOString()
+        });
+
+        const userMessage = ReservationErrorHandler.getUserFriendlyMessage(reservationError, 'cancel');
+
         toast({
           variant: "destructive",
-          title: "취소 실패",
-          description: "예약 취소 중 오류가 발생했습니다.",
+          title: userMessage.title,
+          description: userMessage.description,
         });
       },
     });
