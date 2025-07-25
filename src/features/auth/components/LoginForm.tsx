@@ -1,6 +1,7 @@
 'use client';
 
-import { Lock, LogIn, Mail, UserPlus, AlertCircle } from 'lucide-react';
+// ✅ Lock 아이콘은 더 이상 필요 없으므로 제거합니다.
+import { LogIn, Mail, UserPlus, AlertCircle } from 'lucide-react';
 import { useState, useEffect, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,36 +10,40 @@ import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
-  CardDescription, // ✅ CardDescription 추가
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // ✅ Alert 추가
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { loginSchema, type LoginFormData } from '@/lib/validations/schemas';
+// ✅ 새로 만든 Magic Link 스키마와 타입을 가져옵니다.
+import { magicLinkLoginSchema, type MagicLinkLoginFormData } from '@/lib/validations/schemas'; 
 import { handleAuthError } from '@/lib/utils/auth-error-handler';
 import Link from 'next/link';
 
 export function LoginForm() {
-  // ✅ useTransition으로 로딩 상태를 더 부드럽게 관리
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  // ✅ Magic Link 전송 성공 여부를 추적하는 상태를 추가합니다.
+  const [isLinkSent, setIsLinkSent] = useState(false);
 
   const { toast } = useToast();
-  const { signIn } = useAuth(); 
+  // ✅ useAuth 훅에서 signIn 대신 signInWithMagicLink를 가져옵니다.
+  const { signInWithMagicLink } = useAuth(); 
 
-  const form = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
+  const form = useForm<MagicLinkLoginFormData>({
+    // ✅ zodResolver에 새로운 스키마를 적용합니다.
+    resolver: zodResolver(magicLinkLoginSchema),
+    // ✅ 기본값에서 password를 제거합니다.
+    defaultValues: { email: '' },
   });
 
-  // URL의 timeout 파라미터 확인 로직은 그대로 유지
+  // URL의 timeout 파라미터 확인 로직은 그대로 유지 (세션 만료 처리에 유용)
   useEffect(() => {
-    // ... (이전 코드와 동일) ...
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('timeout') === 'true') {
@@ -55,21 +60,24 @@ export function LoginForm() {
     }
   }, [toast]);
 
-
-  const onSubmit = (data: LoginFormData) => {
+  // ✅ Magic Link 전송을 위한 onSubmit 함수
+  const onSubmit = (data: MagicLinkLoginFormData) => {
     setError(null); // 이전 에러 메시지 초기화
-    
+    setIsLinkSent(false); // 링크 전송 상태 초기화
+
     startTransition(async () => {
       try {
-        await signIn(data.email, data.password);
+        // ✅ signInWithMagicLink 함수를 호출합니다.
+        await signInWithMagicLink(data.email);
+        setIsLinkSent(true); // 링크 전송 성공!
         toast({
-          title: '로그인 성공',
-          description: '환영합니다! 잠시 후 페이지가 이동됩니다.',
+          title: '로그인 링크 전송 완료',
+          description: '이메일을 확인하여 로그인 링크를 클릭해주세요.',
         });
       } catch (err) {
         const userFriendlyError = handleAuthError(err);
         setError(userFriendlyError.message);
-        console.error('로그인 에러:', err);
+        console.error('Magic Link 로그인 에러:', err);
       }
     });
   };
@@ -82,86 +90,78 @@ export function LoginForm() {
             <LogIn className="h-6 w-6 text-primary" />
           </div>
           <CardTitle className="mt-4 text-2xl font-bold tracking-tight">회의실 예약 시스템</CardTitle>
-          {/* ✅ CardDescription으로 부가 설명 추가 */}
-          <CardDescription>계정 정보를 입력하여 로그인하세요.</CardDescription>
+          {/* ✅ isLinkSent 상태에 따라 다른 설명을 보여줍니다. */}
+          <CardDescription>
+            {isLinkSent 
+              ? "메일함을 확인해주세요." 
+              : "이메일 주소를 입력하시면 로그인 링크를 보내드립니다."}
+          </CardDescription>
         </CardHeader>
 
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {/* ✅ 에러 메시지를 폼 상단에 명확하게 표시 */}
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>로그인 실패</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>이메일</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          {...field}
-                          type="email"
-                          placeholder="user@example.com"
-                          className="pl-10"
-                          disabled={isPending}
-                          autoComplete="email"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+          {/* ✅ isLinkSent가 true이면 폼 대신 안내 메시지를 보여줍니다. */}
+          {isLinkSent ? (
+            <Alert variant="default" className="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-300">
+              <Mail className="h-4 w-4 !text-green-600 dark:!text-green-400" />
+              <AlertTitle className="font-semibold">전송 완료!</AlertTitle>
+              <AlertDescription>
+                입력하신 이메일 주소로 로그인 링크를 보냈습니다. 받은편지함을 확인해주세요. 링크는 일정 시간 후 만료됩니다.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>로그인 실패</AlertTitle>
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
                 )}
-              />
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>비밀번호</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          {...field}
-                          type="password"
-                          placeholder="●●●●●●●●"
-                          className="pl-10"
-                          disabled={isPending}
-                          autoComplete="current-password"
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>이메일</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            {...field}
+                            type="email"
+                            placeholder="user@example.com"
+                            className="pl-10"
+                            disabled={isPending}
+                            autoComplete="email"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={isPending}
-              >
-                {isPending ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                    로그인 중...
-                  </>
-                ) : (
-                  '로그인'
-                )}
-              </Button>
-            </form>
-          </Form>
+                {/* ✅ 비밀번호 FormField는 완전히 제거되었습니다. */}
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isPending}
+                >
+                  {isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                      전송 중...
+                    </>
+                  ) : (
+                    '이메일로 로그인 링크 받기'
+                  )}
+                </Button>
+              </form>
+            </Form>
+          )}
         </CardContent>
 
         <CardFooter className="flex flex-col items-center gap-4">

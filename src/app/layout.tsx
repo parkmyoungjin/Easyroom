@@ -4,6 +4,7 @@ import './globals.css';
 import Providers from './providers';
 import { Toaster } from '@/components/ui/toaster';
 import { ClientPolyfillManager } from '@/lib/polyfills/ClientPolyfillManager';
+import MagicLinkHandler from '@/components/auth/MagicLinkHandler';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -51,6 +52,7 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen bg-background antialiased`}>
         <ClientPolyfillManager enableServiceWorker={true} enablePWAComponents={true}>
           <Providers>
+            <MagicLinkHandler />
             {children}
             <Toaster />
           </Providers>

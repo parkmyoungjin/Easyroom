@@ -92,13 +92,32 @@ self.addEventListener('activate', (event) => {
 
 // 🔧 네트워크 요청 처리 (Stale-While-Revalidate 전략)
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+
+    // ==================================================================
+  // ✅ 여기에 예외 처리 코드를 추가합니다.
+  // ==================================================================
+  // Supabase 인증 콜백 경로는 서비스 워커가 절대로 가로채면 안 됩니다.
+  // 서버에서 세션을 교환해야 하므로, 네트워크로 직접 요청을 보내야 합니다.
+  if (url.pathname === '/auth/callback') {
+    console.log('인증 콜백 요청(/auth/callback)은 서비스 워커를 통과합니다.');
+    // event.respondWith()를 호출하지 않고 return하여 브라우저가 기본 동작을 하도록 합니다.
+    return;
+  }
+  // ==================================================================
+
+  // POST, PUT, DELETE 등의 요청은 네트워크만 사용
+  if (event.request.method !== 'GET') {
+    // POST 요청은 네트워크로 바로 보냅니다.
+    // 만약 온라인 상태가 아니면 브라우저가 기본적으로 실패 처리합니다.
+    return; 
+  }
+
   // POST, PUT, DELETE 등의 요청은 네트워크만 사용
   if (event.request.method !== 'GET') {
     event.respondWith(fetch(event.request));
     return;
   }
-
-  const url = new URL(event.request.url);
   
   // API 요청 처리
   if (url.pathname.startsWith('/api/')) {

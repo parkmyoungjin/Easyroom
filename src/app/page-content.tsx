@@ -2,6 +2,7 @@
 
 'use client';
 
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
@@ -50,6 +51,86 @@ export default function PageContent() {
   const router = useRouter();
   const { userProfile, signOut, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
+
+  // Handle Magic Link tokens in URL hash - IMMEDIATE processing
+  useEffect(() => {
+    const handleMagicLinkTokens = async () => {
+      if (typeof window === 'undefined') return;
+      
+      const hash = window.location.hash;
+      const pathname = window.location.pathname;
+      
+      console.log('[PageContent] Current URL:', window.location.href);
+      console.log('[PageContent] Pathname:', pathname);
+      console.log('[PageContent] Hash:', hash);
+      
+      // Only process if we're on the main page with Magic Link tokens
+      if (pathname === '/' && hash.includes('access_token') && hash.includes('type=magiclink')) {
+        console.log('[PageContent] 🚨 Magic Link tokens detected on main page! Processing immediately...');
+        
+        try {
+          // Parse hash parameters
+          const hashParams = new URLSearchParams(hash.substring(1));
+          const accessToken = hashParams.get('access_token');
+          const refreshToken = hashParams.get('refresh_token');
+          const tokenType = hashParams.get('token_type');
+          const type = hashParams.get('type');
+          
+          console.log('[PageContent] Parsed tokens:', { 
+            accessToken: accessToken?.substring(0, 20) + '...', 
+            type,
+            tokenType 
+          });
+          
+          if (accessToken && type === 'magiclink') {
+            // Clear the hash immediately to prevent loops
+            window.history.replaceState(null, '', '/');
+            
+            // Show processing message
+            toast({
+              title: 'Magic Link 인증 처리 중',
+              description: '잠시만 기다려주세요...',
+            });
+            
+            // Import Supabase client and set session directly
+            const { createClient } = await import('@/lib/supabase/client');
+            const supabase = await createClient();
+            
+            console.log('[PageContent] Setting session with Magic Link tokens...');
+            const { error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || ''
+            });
+            
+            if (!error) {
+              console.log('[PageContent] ✅ Session set successfully, redirecting to verified page...');
+              
+              // Redirect to verified page immediately
+              window.location.href = '/auth/callback/verified';
+              return;
+            } else {
+              console.error('[PageContent] ❌ Failed to set session:', error);
+              toast({
+                title: '인증 오류',
+                description: '인증 처리 중 오류가 발생했습니다.',
+                variant: 'destructive',
+              });
+            }
+          }
+        } catch (error) {
+          console.error('[PageContent] ❌ Error handling Magic Link tokens:', error);
+          toast({
+            title: '인증 오류',
+            description: '인증 처리 중 오류가 발생했습니다.',
+            variant: 'destructive',
+          });
+        }
+      }
+    };
+    
+    // Run immediately when component mounts
+    handleMagicLinkTokens();
+  }, [toast]);
   
   // ✅ 로딩 상태를 useAuth 훅의 isLoading으로 통합하여 단순화
   if (isLoading()) {

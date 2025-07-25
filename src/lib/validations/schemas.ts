@@ -41,6 +41,7 @@ export const userInsertSchema = userSchema.omit({
 export const userUpdateSchema = userSchema.partial();
 
 // Room schemas
+// ... (이하 Room, Reservation 스키마는 기존과 동일) ...
 export const roomAmenitiesSchema = z.record(z.string(), z.boolean()).default({});
 
 export const roomSchema = z.object({
@@ -122,11 +123,20 @@ export const reservationUpdateSchema = baseReservationSchema.partial().refine(
   }
 );
 
+
 // Form schemas for UI (이메일 기반 인증)
 export const loginSchema = z.object({
   email: emailSchema,
   password: z.string().min(1, '비밀번호를 입력해주세요'),
 });
+
+// ==================================================================
+// ✅ Magic Link 로그인을 위한 스키마 추가
+// ==================================================================
+export const magicLinkLoginSchema = z.object({
+  email: emailSchema,
+});
+
 
 export const reservationFormSchema = z.object({
   room_id: z.string().uuid('회의실을 선택해주세요'),
@@ -151,6 +161,7 @@ export const roomFormSchema = z.object({
 });
 
 // API parameter schemas
+// ... (이하 기존과 동일) ...
 export const getPublicReservationsSchema = z.object({
   start_date: z.string().datetime(),
   end_date: z.string().datetime(),
@@ -167,8 +178,15 @@ export const dateRangeSchema = z.object({
   }
 );
 
+
 // Type exports
 export type LoginFormData = z.infer<typeof loginSchema>;
+
+// ==================================================================
+// ✅ Magic Link 스키마에 대한 타입 추가
+// ==================================================================
+export type MagicLinkLoginFormData = z.infer<typeof magicLinkLoginSchema>;
+
 export type ReservationFormData = z.infer<typeof reservationSchema>;
 export type RoomFormData = z.infer<typeof roomFormSchema>;
 export type DateRange = z.infer<typeof dateRangeSchema>;
@@ -184,6 +202,7 @@ export const signupSchema = z.object({
 export type SignupFormData = z.infer<typeof signupSchema>;
 
 // UI용 예약 폼 스키마 (new/page에서 사용)
+// ... (이하 기존과 동일) ...
 export const newReservationFormSchema = z.object({
   title: z.string().min(1, "부서명을 입력해주세요"),
   booker: z.string().min(1, "예약자를 입력해주세요"),
