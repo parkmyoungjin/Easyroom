@@ -27,9 +27,12 @@ function LoginContent() {
 
   // ✅ [핵심 로직] 다른 탭에서 오는 '인증 성공' 메시지를 수신 대기합니다.
   useEffect(() => {
+    console.log('[LoginPage] 🎧 Setting up auth success listener...');
+    
     // 메시지를 받았을 때 실행할 동작을 정의합니다.
     const handleAuthSuccess = () => {
-      console.log('다른 탭의 인증 성공 신호를 감지했습니다. 페이지를 새로고침하여 로그인 상태를 갱신합니다.');
+      console.log('[LoginPage] 🎉 다른 탭의 인증 성공 신호를 감지했습니다!');
+      console.log('[LoginPage] 🔄 메인 페이지로 리다이렉트합니다...');
       // 페이지를 강제로 새로고침하여, 서버로부터 최신 세션(쿠키)을 받아오고,
       // useAuth 훅이 새로운 상태를 완전히 새로 그리도록 합니다.
       window.location.href = '/';
@@ -37,10 +40,20 @@ function LoginContent() {
 
     // 새로운 최적화된 인증 시스템을 사용합니다.
     const authSystem = new OptimizedAuthSystem();
+    console.log('[LoginPage] 📡 OptimizedAuthSystem 생성 완료');
+    
     const cleanup = authSystem.listenForAuthSuccess(handleAuthSuccess);
+    console.log('[LoginPage] ✅ Auth success listener 설정 완료');
+
+    // 현재 인증 상태도 확인해보기
+    const currentState = authSystem.getAuthState();
+    console.log('[LoginPage] 📊 현재 인증 상태:', currentState);
 
     // 컴포넌트가 사라질 때(페이지를 떠날 때) 리스너를 정리합니다.
-    return cleanup;
+    return () => {
+      console.log('[LoginPage] 🧹 Auth success listener 정리 중...');
+      cleanup();
+    };
   }, []); // 빈 의존성 배열로, 페이지 로드 시 단 한 번만 실행되도록 합니다.
 
 

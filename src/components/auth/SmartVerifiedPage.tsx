@@ -33,19 +33,26 @@ export default function SmartVerifiedPage({
 
       if (session?.user) {
         // Store authentication success state with proper user info
-        authStateManager.setAuthState({
-          status: 'authenticated',
+        const authState = {
+          status: 'authenticated' as const,
           timestamp: Date.now(),
           userId: session.user.id,
           sessionToken: session.access_token,
-          source: 'external_app'
-        });
+          source: 'external_app' as const
+        };
+        
+        console.log('[SmartVerifiedPage] 📝 Setting auth state:', authState);
+        authStateManager.setAuthState(authState);
 
-        console.log('[SmartVerifiedPage] Auth state set successfully with user:', session.user.id);
+        // Verify the state was set
+        const verifyState = authStateManager.getAuthState();
+        console.log('[SmartVerifiedPage] 🔍 Verified auth state:', verifyState);
+
+        console.log('[SmartVerifiedPage] ✅ Auth state set successfully with user:', session.user.id);
         setAuthStateSet(true);
         onAuthStateSet?.(true);
       } else {
-        console.warn('[SmartVerifiedPage] No session found');
+        console.warn('[SmartVerifiedPage] ❌ No session found');
         onAuthStateSet?.(false);
       }
     } catch (error) {
