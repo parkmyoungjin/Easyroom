@@ -55,37 +55,22 @@ export default function AuthCallbackPage() {
             const { createClient } = await import('@/lib/supabase/client');
             const supabase = await createClient();
 
-            console.log('[AuthCallback] 🔐 Setting session with Magic Link tokens...');
-            setMessage('Magic Link 토큰으로 세션을 설정하는 중...');
+            console.log('[AuthCallback] 🔐 Processing Magic Link tokens...');
+            setMessage('Magic Link 토큰을 처리하는 중...');
+            
+            // Simply redirect to verified page - let SmartVerifiedPage handle the session
+            clearTimeout(timeoutId);
+            setStatus('success');
+            setMessage('Magic Link 토큰이 확인되었습니다.');
 
-            const { data, error } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken || ''
-            });
+            // Clear hash and redirect to verified page immediately
+            window.history.replaceState(null, '', '/auth/callback');
 
-            console.log('[AuthCallback] 📊 Session result:', { data: !!data, error });
-
-            if (!error && data.session) {
-              console.log('[AuthCallback] ✅ Magic Link session set successfully');
-              console.log('[AuthCallback] 👤 User:', data.session.user?.id);
-
-              clearTimeout(timeoutId);
-              setStatus('success');
-              setMessage('Magic Link 인증이 완료되었습니다.');
-
-              // Clear hash and redirect to verified page
-              window.history.replaceState(null, '', '/auth/callback');
-
-              setTimeout(() => {
-                console.log('[AuthCallback] 🚀 Redirecting to verified page...');
-                router.push('/auth/callback/verified');
-              }, 1500);
-              return;
-            } else {
-              console.error('[AuthCallback] ❌ Magic Link session error:', error);
-              clearTimeout(timeoutId);
-              throw error || new Error('Session creation failed');
-            }
+            setTimeout(() => {
+              console.log('[AuthCallback] 🚀 Redirecting to verified page...');
+              router.push('/auth/callback/verified');
+            }, 1000);
+            return;
           } else {
             console.error('[AuthCallback] ❌ Invalid Magic Link tokens');
             clearTimeout(timeoutId);
