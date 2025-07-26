@@ -1,5 +1,5 @@
 // Service Worker Version Management
-const SW_VERSION = '2.1.0';
+const SW_VERSION = '2.1.1';
 const CACHE_NAME = `roombook-v${SW_VERSION}`;
 const STATIC_CACHE = `static-${SW_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-${SW_VERSION}`;
@@ -94,27 +94,31 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-    // ==================================================================
-  // ✅ 여기에 예외 처리 코드를 추가합니다.
   // ==================================================================
-  // Supabase 인증 콜백 경로는 서비스 워커가 절대로 가로채면 안 됩니다.
-  // 서버에서 세션을 교환해야 하므로, 네트워크로 직접 요청을 보내야 합니다.
-  if (url.pathname === '/auth/callback') {
-    console.log('인증 콜백 요청(/auth/callback)은 서비스 워커를 통과합니다.');
-    // event.respondWith()를 호출하지 않고 return하여 브라우저가 기본 동작을 하도록 합니다.
+  // ✅ [핵심 수정] Supabase API 및 인증 관련 예외 처리
+  // ==================================================================
+  
+  // 1. Supabase API 서버로 직접 향하는 모든 요청은 캐시를 완전히 건너뜁니다.
+  //    (인증, 데이터베이스, 스토리지 등 모든 Supabase 요청 포함)
+  if (url.hostname.endsWith('.supabase.co')) {
+    console.log('[SW] Supabase API 요청은 캐시를 통과합니다:', url.href);
+    // event.respondWith()를 호출하지 않고 return하면 브라우저의 기본 fetch 동작을 따릅니다.
+    // 하지만 명시적으로 fetch를 반환하는 것이 더 안전합니다.
+    event.respondWith(fetch(event.request));
     return;
   }
-  // ==================================================================
 
-  // POST, PUT, DELETE 등의 요청은 네트워크만 사용
-  if (event.request.method !== 'GET') {
-    // POST 요청은 네트워크로 바로 보냅니다.
-    // 만약 온라인 상태가 아니면 브라우저가 기본적으로 실패 처리합니다.
-    return; 
-  }
+    // 2. 앱의 인증 콜백 경로는 서비스 워커가 절대로 가로채면 안 됩니다.
+    if (url.pathname === '/auth/callback') {
+      console.log('[SW] 인증 콜백 요청(/auth/callback)은 캐시를 통과합니다.');
+      event.respondWith(fetch(event.request));
+      return;
+    }
 
-  // POST, PUT, DELETE 등의 요청은 네트워크만 사용
+  // POST, PUT, DELETE 등의 요청은 네트워크만 사용 (GET이 아닌 모든 요청)
   if (event.request.method !== 'GET') {
+    console.log('[SW] Non-GET 요청은 네트워크로 직접 보냅니다:', event.request.method, url.pathname);
+    // 이 경우 Background Sync를 사용하는 것을 고려해볼 수 있으나, 우선은 네트워크 우선으로 처리합니다.
     event.respondWith(fetch(event.request));
     return;
   }
