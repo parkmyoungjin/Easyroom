@@ -187,25 +187,26 @@ export default function EditReservationPage() {
       // ✅ 디버깅: 사용자 ID 매핑 상태 확인
       const mappingDebugInfo = await debugUserIdMapping(userProfile, targetReservation);
 
-      // ✅ 사용자 ID 매핑 로깅
-      logger.debug('사용자 ID 매핑 상태', {
-        authId: userProfile.authId,
-        dbId: userProfile.dbId,
-        profileId: userProfile.id,
-        mappingSuccess: mappingDebugInfo.issues.length === 0,
-        issues: mappingDebugInfo.issues,
-      });
+     // ✅ [수정] profileId를 authId로 변경
+     logger.debug('사용자 ID 매핑 상태', {
+      authId: userProfile.authId,
+      dbId: userProfile.dbId,
+      profileId: userProfile.authId, // ⬅️ 여기를 수정
+      mappingSuccess: mappingDebugInfo.issues.length === 0,
+      issues: mappingDebugInfo.issues,
+    });
 
     // ✅ 개선된 권한 검증 로직 사용
     const permissionResult = canEditReservation(targetReservation, userProfile);
     
-    // ✅ 권한 검증 로깅
+    // ✅ [수정] currentUserId를 authId로 변경 (또는 dbId를 사용하는 것이 더 명확할 수 있음)
+    //    canEditReservation 함수가 내부적으로 dbId를 사용하므로, dbId로 통일하는 것이 좋습니다.
     logger.debug('권한 검증 결과', {
       action: 'edit',
       allowed: permissionResult.allowed,
       reservationId: targetReservation.id,
       reservationUserId: targetReservation.user_id,
-      currentUserId: userProfile.id,
+      currentUserId: userProfile.dbId, // ⬅️ 여기를 dbId로 수정
       userRole: userProfile.role,
       reason: permissionResult.reason,
     });
@@ -373,7 +374,7 @@ export default function EditReservationPage() {
 
       logger.debug('예약 수정 폼 제출', {
         reservationId: reservation.id,
-        userId: userProfile.id,
+        userId: userProfile.authId,
         userDbId: userProfile.dbId,
         updateData: {
           room_id: data.roomId,
@@ -407,7 +408,7 @@ export default function EditReservationPage() {
           const reservationError = ReservationErrorHandler.handleReservationError(error, {
             action: 'edit',
             reservationId: reservation.id,
-            userId: userProfile.id,
+            userId: userProfile.authId,
             userDbId: userProfile.dbId,
             timestamp: new Date().toISOString()
           });
@@ -418,7 +419,7 @@ export default function EditReservationPage() {
             reservationId: reservation.id,
             structuredError: reservationError,
             originalError: error instanceof Error ? error.message : 'Unknown error',
-            userId: userProfile.id,
+            userId: userProfile.authId,
             userDbId: userProfile.dbId
           });
           
@@ -434,7 +435,7 @@ export default function EditReservationPage() {
         reservationId: reservation.id,
         error: error instanceof Error ? error.message : 'Unknown error',
         errorStack: error instanceof Error ? error.stack : undefined,
-        userId: userProfile.id
+        userId: userProfile.authId
       });
       
       toast({

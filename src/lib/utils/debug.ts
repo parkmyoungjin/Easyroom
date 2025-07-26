@@ -8,8 +8,8 @@ import type { ReservationWithDetails } from '@/types/database';
 
 export interface UserIdMappingDebugInfo {
   userProfile: {
-    id: string;
     authId: string;
+    dbId: string;
     email: string;
     employeeId: string;
   };
@@ -19,8 +19,8 @@ export interface UserIdMappingDebugInfo {
     title: string;
   };
   mapping: {
-    profileIdMatchesAuthId: boolean;
-    reservationUserIdMatchesProfileId: boolean;
+    // ✅ 비교 로직을 dbId 기준으로 변경
+    reservationUserIdMatchesDbId: boolean;
     reservationUserIdMatchesAuthId: boolean;
   };
   issues: string[];
@@ -35,8 +35,8 @@ export async function debugUserIdMapping(
 ): Promise<UserIdMappingDebugInfo> {
   const debugInfo: UserIdMappingDebugInfo = {
     userProfile: {
-      id: userProfile.id,
       authId: userProfile.authId,
+      dbId: userProfile.dbId, // dbId 로깅 추가
       email: userProfile.email,
       employeeId: userProfile.employeeId || '',
     },
@@ -46,25 +46,23 @@ export async function debugUserIdMapping(
       title: reservation.title,
     } : undefined,
     mapping: {
-      profileIdMatchesAuthId: userProfile.id === userProfile.authId,
-      reservationUserIdMatchesProfileId: reservation ? reservation.user_id === userProfile.id : false,
+      // ✅ [수정] 비교 로직을 dbId 기준으로 변경
+      reservationUserIdMatchesDbId: reservation ? reservation.user_id === userProfile.dbId : false,
       reservationUserIdMatchesAuthId: reservation ? reservation.user_id === userProfile.authId : false,
     },
     issues: []
   };
 
   // 문제점 분석
-  if (!debugInfo.mapping.profileIdMatchesAuthId) {
-    debugInfo.issues.push('UserProfile.id와 UserProfile.authId가 일치하지 않음');
-  }
-
   if (reservation) {
-    if (!debugInfo.mapping.reservationUserIdMatchesProfileId) {
-      debugInfo.issues.push('예약의 user_id와 UserProfile.id가 일치하지 않음');
+    if (!debugInfo.mapping.reservationUserIdMatchesDbId) {
+      // 🚨 가장 중요한 체크: 예약의 소유자 ID(user_id)와 사용자 프로필의 DB ID(dbId)가 일치해야 합니다.
+      debugInfo.issues.push('🚨 예약의 user_id와 UserProfile의 dbId가 일치하지 않습니다! (가장 중요한 체크)');
     }
     
-    if (!debugInfo.mapping.reservationUserIdMatchesAuthId) {
-      debugInfo.issues.push('예약의 user_id와 UserProfile.authId가 일치하지 않음');
+    if (debugInfo.mapping.reservationUserIdMatchesAuthId) {
+      // 이것은 보통 문제가 됩니다. user_id는 dbId여야 하기 때문입니다.
+      debugInfo.issues.push('⚠️ 예약의 user_id가 UserProfile의 authId와 일치합니다. (보통 dbId와 일치해야 함)');
     }
   }
 
@@ -103,11 +101,12 @@ export async function debugPermissionCheck(
   reservation: ReservationWithDetails,
   result: boolean
 ) {
+  // ✅ [수정] user 객체에서 id 필드 제거, dbId 추가
   const debugInfo = {
     action,
     user: {
-      id: userProfile.id,
       authId: userProfile.authId,
+      dbId: userProfile.dbId, // dbId 로깅 추가
       role: userProfile.role,
       email: userProfile.email,
     },
@@ -118,13 +117,15 @@ export async function debugPermissionCheck(
       status: reservation.status,
     },
     checks: {
-      isOwner: reservation.user_id === userProfile.id,
-      isOwnerByAuthId: reservation.user_id === userProfile.authId,
+      // ✅ [수정] isOwner 체크를 dbId 기준으로 변경
+      isOwner: reservation.user_id === userProfile.dbId,
+      isOwnerByAuthId: reservation.user_id === userProfile.authId, // 참고용으로 유지
       isAdmin: userProfile.role === 'admin',
       isNotCancelled: reservation.status !== 'cancelled',
     },
     result,
   };
+
 
   const nodeEnv = await import('@/lib/security/secure-environment-access')
     .then(({ getPublicEnvVar }) => getPublicEnvVar('NODE_ENV', 'debug-utils'))

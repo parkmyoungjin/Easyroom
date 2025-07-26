@@ -129,7 +129,7 @@ export function ReservationCancelDialog({ reservation, open, onOpenChange }: Res
           const reservationError = ReservationErrorHandler.handleReservationError(error, {
             action: 'cancel',
             reservationId,
-            userId: userProfile?.id,
+            userId: userProfile?.authId,
             userRole: userProfile?.role,
             timestamp: new Date().toISOString(),
             retryCount,

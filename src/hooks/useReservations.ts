@@ -92,7 +92,7 @@ export function useMyReservations(): { data: ReservationWithDetails[] | undefine
     queryKey: reservationKeys.my(userProfile?.authId),
     queryFn: createStandardFetch(
       async () => {
-        if (!userProfile?.id) {
+        if (!userProfile?.authId) {
           logger.warn('사용자 ID가 없어 내 예약을 조회할 수 없습니다');
           return [];
         }
@@ -109,7 +109,7 @@ export function useMyReservations(): { data: ReservationWithDetails[] | undefine
           logger.error('사용자 정보 조회 실패:', {
             error: userError,
             userProfileAuthId: userProfile.authId,
-            userProfileId: userProfile.id
+            userProfileId: userProfile.authId
           });
           throw new Error('사용자 정보를 찾을 수 없습니다.');
         }
@@ -133,12 +133,12 @@ export function useMyReservations(): { data: ReservationWithDetails[] | undefine
       {
         operation: 'fetch my reservations',
         params: { 
-          userProfileId: userProfile?.id,
+          userProfileId: userProfile?.authId,
           userProfileAuthId: userProfile?.authId 
         }
       }
     ),
-    enabled: !!userProfile?.id,
+    enabled: !!userProfile?.authId,
     dataType: 'semi-static',
     cacheConfig: {
       customStaleTime: 0, // 2 minutes

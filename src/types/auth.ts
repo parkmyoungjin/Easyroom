@@ -6,7 +6,7 @@ import type { AuthId, DatabaseUserId } from './enhanced-types';
 export interface UserMetadata {
   fullName: string
   department: string
-  employeeId: string
+  employeeId?: string
   role: 'admin' | 'employee'
 }
 
@@ -15,16 +15,16 @@ export interface UserMetadata {
  * Enhanced with branded types for type safety
  */
 export interface UserProfile {
-  id: string          // Auth ID (auth.uid()) - legacy string for compatibility
-  authId: AuthId      // Enhanced branded AuthId type
-  dbId?: DatabaseUserId // Enhanced branded DatabaseUserId type
-  employeeId?: string // 선택사항 (기존 호환성)
-  email: string
-  name: string
-  department: string
-  role: 'admin' | 'employee'
-  createdAt: string
-  updatedAt?: string
+  authId: AuthId;      // Branded AuthId
+  dbId: DatabaseUserId; // Branded DatabaseUserId (이제 필수)
+  employeeId?: string;
+  email: string;
+  name: string;
+  department: string;
+  role: 'admin' | 'employee';
+  createdAt: string;
+  updatedAt?: string;
+  // id: string;
 }
 
 /**

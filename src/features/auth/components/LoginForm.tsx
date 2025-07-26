@@ -1,43 +1,31 @@
 // @/features/auth/components/LoginForm.tsx
-
 'use client';
 
-import { LogIn, Mail, UserPlus, AlertCircle, Loader2 } from 'lucide-react'; // ✅ Loader2 아이콘 추가
+import { LogIn, Mail, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
 import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
+  Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle,
 } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/hooks/useAuth'; // ✅ LoginForm이 직접 useAuth를 사용합니다.
 import { magicLinkLoginSchema, type MagicLinkLoginFormData } from '@/lib/validations/schemas'; 
-import { handleAuthError } from '@/lib/utils/auth-error-handler';
 import Link from 'next/link';
 
-// ✅ 1. 컴포넌트가 부모(login/page.tsx)로부터 받을 Props의 타입을 정의합니다.
-interface LoginFormProps {
-  onManualCheck: () => void;
-  isChecking: boolean;
-}
-
-// ✅ 2. 컴포넌트 선언부에서 props를 받도록 수정합니다.
-export function LoginForm({ onManualCheck, isChecking }: LoginFormProps) {
+// ✅ 더 이상 부모로부터 props를 받을 필요가 없습니다.
+export function LoginForm() {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [isLinkSent, setIsLinkSent] = useState(false);
 
   const { toast } = useToast();
+  // ✅ 리팩터링된 useAuth 훅에서 필요한 함수를 직접 가져옵니다.
   const { signInWithMagicLink } = useAuth(); 
 
   const form = useForm<MagicLinkLoginFormData>({
@@ -57,9 +45,8 @@ export function LoginForm({ onManualCheck, isChecking }: LoginFormProps) {
           title: '로그인 링크 전송 완료',
           description: '이메일을 확인하여 로그인 링크를 클릭해주세요.',
         });
-      } catch (err) {
-        const userFriendlyError = handleAuthError(err);
-        setError(userFriendlyError.message);
+      } catch (err: any) {
+        setError(err.message || '알 수 없는 오류가 발생했습니다.');
         console.error('Magic Link 로그인 에러:', err);
       }
     });
@@ -75,33 +62,24 @@ export function LoginForm({ onManualCheck, isChecking }: LoginFormProps) {
           <CardTitle className="mt-4 text-2xl font-bold tracking-tight">회의실 예약 시스템</CardTitle>
           <CardDescription>
             {isLinkSent 
-              ? "메일함을 확인해주세요." 
+              ? "메일함을 확인하고 인증 링크를 클릭해주세요." 
               : "이메일 주소를 입력하시면 로그인 링크를 보내드립니다."}
           </CardDescription>
         </CardHeader>
 
         <CardContent>
-          {/* ✅ 3. 이메일이 전송된 후, 기존의 정적 Alert 대신 '인증 확인' 버튼을 포함한 UI를 보여줍니다. */}
+          {/* ✅ 이메일이 전송된 후에는 간단한 안내 메시지만 보여줍니다. */}
+          {/*    모든 인증 확인은 AuthProvider가 자동으로 처리합니다. */}
           {isLinkSent ? (
             <div className="text-center p-4 sm:p-6 bg-slate-50 dark:bg-slate-800 rounded-lg">
               <Mail className="h-8 w-8 mx-auto text-green-500" />
               <h3 className="font-bold text-lg mt-3">이메일을 확인해주세요</h3>
-              <p className="text-sm text-muted-foreground mt-2 mb-4">
-                다른 창이나 메일 앱에서 인증을 완료한 후, 아래 버튼을 눌러 로그인을 완료하세요.
+              <p className="text-sm text-muted-foreground mt-2">
+                메일함의 링크를 클릭하면 자동으로 로그인됩니다.
               </p>
-              {/* ✅ 4. 부모로부터 전달받은 props를 실제 버튼에 연결합니다. */}
-              <Button
-                onClick={onManualCheck}
-                disabled={isChecking}
-                className="w-full"
-                size="lg"
-              >
-                {isChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isChecking ? '확인 중...' : '인증 완료 및 로그인'}
-              </Button>
             </div>
           ) : (
-            // --- 이메일 입력 폼 부분은 기존 코드와 동일합니다. ---
+            // --- 이메일 입력 폼 부분은 기존과 거의 동일 ---
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {error && (
@@ -135,7 +113,7 @@ export function LoginForm({ onManualCheck, isChecking }: LoginFormProps) {
                   )}
                 />
                 <Button type="submit" className="w-full" disabled={isPending}>
-                  {isPending && <Loader2 className="mr-2 h-4 w-4 border-b-2 border-current" />}
+                  {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {isPending ? '전송 중...' : '이메일로 로그인 링크 받기'}
                 </Button>
               </form>
@@ -143,7 +121,6 @@ export function LoginForm({ onManualCheck, isChecking }: LoginFormProps) {
           )}
         </CardContent>
 
-        {/* ✅ '새로운 계정 만들기' 버튼은 이메일 전송 전/후 모두 보여주는 것이 좋으므로 CardFooter는 유지합니다. */}
         <CardFooter className="flex flex-col items-center gap-4 pt-6">
           <Separator />
           <p className="text-sm text-muted-foreground">

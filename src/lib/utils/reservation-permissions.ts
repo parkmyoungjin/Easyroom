@@ -29,11 +29,11 @@ export function canEditReservation(
 ): PermissionCheckResult {
   const details = {
     isOwnerByDbId: !!(user.dbId && reservation.user_id === user.dbId),
-    isOwnerByAuthId: reservation.user_id === user.id,
+    isOwnerByAuthId: reservation.user_id === user.authId,
     isAdmin: user.role === 'admin',
     isNotCancelled: reservation.status !== 'cancelled',
     userDbId: user.dbId,
-    userAuthId: user.id,
+    userAuthId: user.authId,
     reservationUserId: reservation.user_id,
   };
 
@@ -57,7 +57,7 @@ export function canEditReservation(
 
   logger.debug('예약 수정 권한 검증', {
     reservationId: reservation.id,
-    userId: user.id,
+    userId: user.authId,
     result,
   });
 
@@ -73,11 +73,11 @@ export function canCancelReservation(
 ): PermissionCheckResult {
   const details = {
     isOwnerByDbId: !!(user.dbId && reservation.user_id === user.dbId),
-    isOwnerByAuthId: reservation.user_id === user.id,
+    isOwnerByAuthId: reservation.user_id === user.authId,
     isAdmin: user.role === 'admin',
     isNotCancelled: reservation.status !== 'cancelled',
     userDbId: user.dbId,
-    userAuthId: user.id,
+    userAuthId: user.authId,
     reservationUserId: reservation.user_id,
   };
 
@@ -114,7 +114,7 @@ export function canCancelReservation(
 
   logger.debug('예약 취소 권한 검증', {
     reservationId: reservation.id,
-    userId: user.id,
+    userId: user.authId,
     minutesUntilStart: minutesDiff,
     result,
   });
@@ -180,7 +180,7 @@ export function isReservationOwner(
   user: UserProfile
 ): boolean {
   const isOwnerByDbId = !!(user.dbId && reservation.user_id === user.dbId);
-  const isOwnerByAuthId = reservation.user_id === user.id;
+  const isOwnerByAuthId = reservation.user_id === user.authId;
   return isOwnerByDbId || isOwnerByAuthId;
 }
 

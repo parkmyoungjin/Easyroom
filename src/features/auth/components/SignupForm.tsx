@@ -12,9 +12,10 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { signupSchema, type SignupFormData } from '@/lib/validations/schemas';
-import { UserPlus, ArrowLeft, Mail, Lock, User, Briefcase, AlertCircle } from 'lucide-react';
+import { UserPlus, ArrowLeft, Mail, Lock, User, Briefcase, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
+// handleAuthError는 여전히 유용하므로 유지합니다.
 import { handleAuthError } from '@/lib/utils/auth-error-handler';
 
 export function SignupForm() {
@@ -23,16 +24,12 @@ export function SignupForm() {
   const [error, setError] = useState<string | null>(null);
   
   const { toast } = useToast();
-  const { signUp, checkEmailExists } = useAuth();
+  // ✅ 이제 signUp 함수만 필요합니다.
+  const { signUp } = useAuth();
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      name: '',
-      department: '',
-    },
+    defaultValues: { email: '', password: '', name: '', department: '' },
   });
 
   const onSubmit = (data: SignupFormData) => {
@@ -40,19 +37,8 @@ export function SignupForm() {
 
     startTransition(async () => {
       try {
-        // 1. 이메일 중복 확인
-        const isEmailTaken = await checkEmailExists(data.email);
-        if (isEmailTaken) {
-          setError('이미 사용 중인 이메일입니다. 다른 이메일을 사용해주세요.');
-          // react-hook-form의 에러 상태와 연결
-          form.setError("email", { 
-            type: "manual", 
-            message: "이미 사용 중인 이메일입니다." 
-          });
-          return;
-        }
-
-        // 2. 회원가입 요청
+        // ✅ 1. 회원가입 요청을 바로 보냅니다.
+        //    useAuth의 signUp 함수가 내부적으로 이메일 중복을 처리하고 에러를 던집니다.
         await signUp(
           data.email,
           data.password,
@@ -60,18 +46,28 @@ export function SignupForm() {
           data.department
         );
 
-        // 3. 성공 처리
+        // 2. 성공 처리
         toast({
           title: '회원가입 성공!',
-          description: '이메일 인증 링크가 발송되었습니다. 이메일을 확인하여 인증을 완료해주세요.',
+          description: '이메일 인증 링크가 발송되었습니다. 메일을 확인해주세요.',
+          duration: 5000,
         });
         
-        // 로그인 페이지로 이동
-        router.push('/login');
+        // ✅ 3. 로그인 페이지로 이동하며, 방금 가입했다는 표시(쿼리 파라미터)를 추가합니다.
+        router.push('/login?from=signup');
 
       } catch (err) {
+        // signUp 함수에서 던진 에러를 처리합니다.
         const userFriendlyError = handleAuthError(err);
         setError(userFriendlyError.message);
+
+        // ✅ 만약 에러 메시지가 이메일 중복 관련이면, react-hook-form 에러 상태와 연결합니다.
+        if (userFriendlyError.message.includes('이미 가입된') || userFriendlyError.message.includes('사용 중인 이메일')) {
+            form.setError("email", { 
+                type: "manual", 
+                message: userFriendlyError.message
+            });
+        }
         console.error('회원가입 에러:', err);
       }
     });
@@ -99,89 +95,21 @@ export function SignupForm() {
                 </Alert>
               )}
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>이메일</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input {...field} type="email" placeholder="user@example.com" className="pl-10" disabled={isPending} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* ... (폼 필드들은 기존과 동일) ... */}
+              <FormField control={form.control} name="email" render={({ field }) => ( <FormItem> <FormLabel>이메일</FormLabel> <FormControl> <div className="relative"> <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /> <Input {...field} type="email" placeholder="user@example.com" className="pl-10" disabled={isPending} /> </div> </FormControl> <FormMessage /> </FormItem> )} />
+              <FormField control={form.control} name="password" render={({ field }) => ( <FormItem> <FormLabel>비밀번호</FormLabel> <FormControl> <div className="relative"> <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /> <Input {...field} type="password" placeholder="대/소문자, 숫자를 포함한 8자 이상" className="pl-10" disabled={isPending} /> </div> </FormControl> <FormMessage /> </FormItem> )} />
+              <FormField control={form.control} name="name" render={({ field }) => ( <FormItem> <FormLabel>이름</FormLabel> <FormControl> <div className="relative"> <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /> <Input {...field} placeholder="홍길동" className="pl-10" disabled={isPending} /> </div> </FormControl> <FormMessage /> </FormItem> )} />
+              <FormField control={form.control} name="department" render={({ field }) => ( <FormItem> <FormLabel>부서</FormLabel> <FormControl> <div className="relative"> <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /> <Input {...field} placeholder="예: 신사업추진팀" className="pl-10" disabled={isPending} /> </div> </FormControl> <FormMessage /> </FormItem> )} />
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>비밀번호</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input {...field} type="password" placeholder="대/소문자, 숫자를 포함한 8자 이상" className="pl-10" disabled={isPending} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>이름</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input {...field} placeholder="홍길동" className="pl-10" disabled={isPending} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="department"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>부서</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Briefcase className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input {...field} placeholder="예: 신사업추진팀" className="pl-10" disabled={isPending} />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
               <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                    가입 처리 중...
-                  </>
-                ) : (
-                  '가입하기'
-                )}
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isPending ? '가입 처리 중...' : '인증 이메일 받고 가입하기'}
               </Button>
             </form>
           </Form>
         </CardContent>
 
-        <CardFooter className="flex flex-col items-center gap-4">
+        <CardFooter className="flex flex-col items-center gap-4 pt-6">
           <Separator />
           <p className="text-sm text-muted-foreground">
             이미 계정이 있으신가요?
