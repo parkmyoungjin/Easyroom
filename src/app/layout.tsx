@@ -52,7 +52,7 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen bg-background antialiased`}>
         <ClientPolyfillManager enableServiceWorker={true} enablePWAComponents={true}>
           <Providers>
-            <MagicLinkHandler />
+            {/* MagicLinkHandler /> */}
             {children}
             <Toaster />
           </Providers>

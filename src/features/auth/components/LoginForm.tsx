@@ -1,8 +1,9 @@
+// @/features/auth/components/LoginForm.tsx
+
 'use client';
 
-// ✅ Lock 아이콘은 더 이상 필요 없으므로 제거합니다.
-import { LogIn, Mail, UserPlus, AlertCircle } from 'lucide-react';
-import { useState, useEffect, useTransition } from 'react';
+import { LogIn, Mail, UserPlus, AlertCircle, Loader2 } from 'lucide-react'; // ✅ Loader2 아이콘 추가
+import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
@@ -20,56 +21,38 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-// ✅ 새로 만든 Magic Link 스키마와 타입을 가져옵니다.
 import { magicLinkLoginSchema, type MagicLinkLoginFormData } from '@/lib/validations/schemas'; 
 import { handleAuthError } from '@/lib/utils/auth-error-handler';
 import Link from 'next/link';
 
-export function LoginForm() {
+// ✅ 1. 컴포넌트가 부모(login/page.tsx)로부터 받을 Props의 타입을 정의합니다.
+interface LoginFormProps {
+  onManualCheck: () => void;
+  isChecking: boolean;
+}
+
+// ✅ 2. 컴포넌트 선언부에서 props를 받도록 수정합니다.
+export function LoginForm({ onManualCheck, isChecking }: LoginFormProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  // ✅ Magic Link 전송 성공 여부를 추적하는 상태를 추가합니다.
   const [isLinkSent, setIsLinkSent] = useState(false);
 
   const { toast } = useToast();
-  // ✅ useAuth 훅에서 signIn 대신 signInWithMagicLink를 가져옵니다.
   const { signInWithMagicLink } = useAuth(); 
 
   const form = useForm<MagicLinkLoginFormData>({
-    // ✅ zodResolver에 새로운 스키마를 적용합니다.
     resolver: zodResolver(magicLinkLoginSchema),
-    // ✅ 기본값에서 password를 제거합니다.
     defaultValues: { email: '' },
   });
 
-  // URL의 timeout 파라미터 확인 로직은 그대로 유지 (세션 만료 처리에 유용)
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('timeout') === 'true') {
-        toast({
-          title: '세션 만료',
-          description: '인증 세션이 만료되어 로그인 페이지로 이동했습니다. 다시 로그인해주세요.',
-          variant: 'destructive',
-        });
-        
-        const newUrl = new URL(window.location.href);
-        newUrl.searchParams.delete('timeout');
-        window.history.replaceState({}, '', newUrl.toString());
-      }
-    }
-  }, [toast]);
-
-  // ✅ Magic Link 전송을 위한 onSubmit 함수
   const onSubmit = (data: MagicLinkLoginFormData) => {
-    setError(null); // 이전 에러 메시지 초기화
-    setIsLinkSent(false); // 링크 전송 상태 초기화
+    setError(null);
+    setIsLinkSent(false);
 
     startTransition(async () => {
       try {
-        // ✅ signInWithMagicLink 함수를 호출합니다.
         await signInWithMagicLink(data.email);
-        setIsLinkSent(true); // 링크 전송 성공!
+        setIsLinkSent(true);
         toast({
           title: '로그인 링크 전송 완료',
           description: '이메일을 확인하여 로그인 링크를 클릭해주세요.',
@@ -90,7 +73,6 @@ export function LoginForm() {
             <LogIn className="h-6 w-6 text-primary" />
           </div>
           <CardTitle className="mt-4 text-2xl font-bold tracking-tight">회의실 예약 시스템</CardTitle>
-          {/* ✅ isLinkSent 상태에 따라 다른 설명을 보여줍니다. */}
           <CardDescription>
             {isLinkSent 
               ? "메일함을 확인해주세요." 
@@ -99,16 +81,27 @@ export function LoginForm() {
         </CardHeader>
 
         <CardContent>
-          {/* ✅ isLinkSent가 true이면 폼 대신 안내 메시지를 보여줍니다. */}
+          {/* ✅ 3. 이메일이 전송된 후, 기존의 정적 Alert 대신 '인증 확인' 버튼을 포함한 UI를 보여줍니다. */}
           {isLinkSent ? (
-            <Alert variant="default" className="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-300">
-              <Mail className="h-4 w-4 !text-green-600 dark:!text-green-400" />
-              <AlertTitle className="font-semibold">전송 완료!</AlertTitle>
-              <AlertDescription>
-                입력하신 이메일 주소로 로그인 링크를 보냈습니다. 받은편지함을 확인해주세요. 링크는 일정 시간 후 만료됩니다.
-              </AlertDescription>
-            </Alert>
+            <div className="text-center p-4 sm:p-6 bg-slate-50 dark:bg-slate-800 rounded-lg">
+              <Mail className="h-8 w-8 mx-auto text-green-500" />
+              <h3 className="font-bold text-lg mt-3">이메일을 확인해주세요</h3>
+              <p className="text-sm text-muted-foreground mt-2 mb-4">
+                다른 창이나 메일 앱에서 인증을 완료한 후, 아래 버튼을 눌러 로그인을 완료하세요.
+              </p>
+              {/* ✅ 4. 부모로부터 전달받은 props를 실제 버튼에 연결합니다. */}
+              <Button
+                onClick={onManualCheck}
+                disabled={isChecking}
+                className="w-full"
+                size="lg"
+              >
+                {isChecking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isChecking ? '확인 중...' : '인증 완료 및 로그인'}
+              </Button>
+            </div>
           ) : (
+            // --- 이메일 입력 폼 부분은 기존 코드와 동일합니다. ---
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {error && (
@@ -118,7 +111,6 @@ export function LoginForm() {
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
-
                 <FormField
                   control={form.control}
                   name="email"
@@ -142,29 +134,17 @@ export function LoginForm() {
                     </FormItem>
                   )}
                 />
-
-                {/* ✅ 비밀번호 FormField는 완전히 제거되었습니다. */}
-
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isPending}
-                >
-                  {isPending ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
-                      전송 중...
-                    </>
-                  ) : (
-                    '이메일로 로그인 링크 받기'
-                  )}
+                <Button type="submit" className="w-full" disabled={isPending}>
+                  {isPending && <Loader2 className="mr-2 h-4 w-4 border-b-2 border-current" />}
+                  {isPending ? '전송 중...' : '이메일로 로그인 링크 받기'}
                 </Button>
               </form>
             </Form>
           )}
         </CardContent>
 
-        <CardFooter className="flex flex-col items-center gap-4">
+        {/* ✅ '새로운 계정 만들기' 버튼은 이메일 전송 전/후 모두 보여주는 것이 좋으므로 CardFooter는 유지합니다. */}
+        <CardFooter className="flex flex-col items-center gap-4 pt-6">
           <Separator />
           <p className="text-sm text-muted-foreground">
             아직 계정이 없으신가요?
