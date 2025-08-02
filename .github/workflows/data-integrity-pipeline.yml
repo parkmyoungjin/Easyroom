@@ -1,0 +1,1153 @@
+name: CI/CD Pipeline with Safety Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: 'Pipeline stage to run'
+        required: true
+        default: 'pre_deployment'
+        type: choice
+        options:
+          - pre_deployment
+          - post_deployment
+          - rollback_check
+          - scheduled_check
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+          - development
+      skip_migration:
+        description: 'Skip database migration'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '18'
+  SUPABASE_CLI_VERSION: '1.200.3'
+
+jobs:
+  # Stage 1: Code Quality and Security Validation
+  code-quality-validation:
+    name: Code Quality & Security Validation
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run ESLint with security rules
+        run: npm run lint
+        
+      - name: Run TypeScript type checking
+        run: npm run type-check
+        
+      - name: Run security audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+        
+      - name: Check for environment variable leaks
+        run: |
+          echo "🔍 Checking for potential environment variable leaks..."
+          if grep -r "process\.env\." src/ --exclude-dir=node_modules --exclude="*.test.*" --exclude="*.spec.*"; then
+            echo "⚠️ Direct process.env access found - should use EnvironmentSecurityManager"
+            exit 1
+          else
+            echo "✅ No direct process.env access found"
+          fi
+          
+      - name: Validate API route security patterns
+        run: |
+          echo "🔍 Validating API route security patterns..."
+          # Check for withValidation usage in API routes
+          API_ROUTES=$(find src/app/api -name "route.ts" -o -name "route.js")
+          MISSING_VALIDATION=0
+          
+          for route in $API_ROUTES; do
+            if ! grep -q "withValidation\|z\.object\|zod" "$route"; then
+              echo "⚠️ Missing validation in: $route"
+              MISSING_VALIDATION=1
+            fi
+          done
+          
+          if [ $MISSING_VALIDATION -eq 1 ]; then
+            echo "❌ Some API routes missing input validation"
+            exit 1
+          else
+            echo "✅ All API routes have validation patterns"
+          fi
+
+  # Stage 2: Comprehensive Testing
+  comprehensive-testing:
+    name: Comprehensive Testing Suite
+    runs-on: ubuntu-latest
+    needs: code-quality-validation
+    if: github.event_name != 'schedule'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup test environment
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL" >> .env.local
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY" >> .env.local
+          
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+        
+      - name: Run infrastructure tests
+        run: npm run test:infrastructure
+        
+      - name: Run data integrity tests
+        run: npm run test:data-integrity
+        
+      - name: Run security and performance tests
+        run: npm run test:security-performance
+        
+      - name: Run API validation tests
+        run: npm run test:api-validation
+        
+      - name: Run performance benchmark tests
+        run: npm run test:performance-benchmark
+        
+      - name: Check test coverage thresholds
+        run: |
+          echo "🔍 Checking test coverage thresholds..."
+          if [ -f "coverage/coverage-summary.json" ]; then
+            COVERAGE=$(node -e "
+              const coverage = require('./coverage/coverage-summary.json');
+              const lines = coverage.total.lines.pct;
+              const functions = coverage.total.functions.pct;
+              const branches = coverage.total.branches.pct;
+              const statements = coverage.total.statements.pct;
+              
+              console.log('Lines:', lines + '%');
+              console.log('Functions:', functions + '%');
+              console.log('Branches:', branches + '%');
+              console.log('Statements:', statements + '%');
+              
+              if (lines < 80 || functions < 80 || branches < 70 || statements < 80) {
+                console.log('❌ Coverage below thresholds');
+                process.exit(1);
+              } else {
+                console.log('✅ Coverage meets thresholds');
+              }
+            ")
+          else
+            echo "⚠️ Coverage report not found"
+          fi
+          
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ github.run_number }}
+          path: |
+            coverage/
+            test-results/
+          retention-days: 30
+
+  # Stage 3: Database Migration Validation
+  database-migration-validation:
+    name: Database Migration Validation
+    runs-on: ubuntu-latest
+    needs: comprehensive-testing
+    if: github.event_name != 'schedule' && github.event.inputs.skip_migration != 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v${{ env.SUPABASE_CLI_VERSION }}/supabase_linux_amd64.tar.gz | tar -xz
+          sudo mv supabase /usr/local/bin/
+          supabase --version
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup environment variables
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL" >> .env.local
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY" >> .env.local
+          
+      - name: Validate migration syntax
+        run: |
+          echo "🔍 Validating migration syntax..."
+          node scripts/validate-migration-syntax.js
+          
+      - name: Check migration dependencies
+        run: |
+          echo "🔍 Checking migration dependencies..."
+          # Ensure migrations are in correct order and don't conflict
+          MIGRATIONS=$(ls supabase/migrations/*.sql | sort)
+          echo "Found migrations:"
+          echo "$MIGRATIONS"
+          
+          # Check for potential conflicts in migration names
+          DUPLICATES=$(ls supabase/migrations/*.sql | xargs -n1 basename | cut -d'_' -f1 | sort | uniq -d)
+          if [ -n "$DUPLICATES" ]; then
+            echo "❌ Duplicate migration timestamps found: $DUPLICATES"
+            exit 1
+          else
+            echo "✅ No duplicate migration timestamps"
+          fi
+          
+      - name: Dry run migrations (staging)
+        if: github.event.inputs.environment != 'production'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: |
+          echo "🧪 Running migration dry run..."
+          # Link to staging project for dry run
+          supabase link --project-ref $SUPABASE_PROJECT_ID
+          
+          # Check current migration status
+          supabase db diff --schema public
+          
+          echo "✅ Migration dry run completed"
+          
+      - name: Create migration backup point
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "💾 Creating migration backup point..."
+          mkdir -p migration-backups
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%S")
+          echo "Backup timestamp: $TIMESTAMP" > migration-backups/backup-$TIMESTAMP.txt
+          echo "backup_timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+        id: backup
+
+  # Stage 4: Data Integrity Validation (Enhanced)
+  data-integrity-validation:
+    name: Data Integrity Validation
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        stage: 
+          - ${{ github.event.inputs.stage || 'pre_deployment' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup environment variables
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL" >> .env.local
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY" >> .env.local
+          
+      - name: Create reports directory
+        run: mkdir -p ci-reports
+        
+      - name: Run type checking
+        run: npm run type-check
+        
+      - name: Run linting
+        run: npm run lint
+        
+      - name: Run unit tests
+        run: npm run test:coverage
+        
+      - name: Run data integrity pipeline
+        id: integrity-check
+        env:
+          PIPELINE_STAGE: ${{ matrix.stage }}
+          PIPELINE_ENVIRONMENT: ${{ github.event.inputs.environment || 'production' }}
+        run: |
+          echo "Running data integrity pipeline for stage: $PIPELINE_STAGE"
+          node scripts/ci-data-integrity-pipeline.js $PIPELINE_STAGE $PIPELINE_ENVIRONMENT
+        continue-on-error: true
+        
+      - name: Check pipeline results
+        id: check-results
+        run: |
+          if [ -f "ci-reports/ROLLBACK_REQUIRED.json" ]; then
+            echo "rollback_required=true" >> $GITHUB_OUTPUT
+            echo "🚨 Rollback required - critical data integrity issues detected"
+            exit 1
+          fi
+          
+          # Check exit code from the latest report
+          LATEST_EXITCODE_FILE=$(ls -t ci-reports/*-exitcode.txt 2>/dev/null | head -n1)
+          if [ -f "$LATEST_EXITCODE_FILE" ]; then
+            EXIT_CODE=$(cat "$LATEST_EXITCODE_FILE")
+            echo "pipeline_exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+            
+            case $EXIT_CODE in
+              0)
+                echo "✅ Data integrity validation passed"
+                ;;
+              1)
+                echo "⚠️ Data integrity validation failed - review required"
+                exit 1
+                ;;
+              2)
+                echo "🚨 Critical data integrity issues detected"
+                exit 2
+                ;;
+              3)
+                echo "💥 Pipeline execution error"
+                exit 3
+                ;;
+              4)
+                echo "🚨 Rollback required"
+                exit 4
+                ;;
+              *)
+                echo "❓ Unknown exit code: $EXIT_CODE"
+                exit 1
+                ;;
+            esac
+          else
+            echo "❌ Could not determine pipeline exit code"
+            exit 1
+          fi
+          
+      - name: Upload pipeline reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: data-integrity-reports-${{ matrix.stage }}-${{ github.run_number }}
+          path: |
+            ci-reports/
+            coverage/
+          retention-days: 30
+          
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: junit-results-${{ matrix.stage }}-${{ github.run_number }}
+          path: ci-reports/*-junit.xml
+          retention-days: 30
+          
+      - name: Comment on PR with results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            try {
+              // Find the latest pipeline report
+              const reportsDir = 'ci-reports';
+              const files = fs.readdirSync(reportsDir);
+              const latestReport = files
+                .filter(f => f.startsWith('latest-pipeline-'))
+                .sort()
+                .pop();
+              
+              if (latestReport) {
+                const reportPath = path.join(reportsDir, latestReport);
+                const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+                
+                const statusIcon = report.success ? '✅' : '❌';
+                const rollbackIcon = report.rollbackRequired ? '🚨 ROLLBACK REQUIRED' : '';
+                
+                const comment = `## ${statusIcon} Data Integrity Pipeline Results ${rollbackIcon}
+                
+**Stage:** ${report.stage}
+**Environment:** ${report.environment}
+**Timestamp:** ${report.timestamp}
+**Exit Code:** ${report.exitCode}
+
+### Summary
+- **Total Checks:** ${report.summary.totalChecks}
+- **Passed:** ${report.summary.passedChecks}
+- **Failed:** ${report.summary.failedChecks}
+- **Total Issues:** ${report.summary.totalIssues}
+- **Critical:** ${report.summary.criticalIssues}
+- **Error:** ${report.summary.errorIssues}
+- **Warning:** ${report.summary.warningIssues}
+
+${report.rollbackRequired ? `### 🚨 Rollback Required
+**Reason:** ${report.rollbackReason}
+
+**Do not merge this PR until critical issues are resolved.**` : ''}
+
+${report.recommendations.length > 0 ? `### Recommendations
+${report.recommendations.map(rec => `- ${rec}`).join('\n')}` : ''}
+
+<details>
+<summary>View detailed results</summary>
+
+${report.checks.map(check => `
+**${check.passed ? '✅' : '❌'} ${check.name}**
+${check.issues && check.issues.length > 0 ? 
+  check.issues.slice(0, 3).map(issue => `- [${issue.severity?.toUpperCase() || 'ERROR'}] ${issue.description}`).join('\n') +
+  (check.issues.length > 3 ? `\n- ... and ${check.issues.length - 3} more issues` : '')
+  : 'No issues found'}
+`).join('\n')}
+
+</details>`;
+                
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: comment
+                });
+              }
+            } catch (error) {
+              console.error('Failed to post comment:', error);
+            }
+            
+      - name: Notify on failure
+        if: failure() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 Data Integrity Pipeline Failed';
+            const body = `Data integrity validation failed on ${context.ref}
+            
+**Workflow:** ${context.workflow}
+**Run ID:** ${context.runId}
+**Commit:** ${context.sha}
+**Actor:** ${context.actor}
+
+Please check the pipeline results and address any critical issues immediately.
+
+[View workflow run](${context.payload.repository.html_url}/actions/runs/${context.runId})`;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['bug', 'data-integrity', 'critical']
+            });
+
+  # Stage 5: Database Migration Application
+  database-migration-application:
+    name: Database Migration Application
+    runs-on: ubuntu-latest
+    needs: [database-migration-validation, data-integrity-validation]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && github.event.inputs.skip_migration != 'true'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install Supabase CLI
+        run: |
+          curl -fsSL https://github.com/supabase/cli/releases/download/v${{ env.SUPABASE_CLI_VERSION }}/supabase_linux_amd64.tar.gz | tar -xz
+          sudo mv supabase /usr/local/bin/
+          supabase --version
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup environment variables
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL" >> .env.local
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY" >> .env.local
+          
+      - name: Create pre-migration backup
+        run: |
+          echo "💾 Creating pre-migration backup..."
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%S")
+          mkdir -p rollback-backups/backup-$TIMESTAMP
+          
+          # Create backup metadata
+          cat > rollback-backups/backup-$TIMESTAMP/backup-metadata.json << EOF
+          {
+            "timestamp": "$TIMESTAMP",
+            "commit": "${{ github.sha }}",
+            "workflow_run": "${{ github.run_id }}",
+            "actor": "${{ github.actor }}",
+            "backup_type": "pre_migration",
+            "environment": "production"
+          }
+          EOF
+          
+          echo "backup_timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+        id: backup
+        
+      - name: Link to Supabase project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: |
+          echo "🔗 Linking to Supabase project..."
+          supabase link --project-ref $SUPABASE_PROJECT_ID
+          
+      - name: Check migration status
+        run: |
+          echo "🔍 Checking current migration status..."
+          supabase db diff --schema public > migration-diff.txt || true
+          
+          if [ -s migration-diff.txt ]; then
+            echo "📋 Pending migrations detected:"
+            cat migration-diff.txt
+          else
+            echo "✅ Database is up to date"
+          fi
+          
+      - name: Apply database migrations
+        id: apply-migrations
+        run: |
+          echo "🚀 Applying database migrations..."
+          
+          # Apply migrations with error handling
+          if supabase db push --include-all; then
+            echo "✅ Migrations applied successfully"
+            echo "migration_success=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Migration failed"
+            echo "migration_success=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+      - name: Verify migration integrity
+        run: |
+          echo "🔍 Verifying migration integrity..."
+          
+          # Run post-migration data integrity check
+          node scripts/ci-data-integrity-pipeline.js post_deployment production
+          
+          # Check for any critical issues
+          if [ -f "ci-reports/ROLLBACK_REQUIRED.json" ]; then
+            echo "🚨 Critical issues detected after migration - initiating rollback"
+            exit 1
+          fi
+          
+      - name: Update migration metadata
+        run: |
+          echo "📝 Updating migration metadata..."
+          node scripts/migration-manager.js update-metadata \
+            --commit "${{ github.sha }}" \
+            --timestamp "$(date -u +"%Y-%m-%dT%H-%M-%S")" \
+            --workflow-run "${{ github.run_id }}"
+            
+      - name: Upload migration reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: migration-reports-${{ github.run_number }}
+          path: |
+            ci-reports/
+            migration-diff.txt
+            rollback-backups/
+          retention-days: 90
+
+  # Stage 6: Deployment Notification
+  deployment-notification:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: [database-migration-application, data-integrity-validation]
+    if: always() && (github.ref == 'refs/heads/main' && github.event_name == 'push')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Generate deployment info
+        run: |
+          echo "📊 Generating deployment information..."
+          node scripts/generate-deployment-info.js
+          
+      - name: Determine deployment status
+        id: deployment-status
+        run: |
+          # Check if all previous jobs succeeded
+          MIGRATION_SUCCESS="${{ needs.database-migration-application.result }}"
+          INTEGRITY_SUCCESS="${{ needs.data-integrity-validation.result }}"
+          
+          if [[ "$MIGRATION_SUCCESS" == "success" && "$INTEGRITY_SUCCESS" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "message=Deployment completed successfully" >> $GITHUB_OUTPUT
+          elif [[ "$MIGRATION_SUCCESS" == "skipped" && "$INTEGRITY_SUCCESS" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "message=Deployment completed successfully (migrations skipped)" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=Deployment failed - check pipeline results" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Create deployment notification
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.deployment-status.outputs.status }}';
+            const message = '${{ steps.deployment-status.outputs.message }}';
+            const statusIcon = status === 'success' ? '✅' : '❌';
+            
+            const title = `${statusIcon} Deployment ${status === 'success' ? 'Successful' : 'Failed'}`;
+            const body = `## ${title}
+            
+**Commit:** ${{ github.sha }}
+**Actor:** ${{ github.actor }}
+**Workflow Run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+**Timestamp:** ${new Date().toISOString()}
+
+### Status
+${message}
+
+### Pipeline Results
+- **Code Quality:** ${{ needs.code-quality-validation.result || 'skipped' }}
+- **Testing:** ${{ needs.comprehensive-testing.result || 'skipped' }}
+- **Migration Validation:** ${{ needs.database-migration-validation.result || 'skipped' }}
+- **Data Integrity:** ${{ needs.data-integrity-validation.result || 'skipped' }}
+- **Migration Application:** ${{ needs.database-migration-application.result || 'skipped' }}
+
+${status === 'failure' ? '### ⚠️ Action Required\nPlease review the failed pipeline stages and address any issues.' : '### 🎉 Deployment Complete\nAll systems are operational.'}`;
+            
+            // Create issue for deployment notification
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: status === 'success' ? ['deployment', 'success'] : ['deployment', 'failure', 'urgent']
+            });
+            
+      - name: Send Slack notification (if configured)
+        if: env.SLACK_WEBHOOK_URL
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          STATUS="${{ steps.deployment-status.outputs.status }}"
+          MESSAGE="${{ steps.deployment-status.outputs.message }}"
+          
+          if [ "$STATUS" = "success" ]; then
+            COLOR="good"
+            EMOJI=":white_check_mark:"
+          else
+            COLOR="danger"
+            EMOJI=":x:"
+          fi
+          
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{
+              \"attachments\": [{
+                \"color\": \"$COLOR\",
+                \"title\": \"$EMOJI Deployment $STATUS\",
+                \"text\": \"$MESSAGE\",
+                \"fields\": [
+                  {\"title\": \"Repository\", \"value\": \"${{ github.repository }}\", \"short\": true},
+                  {\"title\": \"Branch\", \"value\": \"${{ github.ref_name }}\", \"short\": true},
+                  {\"title\": \"Commit\", \"value\": \"${{ github.sha }}\", \"short\": true},
+                  {\"title\": \"Actor\", \"value\": \"${{ github.actor }}\", \"short\": true}
+                ],
+                \"actions\": [{
+                  \"type\": \"button\",
+                  \"text\": \"View Workflow\",
+                  \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+                }]
+              }]
+            }" \
+            $SLACK_WEBHOOK_URL
+
+  # Stage 7: Post-Deployment Validation and Monitoring
+  post-deployment-validation:
+    name: Post-Deployment Validation & Monitoring
+    runs-on: ubuntu-latest
+    needs: [deployment-notification]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup environment variables
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL" >> .env.local
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY" >> .env.local
+          
+      - name: Wait for deployment
+        run: |
+          echo "Waiting 2 minutes for deployment to complete..."
+          sleep 120
+          
+      - name: Run post-deployment validation
+        run: |
+          echo "Running post-deployment data integrity validation"
+          node scripts/ci-data-integrity-pipeline.js post_deployment production
+          
+      - name: Upload post-deployment reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: post-deployment-reports-${{ github.run_number }}
+          path: ci-reports/
+          retention-days: 30
+
+  # Stage 8: Automated Report Generation
+  automated-report-generation:
+    name: Generate Security & Performance Reports
+    runs-on: ubuntu-latest
+    needs: [post-deployment-validation]
+    if: always() && (github.ref == 'refs/heads/main' || github.event_name == 'schedule')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup environment variables
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL" >> .env.local
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY" >> .env.local
+          
+      - name: Generate security and performance reports
+        id: generate-reports
+        run: |
+          echo "📊 Generating automated security and performance reports..."
+          node scripts/automated-report-generator.js
+          
+          # Check if reports were generated successfully
+          if [ -d "ci-reports" ] && [ "$(ls -A ci-reports)" ]; then
+            echo "reports_generated=true" >> $GITHUB_OUTPUT
+            echo "✅ Reports generated successfully"
+            
+            # Get latest report files
+            LATEST_HTML=$(ls -t ci-reports/security-performance-report-*.html | head -n1)
+            LATEST_JSON=$(ls -t ci-reports/security-performance-report-*.json | head -n1)
+            
+            echo "latest_html_report=$LATEST_HTML" >> $GITHUB_OUTPUT
+            echo "latest_json_report=$LATEST_JSON" >> $GITHUB_OUTPUT
+          else
+            echo "reports_generated=false" >> $GITHUB_OUTPUT
+            echo "❌ Report generation failed"
+            exit 1
+          fi
+          
+      - name: Parse report data for notifications
+        id: parse-reports
+        if: steps.generate-reports.outputs.reports_generated == 'true'
+        run: |
+          LATEST_JSON="${{ steps.generate-reports.outputs.latest_json_report }}"
+          
+          if [ -f "$LATEST_JSON" ]; then
+            # Extract key metrics from JSON report
+            SECURITY_SCORE=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$LATEST_JSON', 'utf8')).security.securityScore || 0)")
+            PERFORMANCE_SCORE=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$LATEST_JSON', 'utf8')).performance.performanceScore || 0)")
+            FAILED_LOGINS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$LATEST_JSON', 'utf8')).security.failedLogins || 0)")
+            ACTIVE_USERS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$LATEST_JSON', 'utf8')).security.activeUsers || 0)")
+            AVG_RESPONSE_TIME=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_JSON', 'utf8')).performance.api?.averageResponseTime || 0))")
+            
+            echo "security_score=$SECURITY_SCORE" >> $GITHUB_OUTPUT
+            echo "performance_score=$PERFORMANCE_SCORE" >> $GITHUB_OUTPUT
+            echo "failed_logins=$FAILED_LOGINS" >> $GITHUB_OUTPUT
+            echo "active_users=$ACTIVE_USERS" >> $GITHUB_OUTPUT
+            echo "avg_response_time=$AVG_RESPONSE_TIME" >> $GITHUB_OUTPUT
+            
+            # Determine alert level
+            if [ "$SECURITY_SCORE" -lt 60 ] || [ "$PERFORMANCE_SCORE" -lt 60 ] || [ "$FAILED_LOGINS" -gt 10 ]; then
+              echo "alert_level=critical" >> $GITHUB_OUTPUT
+            elif [ "$SECURITY_SCORE" -lt 80 ] || [ "$PERFORMANCE_SCORE" -lt 80 ] || [ "$FAILED_LOGINS" -gt 5 ]; then
+              echo "alert_level=warning" >> $GITHUB_OUTPUT
+            else
+              echo "alert_level=normal" >> $GITHUB_OUTPUT
+            fi
+          fi
+          
+      - name: Upload report artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-performance-reports-${{ github.run_number }}
+          path: ci-reports/
+          retention-days: 90
+          
+      - name: Create GitHub issue for critical alerts
+        if: steps.parse-reports.outputs.alert_level == 'critical'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const securityScore = '${{ steps.parse-reports.outputs.security_score }}';
+            const performanceScore = '${{ steps.parse-reports.outputs.performance_score }}';
+            const failedLogins = '${{ steps.parse-reports.outputs.failed_logins }}';
+            
+            const title = '🚨 Critical Security/Performance Alert';
+            const body = `## 🚨 Critical Alert - Immediate Action Required
+            
+**Generated:** ${new Date().toISOString()}
+**Workflow Run:** [${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+### Critical Metrics
+- **Security Score:** ${securityScore}/100 ${securityScore < 60 ? '🔴' : '🟡'}
+- **Performance Score:** ${performanceScore}/100 ${performanceScore < 60 ? '🔴' : '🟡'}
+- **Failed Logins (24h):** ${failedLogins} ${failedLogins > 10 ? '🔴' : '🟡'}
+- **Active Users:** ${{ steps.parse-reports.outputs.active_users }}
+- **Avg Response Time:** ${{ steps.parse-reports.outputs.avg_response_time }}ms
+
+### Recommended Actions
+${securityScore < 60 ? '- 🔒 **Security**: Review authentication logs and implement additional security measures' : ''}
+${performanceScore < 60 ? '- ⚡ **Performance**: Investigate performance bottlenecks and optimize system resources' : ''}
+${failedLogins > 10 ? '- 🛡️ **Authentication**: High number of failed logins detected - possible brute force attack' : ''}
+
+### Reports
+- HTML Report: Available in workflow artifacts
+- JSON Report: Available in workflow artifacts
+
+**This issue was automatically generated by the security and performance monitoring system.**`;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['security', 'performance', 'critical', 'automated-alert']
+            });
+            
+      - name: Send Slack notification for reports
+        if: env.SLACK_WEBHOOK_URL && steps.generate-reports.outputs.reports_generated == 'true'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          ALERT_LEVEL="${{ steps.parse-reports.outputs.alert_level }}"
+          SECURITY_SCORE="${{ steps.parse-reports.outputs.security_score }}"
+          PERFORMANCE_SCORE="${{ steps.parse-reports.outputs.performance_score }}"
+          
+          case $ALERT_LEVEL in
+            critical)
+              COLOR="danger"
+              EMOJI=":rotating_light:"
+              ;;
+            warning)
+              COLOR="warning"
+              EMOJI=":warning:"
+              ;;
+            *)
+              COLOR="good"
+              EMOJI=":white_check_mark:"
+              ;;
+          esac
+          
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{
+              \"attachments\": [{
+                \"color\": \"$COLOR\",
+                \"title\": \"$EMOJI Security & Performance Report\",
+                \"text\": \"Daily security and performance metrics report\",
+                \"fields\": [
+                  {\"title\": \"Security Score\", \"value\": \"${SECURITY_SCORE}/100\", \"short\": true},
+                  {\"title\": \"Performance Score\", \"value\": \"${PERFORMANCE_SCORE}/100\", \"short\": true},
+                  {\"title\": \"Failed Logins (24h)\", \"value\": \"${{ steps.parse-reports.outputs.failed_logins }}\", \"short\": true},
+                  {\"title\": \"Active Users\", \"value\": \"${{ steps.parse-reports.outputs.active_users }}\", \"short\": true},
+                  {\"title\": \"Avg Response Time\", \"value\": \"${{ steps.parse-reports.outputs.avg_response_time }}ms\", \"short\": true},
+                  {\"title\": \"Alert Level\", \"value\": \"${ALERT_LEVEL}\", \"short\": true}
+                ],
+                \"actions\": [{
+                  \"type\": \"button\",
+                  \"text\": \"View Full Report\",
+                  \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+                }]
+              }]
+            }" \
+            $SLACK_WEBHOOK_URL
+
+  # Stage 9: Continuous Monitoring Setup
+  continuous-monitoring-setup:
+    name: Continuous Monitoring Setup
+    runs-on: ubuntu-latest
+    needs: [automated-report-generation]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup monitoring configuration
+        run: |
+          echo "🔧 Setting up continuous monitoring..."
+          
+          # Create monitoring configuration
+          mkdir -p .github/monitoring
+          
+          cat > .github/monitoring/monitoring-config.json << EOF
+          {
+            "enabled": true,
+            "schedules": {
+              "daily_integrity_check": "0 2 * * *",
+              "daily_report_generation": "0 3 * * *",
+              "weekly_performance_check": "0 4 * * 0",
+              "monthly_security_audit": "0 5 1 * *"
+            },
+            "thresholds": {
+              "max_critical_issues": 0,
+              "max_error_issues": 0,
+              "max_warning_issues": 5,
+              "performance_degradation_threshold": 20,
+              "security_score_threshold": 80,
+              "performance_score_threshold": 80,
+              "max_failed_logins": 10
+            },
+            "notifications": {
+              "slack_enabled": ${{ secrets.SLACK_WEBHOOK_URL != '' }},
+              "github_issues_enabled": true,
+              "email_enabled": false
+            },
+            "report_generation": {
+              "enabled": true,
+              "formats": ["html", "json"],
+              "retention_days": 90,
+              "auto_cleanup": true
+            }
+          }
+          EOF
+          
+          echo "✅ Monitoring configuration created"
+          
+      - name: Schedule monitoring jobs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '📊 Continuous Monitoring Active';
+            const body = `## Continuous Monitoring Status
+            
+**Deployment:** ${{ github.sha }}
+**Activated:** ${new Date().toISOString()}
+**Environment:** Production
+
+### Monitoring Schedule
+- **Daily Integrity Check:** 2:00 AM UTC
+- **Weekly Performance Check:** 3:00 AM UTC (Sundays)  
+- **Monthly Security Audit:** 4:00 AM UTC (1st of month)
+
+### Current Thresholds
+- Critical Issues: 0 (immediate alert)
+- Error Issues: 0 (immediate alert)
+- Warning Issues: ≤ 5 (daily summary)
+
+### Notification Channels
+- GitHub Issues: ✅ Enabled
+- Slack: ${{ secrets.SLACK_WEBHOOK_URL != '' && '✅ Enabled' || '❌ Disabled' }}
+
+This issue will be updated with monitoring status and alerts.`;
+            
+            // Check if monitoring issue already exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'monitoring,continuous',
+              state: 'open'
+            });
+            
+            if (issues.data.length === 0) {
+              // Create new monitoring issue
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['monitoring', 'continuous', 'infrastructure']
+              });
+            } else {
+              // Update existing monitoring issue
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues.data[0].number,
+                body: body
+              });
+            }
+            
+      - name: Create monitoring dashboard data
+        run: |
+          echo "📊 Creating monitoring dashboard data..."
+          
+          # Create dashboard data file
+          mkdir -p public/monitoring
+          
+          cat > public/monitoring/dashboard-data.json << EOF
+          {
+            "lastUpdated": "$(date -u +"%Y-%m-%dT%H-%M-%S")Z",
+            "deployment": {
+              "commit": "${{ github.sha }}",
+              "timestamp": "$(date -u +"%Y-%m-%dT%H-%M-%S")Z",
+              "actor": "${{ github.actor }}",
+              "workflowRun": "${{ github.run_id }}"
+            },
+            "monitoring": {
+              "enabled": true,
+              "nextScheduledCheck": "$(date -u -d 'tomorrow 02:00' +"%Y-%m-%dT%H-%M-%S")Z"
+            },
+            "status": {
+              "overall": "healthy",
+              "lastIntegrityCheck": "$(date -u +"%Y-%m-%dT%H-%M-%S")Z",
+              "criticalIssues": 0,
+              "errorIssues": 0,
+              "warningIssues": 0
+            }
+          }
+          EOF
+          
+          echo "✅ Dashboard data created"
+
+  scheduled-integrity-check:
+    name: Scheduled Integrity Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup environment variables
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL" >> .env.local
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY" >> .env.local
+          
+      - name: Run scheduled integrity check
+        run: |
+          echo "Running scheduled data integrity check"
+          node scripts/ci-data-integrity-pipeline.js scheduled_check production
+          
+      - name: Create issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = '🚨 Scheduled Data Integrity Check Failed';
+            const body = `The scheduled data integrity check has detected issues.
+            
+**Date:** ${new Date().toISOString()}
+**Workflow Run:** [${context.runId}](${context.payload.repository.html_url}/actions/runs/${context.runId})
+
+Please review the pipeline results and address any issues found.
+
+This is an automated issue created by the scheduled integrity check.`;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['bug', 'data-integrity', 'scheduled-check']
+            });
+            
+      - name: Upload scheduled check reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: scheduled-check-reports-${{ github.run_number }}
+          path: ci-reports/
+          retention-days: 90

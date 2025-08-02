@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="DataIntegrityPipeline" tests="3" failures="3" errors="0" time="0" timestamp="2025-07-22T22:58:58.862Z">
+  <testcase name="Comprehensive Data Integrity Analysis" classname="DataIntegrity">
+    <failure message="Failed to query orphaned reservations: invalid input syntax for type uuid: &quot;SELECT id FROM users&quot;">
+      <![CDATA[
+Stage: rollback_check
+Environment: development
+Issues found: 1
+- [CRITICAL] Failed to query orphaned reservations: invalid input syntax for type uuid: "SELECT id FROM users"
+      ]]>
+    </failure>
+  </testcase>
+  <testcase name="Automated Consistency Check" classname="DataIntegrity">
+    <failure message="Database query failed: invalid input syntax for type uuid: &quot;SELECT id FROM users&quot;">
+      <![CDATA[
+Stage: rollback_check
+Environment: development
+Issues found: 1
+- [ERROR] Database query failed: invalid input syntax for type uuid: "SELECT id FROM users"
+      ]]>
+    </failure>
+  </testcase>
+  <testcase name="Legacy Validation Report" classname="DataIntegrity">
+    <failure message="Database query error: invalid input syntax for type uuid: &quot;SELECT id FROM users&quot;; Email duplication check failed: Could not find the function public.check_duplicate_emails without parameters in the schema cache">
+      <![CDATA[
+Stage: rollback_check
+Environment: development
+Issues found: 2
+- [ERROR] Database query error: invalid input syntax for type uuid: "SELECT id FROM users"
+- [ERROR] Email duplication check failed: Could not find the function public.check_duplicate_emails without parameters in the schema cache
+      ]]>
+    </failure>
+  </testcase>
+</testsuite>

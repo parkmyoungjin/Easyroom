@@ -1,0 +1,145 @@
+{
+  "migrations": {
+    "00000000000000_initial_schema": {
+      "version": "1.0.0",
+      "description": "Initial consolidated database schema",
+      "dependencies": [],
+      "rollbackScript": null,
+      "validationQueries": [
+        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name IN ('users', 'rooms', 'reservations')",
+        "SELECT COUNT(*) FROM information_schema.routines WHERE routine_schema = 'public' AND routine_name IN ('get_public_reservations', 'get_public_reservations_anonymous')"
+      ],
+      "requiredTables": ["users", "rooms", "reservations"],
+      "requiredFunctions": ["get_public_reservations", "get_public_reservations_anonymous", "validate_reservation_date_range"],
+      "requiredIndexes": ["idx_users_auth_id", "idx_users_email", "idx_reservations_user_id"],
+      "tags": ["initial", "schema", "core"],
+      "author": "System",
+      "reviewedBy": "Security Team",
+      "testStatus": "passed",
+      "deploymentNotes": "Base schema for reservation system with email authentication"
+    },
+    "20250121000000_email_auth_migration": {
+      "version": "1.1.0",
+      "description": "Email-based authentication system migration",
+      "dependencies": ["00000000000000_initial_schema"],
+      "rollbackScript": "scripts/rollbacks/20250121000000_rollback.sql",
+      "validationQueries": [
+        "SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'email' AND is_nullable = 'NO'",
+        "SELECT COUNT(*) FROM information_schema.table_constraints WHERE table_name = 'users' AND constraint_type = 'UNIQUE' AND constraint_name LIKE '%email%'"
+      ],
+      "requiredTables": ["users"],
+      "requiredFunctions": ["validate_user_auth_integration"],
+      "requiredIndexes": ["idx_users_email"],
+      "tags": ["authentication", "email", "security"],
+      "author": "Development Team",
+      "reviewedBy": "Security Team",
+      "testStatus": "passed",
+      "deploymentNotes": "Enables email-based authentication while maintaining backward compatibility"
+    },
+    "20250122000000_create_anonymous_public_reservations_function": {
+      "version": "1.2.0",
+      "description": "Anonymous user public reservations function",
+      "dependencies": ["00000000000000_initial_schema", "20250121000000_email_auth_migration"],
+      "rollbackScript": "DROP FUNCTION IF EXISTS get_public_reservations_anonymous CASCADE;",
+      "validationQueries": [
+        "SELECT COUNT(*) FROM information_schema.routines WHERE routine_name = 'get_public_reservations_anonymous' AND routine_schema = 'public'"
+      ],
+      "requiredTables": ["reservations", "rooms"],
+      "requiredFunctions": [],
+      "modifiedFunctions": ["get_public_reservations_anonymous"],
+      "requiredIndexes": [],
+      "tags": ["public-api", "anonymous", "security"],
+      "author": "Development Team",
+      "reviewedBy": "Security Team",
+      "testStatus": "passed",
+      "deploymentNotes": "Provides minimal reservation data for unauthenticated users"
+    },
+    "20250122000001_enhance_rpc_security_model": {
+      "version": "1.3.0",
+      "description": "Enhanced RPC function security with input validation",
+      "dependencies": ["20250121000000_email_auth_migration", "20250122000000_create_anonymous_public_reservations_function"],
+      "rollbackScript": "scripts/rollbacks/20250122000001_rollback.sql",
+      "validationQueries": [
+        "SELECT COUNT(*) FROM information_schema.routines WHERE routine_name = 'validate_reservation_date_range' AND routine_schema = 'public'",
+        "SELECT COUNT(*) FROM information_schema.routines WHERE routine_name = 'get_public_reservations' AND routine_schema = 'public'"
+      ],
+      "requiredTables": ["reservations", "users", "rooms"],
+      "requiredFunctions": [],
+      "modifiedFunctions": ["validate_reservation_date_range", "get_public_reservations", "get_public_reservations_anonymous"],
+      "requiredIndexes": [],
+      "tags": ["security", "validation", "rpc"],
+      "author": "Security Team",
+      "reviewedBy": "Lead Developer",
+      "testStatus": "passed",
+      "deploymentNotes": "Adds comprehensive input validation and security constraints"
+    },
+    "20250122000002_add_user_id_consistency_constraints": {
+      "version": "1.4.0",
+      "description": "User ID consistency constraints and validation",
+      "dependencies": ["20250122000001_enhance_rpc_security_model"],
+      "rollbackScript": "scripts/rollbacks/20250122000002_rollback.sql",
+      "validationQueries": [
+        "SELECT COUNT(*) FROM information_schema.triggers WHERE trigger_name = 'validate_reservation_user_id'",
+        "SELECT COUNT(*) FROM information_schema.check_constraints WHERE constraint_name LIKE '%user_id_format_check%'",
+        "SELECT COUNT(*) FROM information_schema.views WHERE table_name = 'reservation_user_id_health'"
+      ],
+      "requiredTables": ["reservations", "users"],
+      "requiredFunctions": ["validate_user_id_reference", "fix_reservation_user_id", "fix_all_reservation_user_ids"],
+      "requiredIndexes": ["idx_reservations_user_id_performance"],
+      "requiredViews": ["reservation_user_id_health"],
+      "tags": ["data-integrity", "validation", "constraints"],
+      "author": "Data Team",
+      "reviewedBy": "Security Team",
+      "testStatus": "passed",
+      "deploymentNotes": "Prevents auth_id/dbId confusion and provides data repair utilities"
+    },
+    "20250716201146_fix_rpc_function_exact_types": {
+      "version": "1.5.0",
+      "description": "Final RPC function with exact type definitions",
+      "dependencies": ["20250122000002_add_user_id_consistency_constraints"],
+      "rollbackScript": "scripts/rollbacks/20250716201146_rollback.sql",
+      "validationQueries": [
+        "SELECT COUNT(*) FROM information_schema.routines WHERE routine_name = 'get_public_reservations' AND routine_schema = 'public'",
+        "SELECT data_type FROM information_schema.parameters WHERE specific_name IN (SELECT specific_name FROM information_schema.routines WHERE routine_name = 'get_public_reservations')"
+      ],
+      "requiredTables": ["reservations", "users"],
+      "requiredFunctions": [],
+      "modifiedFunctions": ["get_public_reservations"],
+      "requiredIndexes": [],
+      "tags": ["rpc", "types", "final"],
+      "author": "Development Team",
+      "reviewedBy": "QA Team",
+      "testStatus": "passed",
+      "deploymentNotes": "Final version of authenticated user public reservations function"
+    }
+  },
+  "metadata": {
+    "schemaVersion": "1.5.0",
+    "lastUpdated": "2025-01-22T00:00:00Z",
+    "environment": "production",
+    "backupRequired": true,
+    "rollbackSupported": true,
+    "validationEnabled": true
+  },
+  "environments": {
+    "development": {
+      "autoValidate": true,
+      "requireApproval": false,
+      "allowRollback": true,
+      "backupBeforeMigration": false
+    },
+    "staging": {
+      "autoValidate": true,
+      "requireApproval": true,
+      "allowRollback": true,
+      "backupBeforeMigration": true
+    },
+    "production": {
+      "autoValidate": true,
+      "requireApproval": true,
+      "allowRollback": true,
+      "backupBeforeMigration": true,
+      "requireSecurityReview": true
+    }
+  }
+}

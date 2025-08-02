@@ -1,0 +1,96 @@
+{
+  "timestamp": "2025-07-29T12:20:24.639Z",
+  "overallStatus": "good",
+  "results": {
+    "typeCheck": {
+      "status": "success",
+      "message": "TypeScript 타입 검사 통과"
+    },
+    "buildCheck": {
+      "status": "success",
+      "message": "프로덕션 빌드 성공"
+    },
+    "structureCheck": {
+      "status": "warning",
+      "checks": {
+        "tempFiles": {
+          "status": "warning",
+          "message": "1개 임시 파일 발견",
+          "files": [
+            ".cleanup-backups\\cleanup-2025-07-29T11-31-53-917Z-0340203d\\src\\app\\page-content.tsx.tmp.888.1753678093568"
+          ]
+        },
+        "backupSystem": {
+          "status": "success",
+          "message": "4개 백업 생성됨",
+          "backupCount": 4
+        },
+        "testUtils": {
+          "status": "success",
+          "message": "테스트 유틸리티 4개 파일 생성",
+          "files": [
+            "index.ts",
+            "mock-utils.ts",
+            "test-helpers.ts",
+            "TESTING_GUIDELINES.md"
+          ]
+        },
+        "typeStructure": {
+          "status": "success",
+          "message": "타입 파일 5/5개 존재",
+          "files": [
+            "src/types/auth.ts",
+            "src/types/database.ts",
+            "src/types/enhanced-types.ts",
+            "src/types/pagination.ts",
+            "src/types/routes.ts"
+          ]
+        },
+        "specStructure": {
+          "status": "success",
+          "message": "활성 spec 9개, 아카이브 2개",
+          "activeSpecs": 9,
+          "archivedSpecs": 2
+        }
+      },
+      "message": "일부 구조 개선 권장사항 있음"
+    },
+    "summary": {
+      "completedTasks": [
+        "전체 코드베이스 개요 분석",
+        "파일 의존성 분석 시스템 구현",
+        "안전한 백업 시스템 구현",
+        "임시 파일 정리",
+        "Import 구조 표준화",
+        "타입 정의 통합 및 최적화",
+        "Spec 파일 정리",
+        "테스트 구조 표준화",
+        "전체 코드베이스 정적 분석"
+      ],
+      "improvements": [
+        "1개 임시 파일 삭제",
+        "72개 import 구문 표준화",
+        "1개 중복 타입 통합",
+        "2개 불완전한 spec 아카이브",
+        "공통 테스트 유틸리티 생성",
+        "4개 백업 생성 (모두 복원 가능)"
+      ],
+      "createdFiles": [
+        "scripts/dependency-analyzer.js",
+        "scripts/backup-manager.js",
+        "scripts/import-analyzer.js",
+        "scripts/import-standardizer.js",
+        "scripts/type-analyzer.js",
+        "scripts/type-optimizer.js",
+        "scripts/spec-analyzer.js",
+        "scripts/spec-cleaner.js",
+        "scripts/test-analyzer.js",
+        "scripts/test-standardizer.js",
+        "src/__tests__/utils/mock-utils.ts",
+        "src/__tests__/utils/test-helpers.ts",
+        "src/__tests__/utils/index.ts",
+        "src/__tests__/utils/TESTING_GUIDELINES.md"
+      ]
+    }
+  }
+}

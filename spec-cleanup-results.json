@@ -1,0 +1,19 @@
+{
+  "timestamp": "2025-07-29T12:07:07.881Z",
+  "summary": {
+    "totalArchived": 0,
+    "totalErrors": 2,
+    "success": false
+  },
+  "archivedSpecs": [],
+  "errors": [
+    {
+      "spec": "magic-link-auth-fix",
+      "error": "Spec 디렉토리가 존재하지 않습니다: C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\.kiro\\specs\\magic-link-auth-fix"
+    },
+    {
+      "spec": "security-monitoring-fix",
+      "error": "Spec 디렉토리가 존재하지 않습니다: C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\.kiro\\specs\\security-monitoring-fix"
+    }
+  ]
+}

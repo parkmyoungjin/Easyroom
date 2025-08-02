@@ -1,0 +1,7504 @@
+{
+  "timestamp": "2025-07-29T11:44:55.791Z",
+  "statistics": {
+    "totalTypes": 161,
+    "duplicateTypes": 8,
+    "inconsistentTypes": 0
+  },
+  "duplicateTypes": [
+    {
+      "name": "AuthError",
+      "count": 2,
+      "definitions": [
+        {
+          "name": "AuthError",
+          "type": "interface",
+          "definition": "export interface AuthError {\r\n  type: 'network' | 'session' | 'permission' | 'unknown';\r\n  message: string;\r\n  code?: string;\r\n  retryable: boolean;\r\n}",
+          "body": "type: 'network' | 'session' | 'permission' | 'unknown';\r\n  message: string;\r\n  code?: string;\r\n  retryable: boolean;",
+          "properties": [
+            {
+              "name": "type",
+              "optional": false,
+              "type": "'network' | 'session' | 'permission' | 'unknown'"
+            },
+            {
+              "name": "message",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "code",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "retryable",
+              "optional": false,
+              "type": "boolean"
+            }
+          ],
+          "lineNumber": 21,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\contexts\\AuthContext.tsx",
+          "relativePath": "src\\contexts\\AuthContext.tsx"
+        },
+        {
+          "name": "AuthError",
+          "type": "interface",
+          "definition": "export interface AuthError {\r\n  type: 'network' | 'auth' | 'timeout' | 'redirect' | 'unknown';\r\n  message: string;\r\n  code?: string;\r\n  recoverable: boolean;\r\n  retryAction?: () => void;\r\n  originalError?: any;\r\n  timestamp: number;\r\n}",
+          "body": "type: 'network' | 'auth' | 'timeout' | 'redirect' | 'unknown';\r\n  message: string;\r\n  code?: string;\r\n  recoverable: boolean;\r\n  retryAction?: () => void;\r\n  originalError?: any;\r\n  timestamp: number;",
+          "properties": [
+            {
+              "name": "type",
+              "optional": false,
+              "type": "'network' | 'auth' | 'timeout' | 'redirect' | 'unknown'"
+            },
+            {
+              "name": "message",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "code",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "recoverable",
+              "optional": false,
+              "type": "boolean"
+            },
+            {
+              "name": "retryAction",
+              "optional": true,
+              "type": "() => void"
+            },
+            {
+              "name": "originalError",
+              "optional": true,
+              "type": "any"
+            },
+            {
+              "name": "timestamp",
+              "optional": false,
+              "type": "number"
+            }
+          ],
+          "lineNumber": 60,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\lib\\utils\\auth-error-handler.ts",
+          "relativePath": "src\\lib\\utils\\auth-error-handler.ts"
+        }
+      ],
+      "similarity": 0.2857142857142857,
+      "canMerge": false,
+      "recommendedAction": "keep_separate"
+    },
+    {
+      "name": "PollingConfig",
+      "count": 2,
+      "definitions": [
+        {
+          "name": "PollingConfig",
+          "type": "interface",
+          "definition": "export interface PollingConfig {\r\n  maxRetries: number;\r\n  baseInterval: number; // milliseconds\r\n  maxInterval: number; // milliseconds\r\n  backoffMultiplier: number;\r\n  enabledPaths: string[]; // Pages where polling is allowed\r\n}",
+          "body": "maxRetries: number;\r\n  baseInterval: number; // milliseconds\r\n  maxInterval: number; // milliseconds\r\n  backoffMultiplier: number;\r\n  enabledPaths: string[]; // Pages where polling is allowed",
+          "properties": [
+            {
+              "name": "maxRetries",
+              "optional": false,
+              "type": "number"
+            },
+            {
+              "name": "baseInterval",
+              "optional": false,
+              "type": "number"
+            },
+            {
+              "name": "maxInterval",
+              "optional": false,
+              "type": "number"
+            },
+            {
+              "name": "backoffMultiplier",
+              "optional": false,
+              "type": "number"
+            },
+            {
+              "name": "enabledPaths",
+              "optional": false,
+              "type": "string[]"
+            }
+          ],
+          "lineNumber": 3,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\lib\\auth\\SessionPollingManager.ts",
+          "relativePath": "src\\lib\\auth\\SessionPollingManager.ts"
+        },
+        {
+          "name": "PollingConfig",
+          "type": "interface",
+          "definition": "export interface PollingConfig {\r\n  interval: number; // milliseconds\r\n  maxAge: number; // maximum age of auth state in milliseconds\r\n  retryAttempts: number;\r\n  backoffMultiplier: number;\r\n}",
+          "body": "interval: number; // milliseconds\r\n  maxAge: number; // maximum age of auth state in milliseconds\r\n  retryAttempts: number;\r\n  backoffMultiplier: number;",
+          "properties": [
+            {
+              "name": "interval",
+              "optional": false,
+              "type": "number"
+            },
+            {
+              "name": "maxAge",
+              "optional": false,
+              "type": "number"
+            },
+            {
+              "name": "retryAttempts",
+              "optional": false,
+              "type": "number"
+            },
+            {
+              "name": "backoffMultiplier",
+              "optional": false,
+              "type": "number"
+            }
+          ],
+          "lineNumber": 24,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\types\\auth-optimization.ts",
+          "relativePath": "src\\types\\auth-optimization.ts"
+        }
+      ],
+      "similarity": 0.2,
+      "canMerge": false,
+      "recommendedAction": "keep_separate"
+    },
+    {
+      "name": "ErrorContext",
+      "count": 2,
+      "definitions": [
+        {
+          "name": "ErrorContext",
+          "type": "interface",
+          "definition": "export interface ErrorContext {\r\n  operation: 'startup' | 'email_check' | 'client_init' | 'runtime_access' | 'validation';\r\n  environment: string;\r\n  userAgent?: string;\r\n  timestamp: Date;\r\n  userId?: string;\r\n  sessionId?: string;\r\n  previousErrors?: Error[];\r\n  endpoint?: string;\r\n  caller?: string;\r\n  retryAttempt?: number;\r\n}",
+          "body": "operation: 'startup' | 'email_check' | 'client_init' | 'runtime_access' | 'validation';\r\n  environment: string;\r\n  userAgent?: string;\r\n  timestamp: Date;\r\n  userId?: string;\r\n  sessionId?: string;\r\n  previousErrors?: Error[];\r\n  endpoint?: string;\r\n  caller?: string;\r\n  retryAttempt?: number;",
+          "properties": [
+            {
+              "name": "operation",
+              "optional": false,
+              "type": "'startup' | 'email_check' | 'client_init' | 'runtime_access' | 'validation'"
+            },
+            {
+              "name": "environment",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "userAgent",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "timestamp",
+              "optional": false,
+              "type": "Date"
+            },
+            {
+              "name": "userId",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "sessionId",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "previousErrors",
+              "optional": true,
+              "type": "Error[]"
+            },
+            {
+              "name": "endpoint",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "caller",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "retryAttempt",
+              "optional": true,
+              "type": "number"
+            }
+          ],
+          "lineNumber": 13,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\lib\\error-handling\\environment-error-handler.ts",
+          "relativePath": "src\\lib\\error-handling\\environment-error-handler.ts"
+        },
+        {
+          "name": "ErrorContext",
+          "type": "interface",
+          "definition": "export interface ErrorContext {\r\n  action: string;\r\n  reservationId?: string;\r\n  userId?: string;\r\n  userRole?: string;\r\n  timestamp: string;\r\n  [key: string]: any;\r\n}",
+          "body": "action: string;\r\n  reservationId?: string;\r\n  userId?: string;\r\n  userRole?: string;\r\n  timestamp: string;\r\n  [key: string]: any;",
+          "properties": [
+            {
+              "name": "action",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "reservationId",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "userId",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "userRole",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "timestamp",
+              "optional": false,
+              "type": "string"
+            }
+          ],
+          "lineNumber": 16,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\lib\\utils\\error-handler.ts",
+          "relativePath": "src\\lib\\utils\\error-handler.ts"
+        }
+      ],
+      "similarity": 0.1,
+      "canMerge": false,
+      "recommendedAction": "keep_separate"
+    },
+    {
+      "name": "UserFriendlyError",
+      "count": 2,
+      "definitions": [
+        {
+          "name": "UserFriendlyError",
+          "type": "interface",
+          "definition": "export interface UserFriendlyError {\r\n  title: string;\r\n  message: string;\r\n  actions: ErrorAction[];\r\n  technicalDetails?: string;\r\n  canRetry: boolean;\r\n  severity: 'low' | 'medium' | 'high' | 'critical';\r\n  errorCode: string;\r\n}",
+          "body": "title: string;\r\n  message: string;\r\n  actions: ErrorAction[];\r\n  technicalDetails?: string;\r\n  canRetry: boolean;\r\n  severity: 'low' | 'medium' | 'high' | 'critical';\r\n  errorCode: string;",
+          "properties": [
+            {
+              "name": "title",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "message",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "actions",
+              "optional": false,
+              "type": "ErrorAction[]"
+            },
+            {
+              "name": "technicalDetails",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "canRetry",
+              "optional": false,
+              "type": "boolean"
+            },
+            {
+              "name": "severity",
+              "optional": false,
+              "type": "'low' | 'medium' | 'high' | 'critical'"
+            },
+            {
+              "name": "errorCode",
+              "optional": false,
+              "type": "string"
+            }
+          ],
+          "lineNumber": 26,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\lib\\error-handling\\environment-error-handler.ts",
+          "relativePath": "src\\lib\\error-handling\\environment-error-handler.ts"
+        },
+        {
+          "name": "UserFriendlyError",
+          "type": "interface",
+          "definition": "export interface UserFriendlyError {\r\n  title: string;\r\n  message: string;\r\n  recoveryOptions: RecoveryOption[];\r\n  severity: 'error' | 'warning' | 'info';\r\n}",
+          "body": "title: string;\r\n  message: string;\r\n  recoveryOptions: RecoveryOption[];\r\n  severity: 'error' | 'warning' | 'info';",
+          "properties": [
+            {
+              "name": "title",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "message",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "recoveryOptions",
+              "optional": false,
+              "type": "RecoveryOption[]"
+            },
+            {
+              "name": "severity",
+              "optional": false,
+              "type": "'error' | 'warning' | 'info'"
+            }
+          ],
+          "lineNumber": 77,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\lib\\utils\\auth-error-handler.ts",
+          "relativePath": "src\\lib\\utils\\auth-error-handler.ts"
+        }
+      ],
+      "similarity": 0.2857142857142857,
+      "canMerge": false,
+      "recommendedAction": "keep_separate"
+    },
+    {
+      "name": "RedirectOptions",
+      "count": 2,
+      "definitions": [
+        {
+          "name": "RedirectOptions",
+          "type": "interface",
+          "definition": "export interface RedirectOptions {\r\n  userProfile: UserProfile;\r\n  previousPath?: string;\r\n  fallbackPath?: string;\r\n  timeout?: number;\r\n  maxRetries?: number;\r\n}",
+          "body": "userProfile: UserProfile;\r\n  previousPath?: string;\r\n  fallbackPath?: string;\r\n  timeout?: number;\r\n  maxRetries?: number;",
+          "properties": [
+            {
+              "name": "userProfile",
+              "optional": false,
+              "type": "UserProfile"
+            },
+            {
+              "name": "previousPath",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "fallbackPath",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "timeout",
+              "optional": true,
+              "type": "number"
+            },
+            {
+              "name": "maxRetries",
+              "optional": true,
+              "type": "number"
+            }
+          ],
+          "lineNumber": 25,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\lib\\navigation\\NavigationController.ts",
+          "relativePath": "src\\lib\\navigation\\NavigationController.ts"
+        },
+        {
+          "name": "RedirectOptions",
+          "type": "interface",
+          "definition": "export interface RedirectOptions {\r\n  isAuthenticated: boolean;\r\n  isAdmin?: boolean;\r\n  currentPath?: string;\r\n  fallbackPath?: string;\r\n}",
+          "body": "isAuthenticated: boolean;\r\n  isAdmin?: boolean;\r\n  currentPath?: string;\r\n  fallbackPath?: string;",
+          "properties": [
+            {
+              "name": "isAuthenticated",
+              "optional": false,
+              "type": "boolean"
+            },
+            {
+              "name": "isAdmin",
+              "optional": true,
+              "type": "boolean"
+            },
+            {
+              "name": "currentPath",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "fallbackPath",
+              "optional": true,
+              "type": "string"
+            }
+          ],
+          "lineNumber": 150,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\lib\\utils\\auth-navigation.ts",
+          "relativePath": "src\\lib\\utils\\auth-navigation.ts"
+        }
+      ],
+      "similarity": 0.2,
+      "canMerge": false,
+      "recommendedAction": "keep_separate"
+    },
+    {
+      "name": "ValidatedReservationData",
+      "count": 2,
+      "definitions": [
+        {
+          "name": "ValidatedReservationData",
+          "type": "interface",
+          "definition": "export interface ValidatedReservationData {\r\n  room_id: string;\r\n  user_id: DatabaseUserId;\r\n  title: string;\r\n  purpose?: string;\r\n  start_time: string;\r\n  end_time: string;\r\n  status?: 'confirmed' | 'cancelled';\r\n}",
+          "body": "room_id: string;\r\n  user_id: DatabaseUserId;\r\n  title: string;\r\n  purpose?: string;\r\n  start_time: string;\r\n  end_time: string;\r\n  status?: 'confirmed' | 'cancelled';",
+          "properties": [
+            {
+              "name": "room_id",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "user_id",
+              "optional": false,
+              "type": "DatabaseUserId"
+            },
+            {
+              "name": "title",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "purpose",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "start_time",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "end_time",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "status",
+              "optional": true,
+              "type": "'confirmed' | 'cancelled'"
+            }
+          ],
+          "lineNumber": 648,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\lib\\security\\enhanced-user-id-guards.ts",
+          "relativePath": "src\\lib\\security\\enhanced-user-id-guards.ts"
+        },
+        {
+          "name": "ValidatedReservationData",
+          "type": "interface",
+          "definition": "export interface ValidatedReservationData {\r\n  room_id: string;\r\n  user_id: string;\r\n  title: string;\r\n  purpose?: string;\r\n  start_time: string;\r\n  end_time: string;\r\n  status?: 'confirmed' | 'cancelled';\r\n}",
+          "body": "room_id: string;\r\n  user_id: string;\r\n  title: string;\r\n  purpose?: string;\r\n  start_time: string;\r\n  end_time: string;\r\n  status?: 'confirmed' | 'cancelled';",
+          "properties": [
+            {
+              "name": "room_id",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "user_id",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "title",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "purpose",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "start_time",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "end_time",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "status",
+              "optional": true,
+              "type": "'confirmed' | 'cancelled'"
+            }
+          ],
+          "lineNumber": 195,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\lib\\security\\user-id-guards.ts",
+          "relativePath": "src\\lib\\security\\user-id-guards.ts"
+        }
+      ],
+      "similarity": 0.8571428571428571,
+      "canMerge": true,
+      "recommendedAction": "consolidate"
+    },
+    {
+      "name": "PaginationMetadata",
+      "count": 2,
+      "definitions": [
+        {
+          "name": "PaginationMetadata",
+          "type": "type",
+          "definition": "export type PaginationMetadata = z.infer<typeof paginationMetadataSchema>;",
+          "body": "z.infer<typeof paginationMetadataSchema>",
+          "properties": [
+            {
+              "name": "definition",
+              "type": "z.infer<typeof paginationMetadataSchema>"
+            }
+          ],
+          "lineNumber": 344,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\lib\\validations\\schemas.ts",
+          "relativePath": "src\\lib\\validations\\schemas.ts"
+        },
+        {
+          "name": "PaginationMetadata",
+          "type": "interface",
+          "definition": "export interface PaginationMetadata {\r\n  /** Current limit (items per page) */\r\n  limit: number;\r\n  /** Current offset (items skipped) */\r\n  offset: number;\r\n  /** Total number of items available */\r\n  total_count: number;\r\n  /** Whether there are more items available */\r\n  has_more: boolean;\r\n  /** Current page number (1-based) */\r\n  current_page: number;\r\n  /** Total number of pages */\r\n  total_pages: number;\r\n  /** Number of items in current page */\r\n  current_count: number;\r\n}",
+          "body": "/** Current limit (items per page) */\r\n  limit: number;\r\n  /** Current offset (items skipped) */\r\n  offset: number;\r\n  /** Total number of items available */\r\n  total_count: number;\r\n  /** Whether there are more items available */\r\n  has_more: boolean;\r\n  /** Current page number (1-based) */\r\n  current_page: number;\r\n  /** Total number of pages */\r\n  total_pages: number;\r\n  /** Number of items in current page */\r\n  current_count: number;",
+          "properties": [
+            {
+              "name": "limit",
+              "optional": false,
+              "type": "number"
+            },
+            {
+              "name": "offset",
+              "optional": false,
+              "type": "number"
+            },
+            {
+              "name": "total_count",
+              "optional": false,
+              "type": "number"
+            },
+            {
+              "name": "has_more",
+              "optional": false,
+              "type": "boolean"
+            },
+            {
+              "name": "current_page",
+              "optional": false,
+              "type": "number"
+            },
+            {
+              "name": "total_pages",
+              "optional": false,
+              "type": "number"
+            },
+            {
+              "name": "current_count",
+              "optional": false,
+              "type": "number"
+            }
+          ],
+          "lineNumber": 30,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\types\\pagination.ts",
+          "relativePath": "src\\types\\pagination.ts"
+        }
+      ],
+      "similarity": 0.3,
+      "canMerge": false,
+      "recommendedAction": "keep_separate"
+    },
+    {
+      "name": "AuthContext",
+      "count": 2,
+      "definitions": [
+        {
+          "name": "AuthContext",
+          "type": "interface",
+          "definition": "export interface AuthContext {\r\n  authId: AuthId;\r\n  sessionId?: string;\r\n  role: 'admin' | 'employee';\r\n  email: string;\r\n  isAuthenticated: boolean;\r\n  permissions?: string[];\r\n}",
+          "body": "authId: AuthId;\r\n  sessionId?: string;\r\n  role: 'admin' | 'employee';\r\n  email: string;\r\n  isAuthenticated: boolean;\r\n  permissions?: string[];",
+          "properties": [
+            {
+              "name": "authId",
+              "optional": false,
+              "type": "AuthId"
+            },
+            {
+              "name": "sessionId",
+              "optional": true,
+              "type": "string"
+            },
+            {
+              "name": "role",
+              "optional": false,
+              "type": "'admin' | 'employee'"
+            },
+            {
+              "name": "email",
+              "optional": false,
+              "type": "string"
+            },
+            {
+              "name": "isAuthenticated",
+              "optional": false,
+              "type": "boolean"
+            },
+            {
+              "name": "permissions",
+              "optional": true,
+              "type": "string[]"
+            }
+          ],
+          "lineNumber": 73,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\types\\enhanced-types.ts",
+          "relativePath": "src\\types\\enhanced-types.ts"
+        },
+        {
+          "name": "AuthContext",
+          "type": "interface",
+          "definition": "export interface AuthContext {\r\n  /** Whether the user is authenticated */\r\n  isAuthenticated: boolean;\r\n  /** User's role if authenticated */\r\n  userRole?: UserRole;\r\n  /** User ID if authenticated */\r\n  userId?: string;\r\n}",
+          "body": "/** Whether the user is authenticated */\r\n  isAuthenticated: boolean;\r\n  /** User's role if authenticated */\r\n  userRole?: UserRole;\r\n  /** User ID if authenticated */\r\n  userId?: string;",
+          "properties": [
+            {
+              "name": "isAuthenticated",
+              "optional": false,
+              "type": "boolean"
+            },
+            {
+              "name": "userRole",
+              "optional": true,
+              "type": "UserRole"
+            },
+            {
+              "name": "userId",
+              "optional": true,
+              "type": "string"
+            }
+          ],
+          "lineNumber": 42,
+          "isExported": true,
+          "file": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\src\\types\\routes.ts",
+          "relativePath": "src\\types\\routes.ts"
+        }
+      ],
+      "similarity": 0.16666666666666666,
+      "canMerge": false,
+      "recommendedAction": "keep_separate"
+    }
+  ],
+  "inconsistentTypes": [],
+  "optimizationPlan": {
+    "mergeActions": [],
+    "renameActions": [],
+    "brandingActions": [],
+    "cleanupActions": [],
+    "statistics": {
+      "totalTypes": 161,
+      "duplicateTypes": 8,
+      "inconsistentTypes": 0
+    }
+  },
+  "typeDefinitions": {
+    "DetailedHealthResult": [
+      {
+        "file": "src\\app\\api\\health\\detailed\\route.ts",
+        "type": "interface",
+        "lineNumber": 14,
+        "properties": [
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "uptime",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "version",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "nodeEnv",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "system",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "memory",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "used",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "total",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "percentage",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "SmartVerifiedPageProps": [
+      {
+        "file": "src\\components\\auth\\SmartVerifiedPage.tsx",
+        "type": "interface",
+        "lineNumber": 9,
+        "properties": [
+          {
+            "name": "autoCloseDelay",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "onAuthStateSet",
+            "optional": true,
+            "type": "(success: boolean) => void"
+          }
+        ]
+      }
+    ],
+    "LoadingStateProps": [
+      {
+        "file": "src\\components\\ui\\enhanced-loading-state.tsx",
+        "type": "interface",
+        "lineNumber": 18,
+        "properties": [
+          {
+            "name": "isLoading",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "string | null"
+          },
+          {
+            "name": "success",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "title",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "progress",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "showNetworkStatus",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "showRetryButton",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "showErrorDetails",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "onRetry",
+            "optional": true,
+            "type": "() => void"
+          },
+          {
+            "name": "onCancel",
+            "optional": true,
+            "type": "() => void"
+          },
+          {
+            "name": "className",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "LoadingStep": [
+      {
+        "file": "src\\components\\ui\\enhanced-loading-state.tsx",
+        "type": "type",
+        "lineNumber": 11,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "| 'initializing'\r\n  | 'authenticating' \r\n  | 'loading-profile'\r\n  | 'redirecting'\r\n  | 'finalizing'"
+          }
+        ]
+      }
+    ],
+    "OTPInputProps": [
+      {
+        "file": "src\\components\\ui\\otp-input.tsx",
+        "type": "interface",
+        "lineNumber": 6,
+        "properties": [
+          {
+            "name": "length",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "onComplete",
+            "optional": true,
+            "type": "(otp: string) => void"
+          },
+          {
+            "name": "onChange",
+            "optional": true,
+            "type": "(otp: string) => void"
+          },
+          {
+            "name": "value",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "disabled",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "loading",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "placeholder",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "className",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "AuthError": [
+      {
+        "file": "src\\contexts\\AuthContext.tsx",
+        "type": "interface",
+        "lineNumber": 21,
+        "properties": [
+          {
+            "name": "type",
+            "optional": false,
+            "type": "'network' | 'session' | 'permission' | 'unknown'"
+          },
+          {
+            "name": "message",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "code",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "retryable",
+            "optional": false,
+            "type": "boolean"
+          }
+        ]
+      },
+      {
+        "file": "src\\lib\\utils\\auth-error-handler.ts",
+        "type": "interface",
+        "lineNumber": 60,
+        "properties": [
+          {
+            "name": "type",
+            "optional": false,
+            "type": "'network' | 'auth' | 'timeout' | 'redirect' | 'unknown'"
+          },
+          {
+            "name": "message",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "code",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "recoverable",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "retryAction",
+            "optional": true,
+            "type": "() => void"
+          },
+          {
+            "name": "originalError",
+            "optional": true,
+            "type": "any"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "AuthStatus": [
+      {
+        "file": "src\\contexts\\AuthContext.tsx",
+        "type": "type",
+        "lineNumber": 19,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "'loading' | 'authenticated' | 'unauthenticated'"
+          }
+        ]
+      }
+    ],
+    "LoadingStateManager": [
+      {
+        "file": "src\\hooks\\useEnhancedLoadingState.ts",
+        "type": "interface",
+        "lineNumber": 12,
+        "properties": [
+          {
+            "name": "currentStep",
+            "optional": false,
+            "type": "LoadingStep | null"
+          },
+          {
+            "name": "isLoading",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "isTimedOut",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "elapsedTime",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "networkStatus",
+            "optional": false,
+            "type": "ReturnType<typeof getNetworkStatus>"
+          },
+          {
+            "name": "setLoadingStep",
+            "optional": false,
+            "type": "(step: LoadingStep"
+          },
+          {
+            "name": "clearLoadingState",
+            "optional": false,
+            "type": "() => void"
+          },
+          {
+            "name": "handleTimeout",
+            "optional": false,
+            "type": "() => void"
+          },
+          {
+            "name": "handleManualRefresh",
+            "optional": false,
+            "type": "() => void"
+          },
+          {
+            "name": "isStepTimeout",
+            "optional": false,
+            "type": "(step: LoadingStep) => boolean"
+          },
+          {
+            "name": "getStepDuration",
+            "optional": false,
+            "type": "(step: LoadingStep) => number"
+          }
+        ]
+      }
+    ],
+    "UseStartupValidationReturn": [
+      {
+        "file": "src\\hooks\\useStartupValidation.ts",
+        "type": "interface",
+        "lineNumber": 18,
+        "properties": [
+          {
+            "name": "isValidating",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "validationResult",
+            "optional": false,
+            "type": "StartupValidationResult | null"
+          },
+          {
+            "name": "error",
+            "optional": false,
+            "type": "any"
+          },
+          {
+            "name": "canContinue",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "requiresUserAction",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "validationStartTime",
+            "optional": false,
+            "type": "number | null"
+          },
+          {
+            "name": "serviceStatus",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "database",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "auth",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "storage",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "monitoring",
+            "optional": false,
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "AuthHealthMetrics": [
+      {
+        "file": "src\\lib\\auth\\auth-health-monitor.ts",
+        "type": "interface",
+        "lineNumber": 10,
+        "properties": [
+          {
+            "name": "pollingErrors",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "storageErrors",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "callbackErrors",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "stateChanges",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "averagePollingInterval",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "lastSuccessfulPoll",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "lastError",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "name": "uptime",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "memoryUsage",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "callbackCount",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "pollingActive",
+            "optional": false,
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "AuthHealthAlert": [
+      {
+        "file": "src\\lib\\auth\\auth-health-monitor.ts",
+        "type": "interface",
+        "lineNumber": 25,
+        "properties": [
+          {
+            "name": "level",
+            "optional": false,
+            "type": "'info' | 'warning' | 'error' | 'critical'"
+          },
+          {
+            "name": "message",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "metric",
+            "optional": true,
+            "type": "keyof AuthHealthMetrics"
+          },
+          {
+            "name": "value",
+            "optional": true,
+            "type": "any"
+          }
+        ]
+      }
+    ],
+    "AuthHealthCallback": [
+      {
+        "file": "src\\lib\\auth\\auth-health-monitor.ts",
+        "type": "type",
+        "lineNumber": 33,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "(alert: AuthHealthAlert) => void"
+          }
+        ]
+      }
+    ],
+    "ErrorRecoveryStrategy": [
+      {
+        "file": "src\\lib\\auth\\error-handler.ts",
+        "type": "interface",
+        "lineNumber": 14,
+        "properties": [
+          {
+            "name": "type",
+            "optional": false,
+            "type": "'retry' | 'redirect' | 'refresh' | 'ignore'"
+          },
+          {
+            "name": "maxAttempts",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "delay",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "fallback",
+            "optional": true,
+            "type": "() => void"
+          },
+          {
+            "name": "userMessage",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "MigrationConfig": [
+      {
+        "file": "src\\lib\\auth\\migration-compatibility.ts",
+        "type": "interface",
+        "lineNumber": 8,
+        "properties": [
+          {
+            "name": "showMigrationMessages",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "redirectMagicLinks",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "sessionGracePeriod",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "MigrationMessageType": [
+      {
+        "file": "src\\lib\\auth\\migration-compatibility.ts",
+        "type": "type",
+        "lineNumber": 216,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "keyof typeof MIGRATION_MESSAGES"
+          }
+        ]
+      }
+    ],
+    "PerformanceMetrics": [
+      {
+        "file": "src\\lib\\auth\\PerformanceMonitor.ts",
+        "type": "interface",
+        "lineNumber": 3,
+        "properties": [
+          {
+            "name": "renderCount",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "lastRenderTime",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "memoryUsage",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "intervalCleanupCount",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "listenerCleanupCount",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "sessionCheckResponseTimes",
+            "optional": false,
+            "type": "number[]"
+          },
+          {
+            "name": "averageSessionCheckTime",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "maxSessionCheckTime",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "minSessionCheckTime",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "lastContextValue",
+            "optional": false,
+            "type": "any"
+          }
+        ]
+      }
+    ],
+    "SessionValidationResult": [
+      {
+        "file": "src\\lib\\auth\\session-compatibility.ts",
+        "type": "interface",
+        "lineNumber": 10,
+        "properties": [
+          {
+            "name": "isValid",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "hasRequiredFields",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "hasUserMetadata",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "hasValidTokens",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "isExpired",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "issues",
+            "optional": false,
+            "type": "string[]"
+          },
+          {
+            "name": "recommendations",
+            "optional": false,
+            "type": "string[]"
+          }
+        ]
+      }
+    ],
+    "SessionErrorStrategy": [
+      {
+        "file": "src\\lib\\auth\\SessionErrorHandler.ts",
+        "type": "interface",
+        "lineNumber": 3,
+        "properties": [
+          {
+            "name": "type",
+            "optional": false,
+            "type": "'network' | 'session' | 'permission' | 'unknown'"
+          },
+          {
+            "name": "shouldRetry",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "retryDelay",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "maxRetries",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "fallbackAction",
+            "optional": false,
+            "type": "() => void"
+          }
+        ]
+      }
+    ],
+    "SessionCheckMetrics": [
+      {
+        "file": "src\\lib\\auth\\SessionErrorHandler.ts",
+        "type": "interface",
+        "lineNumber": 11,
+        "properties": [
+          {
+            "name": "totalChecks",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "successfulChecks",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "failedChecks",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "averageResponseTime",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "lastSuccessTime",
+            "optional": false,
+            "type": "Date | null"
+          },
+          {
+            "name": "lastFailureTime",
+            "optional": false,
+            "type": "Date | null"
+          },
+          {
+            "name": "consecutiveFailures",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "PollingConfig": [
+      {
+        "file": "src\\lib\\auth\\SessionPollingManager.ts",
+        "type": "interface",
+        "lineNumber": 3,
+        "properties": [
+          {
+            "name": "maxRetries",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "baseInterval",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "maxInterval",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "backoffMultiplier",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "enabledPaths",
+            "optional": false,
+            "type": "string[]"
+          }
+        ]
+      },
+      {
+        "file": "src\\types\\auth-optimization.ts",
+        "type": "interface",
+        "lineNumber": 24,
+        "properties": [
+          {
+            "name": "interval",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "maxAge",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "retryAttempts",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "backoffMultiplier",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "PollingState": [
+      {
+        "file": "src\\lib\\auth\\SessionPollingManager.ts",
+        "type": "interface",
+        "lineNumber": 11,
+        "properties": [
+          {
+            "name": "isActive",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "retryCount",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "currentInterval",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "lastAttempt",
+            "optional": false,
+            "type": "Date | null"
+          },
+          {
+            "name": "intervalId",
+            "optional": false,
+            "type": "NodeJS.Timeout | null"
+          }
+        ]
+      }
+    ],
+    "SessionCheckOptions": [
+      {
+        "file": "src\\lib\\auth\\SessionPollingManager.ts",
+        "type": "interface",
+        "lineNumber": 19,
+        "properties": [
+          {
+            "name": "force",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "source",
+            "optional": true,
+            "type": "'initial' | 'polling' | 'focus' | 'manual'"
+          },
+          {
+            "name": "maxRetries",
+            "optional": true,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "ValidationResult": [
+      {
+        "file": "src\\lib\\config\\environment-validator.ts",
+        "type": "interface",
+        "lineNumber": 19,
+        "properties": [
+          {
+            "name": "valid",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "errors",
+            "optional": false,
+            "type": "string[]"
+          },
+          {
+            "name": "warnings",
+            "optional": false,
+            "type": "string[]"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "type": "ValidationSummary"
+          },
+          {
+            "name": "details",
+            "optional": false,
+            "type": "Map<string"
+          }
+        ]
+      }
+    ],
+    "ValidationSummary": [
+      {
+        "file": "src\\lib\\config\\environment-validator.ts",
+        "type": "interface",
+        "lineNumber": 27,
+        "properties": [
+          {
+            "name": "total",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "valid",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "invalid",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "missing",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "warnings",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "criticalErrors",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "EnvironmentValidationDetail": [
+      {
+        "file": "src\\lib\\config\\environment-validator.ts",
+        "type": "interface",
+        "lineNumber": 36,
+        "properties": [
+          {
+            "name": "key",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "optional": false,
+            "type": "'valid' | 'invalid' | 'missing' | 'warning'"
+          },
+          {
+            "name": "value",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "warning",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "required",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "sensitive",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "environment",
+            "optional": false,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "ValidationOptions": [
+      {
+        "file": "src\\lib\\config\\environment-validator.ts",
+        "type": "interface",
+        "lineNumber": 47,
+        "properties": [
+          {
+            "name": "includeOptional",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "strictMode",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "environment",
+            "optional": true,
+            "type": "'development' | 'test' | 'production'"
+          },
+          {
+            "name": "caller",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "EmailCheckResult": [
+      {
+        "file": "src\\lib\\email-validation\\email-validation-service.ts",
+        "type": "interface",
+        "lineNumber": 7,
+        "properties": [
+          {
+            "name": "exists",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "{"
+          },
+          {
+            "name": "type",
+            "optional": false,
+            "type": "'client_not_ready' | 'network_error' | 'database_error' | 'validation_error'"
+          },
+          {
+            "name": "message",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "userMessage",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "canRetry",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "technicalDetails",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "EmailValidationService": [
+      {
+        "file": "src\\lib\\email-validation\\email-validation-service.ts",
+        "type": "interface",
+        "lineNumber": 18,
+        "properties": []
+      }
+    ],
+    "RetryConfig": [
+      {
+        "file": "src\\lib\\email-validation\\email-validation-service.ts",
+        "type": "interface",
+        "lineNumber": 24,
+        "properties": [
+          {
+            "name": "maxRetries",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "baseDelay",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "maxDelay",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "retryableErrors",
+            "optional": false,
+            "type": "string[]"
+          }
+        ]
+      }
+    ],
+    "ErrorContext": [
+      {
+        "file": "src\\lib\\error-handling\\environment-error-handler.ts",
+        "type": "interface",
+        "lineNumber": 13,
+        "properties": [
+          {
+            "name": "operation",
+            "optional": false,
+            "type": "'startup' | 'email_check' | 'client_init' | 'runtime_access' | 'validation'"
+          },
+          {
+            "name": "environment",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "userAgent",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "userId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "sessionId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "previousErrors",
+            "optional": true,
+            "type": "Error[]"
+          },
+          {
+            "name": "endpoint",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "caller",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "retryAttempt",
+            "optional": true,
+            "type": "number"
+          }
+        ]
+      },
+      {
+        "file": "src\\lib\\utils\\error-handler.ts",
+        "type": "interface",
+        "lineNumber": 16,
+        "properties": [
+          {
+            "name": "action",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "reservationId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "userRole",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "UserFriendlyError": [
+      {
+        "file": "src\\lib\\error-handling\\environment-error-handler.ts",
+        "type": "interface",
+        "lineNumber": 26,
+        "properties": [
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "actions",
+            "optional": false,
+            "type": "ErrorAction[]"
+          },
+          {
+            "name": "technicalDetails",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "canRetry",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "severity",
+            "optional": false,
+            "type": "'low' | 'medium' | 'high' | 'critical'"
+          },
+          {
+            "name": "errorCode",
+            "optional": false,
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "file": "src\\lib\\utils\\auth-error-handler.ts",
+        "type": "interface",
+        "lineNumber": 77,
+        "properties": [
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "recoveryOptions",
+            "optional": false,
+            "type": "RecoveryOption[]"
+          },
+          {
+            "name": "severity",
+            "optional": false,
+            "type": "'error' | 'warning' | 'info'"
+          }
+        ]
+      }
+    ],
+    "ErrorAction": [
+      {
+        "file": "src\\lib\\error-handling\\environment-error-handler.ts",
+        "type": "interface",
+        "lineNumber": 36,
+        "properties": [
+          {
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "action",
+            "optional": false,
+            "type": "'retry' | 'redirect' | 'contact_support' | 'check_config' | 'reload_page'"
+          },
+          {
+            "name": "target",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "TroubleshootingStep": [
+      {
+        "file": "src\\lib\\error-handling\\environment-error-handler.ts",
+        "type": "interface",
+        "lineNumber": 43,
+        "properties": [
+          {
+            "name": "step",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "command",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "expectedResult",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "troubleshootingLevel",
+            "optional": false,
+            "type": "'basic' | 'intermediate' | 'advanced'"
+          }
+        ]
+      }
+    ],
+    "ValidationConfig": [
+      {
+        "file": "src\\lib\\middleware\\validation.ts",
+        "type": "interface",
+        "lineNumber": 11,
+        "properties": [
+          {
+            "name": "body",
+            "optional": true,
+            "type": "ZodSchema"
+          },
+          {
+            "name": "query",
+            "optional": true,
+            "type": "ZodSchema"
+          },
+          {
+            "name": "params",
+            "optional": true,
+            "type": "ZodSchema"
+          }
+        ]
+      }
+    ],
+    "EnhancedSecurityAlertConfig": [
+      {
+        "file": "src\\lib\\monitoring\\enhanced-monitoring-types.ts",
+        "type": "interface",
+        "lineNumber": 71,
+        "properties": [
+          {
+            "name": "eventType",
+            "optional": false,
+            "type": "SecurityEventType"
+          },
+          {
+            "name": "enabled",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "thresholds",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "count",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "timeWindowMinutes",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "severity",
+            "optional": false,
+            "type": "SecuritySeverity"
+          }
+        ]
+      }
+    ],
+    "SecurityDashboardMetrics": [
+      {
+        "file": "src\\lib\\monitoring\\enhanced-monitoring-types.ts",
+        "type": "interface",
+        "lineNumber": 130,
+        "properties": [
+          {
+            "name": "timeRange",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "start",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "end",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "granularity",
+            "optional": false,
+            "type": "'minute' | 'hour' | 'day'"
+          }
+        ]
+      }
+    ],
+    "EnhancedPerformanceAlertConfig": [
+      {
+        "file": "src\\lib\\monitoring\\enhanced-monitoring-types.ts",
+        "type": "interface",
+        "lineNumber": 271,
+        "properties": [
+          {
+            "name": "operation",
+            "optional": false,
+            "type": "PerformanceOperation"
+          },
+          {
+            "name": "enabled",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "slaThresholds",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "p50",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "p95",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "p99",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "errorRate",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "throughput",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "PerformanceDashboardMetrics": [
+      {
+        "file": "src\\lib\\monitoring\\enhanced-monitoring-types.ts",
+        "type": "interface",
+        "lineNumber": 302,
+        "properties": [
+          {
+            "name": "timeRange",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "start",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "end",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "granularity",
+            "optional": false,
+            "type": "'minute' | 'hour' | 'day'"
+          }
+        ]
+      }
+    ],
+    "IntegratedMonitoringContext": [
+      {
+        "file": "src\\lib\\monitoring\\enhanced-monitoring-types.ts",
+        "type": "interface",
+        "lineNumber": 396,
+        "properties": [
+          {
+            "name": "requestId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "traceId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "correlationId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "optional": true,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "authId",
+            "optional": true,
+            "type": "AuthId"
+          },
+          {
+            "name": "sessionId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "userRole",
+            "optional": true,
+            "type": "'admin' | 'employee'"
+          },
+          {
+            "name": "endpoint",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "method",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "userAgent",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "ipAddress",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "startTime",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "endTime",
+            "optional": true,
+            "type": "Date"
+          },
+          {
+            "name": "duration",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "securityEvents",
+            "optional": false,
+            "type": "ExtendedSecurityEvent[]"
+          },
+          {
+            "name": "riskScore",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "performanceMetrics",
+            "optional": false,
+            "type": "ExtendedPerformanceMetric[]"
+          },
+          {
+            "name": "resourceUsage",
+            "optional": false,
+            "type": "ResourceUsage"
+          },
+          {
+            "name": "businessContext",
+            "optional": true,
+            "type": "{"
+          },
+          {
+            "name": "feature",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "operation",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "entityType",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "entityId",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "MonitoringSystemHealth": [
+      {
+        "file": "src\\lib\\monitoring\\enhanced-monitoring-types.ts",
+        "type": "interface",
+        "lineNumber": 439,
+        "properties": [
+          {
+            "name": "status",
+            "optional": false,
+            "type": "'healthy' | 'degraded' | 'critical' | 'unknown'"
+          },
+          {
+            "name": "lastUpdated",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "components",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "securityMonitoring",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "status",
+            "optional": false,
+            "type": "'healthy' | 'degraded' | 'critical'"
+          },
+          {
+            "name": "eventsProcessed",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "alertsActive",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "lastEventTime",
+            "optional": true,
+            "type": "Date"
+          },
+          {
+            "name": "errorRate",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "MonitoringConfiguration": [
+      {
+        "file": "src\\lib\\monitoring\\enhanced-monitoring-types.ts",
+        "type": "interface",
+        "lineNumber": 496,
+        "properties": [
+          {
+            "name": "global",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "enabled",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "environment",
+            "optional": false,
+            "type": "'development' | 'staging' | 'production'"
+          },
+          {
+            "name": "logLevel",
+            "optional": false,
+            "type": "'debug' | 'info' | 'warn' | 'error'"
+          },
+          {
+            "name": "sampleRate",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "EnvironmentHealthStatus": [
+      {
+        "file": "src\\lib\\monitoring\\environment-health-check.ts",
+        "type": "interface",
+        "lineNumber": 16,
+        "properties": [
+          {
+            "name": "overall",
+            "optional": false,
+            "type": "'healthy' | 'degraded' | 'critical' | 'unknown'"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "components",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "environmentVariables",
+            "optional": false,
+            "type": "ComponentHealth"
+          },
+          {
+            "name": "supabaseClient",
+            "optional": false,
+            "type": "ComponentHealth"
+          },
+          {
+            "name": "monitoring",
+            "optional": false,
+            "type": "ComponentHealth"
+          },
+          {
+            "name": "security",
+            "optional": false,
+            "type": "ComponentHealth"
+          }
+        ]
+      }
+    ],
+    "ComponentHealth": [
+      {
+        "file": "src\\lib\\monitoring\\environment-health-check.ts",
+        "type": "interface",
+        "lineNumber": 35,
+        "properties": [
+          {
+            "name": "status",
+            "optional": false,
+            "type": "'healthy' | 'degraded' | 'critical' | 'unknown'"
+          },
+          {
+            "name": "message",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "lastCheck",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "metrics",
+            "optional": true,
+            "type": "Record<string"
+          },
+          {
+            "name": "errors",
+            "optional": true,
+            "type": "string[]"
+          }
+        ]
+      }
+    ],
+    "HealthCheckOptions": [
+      {
+        "file": "src\\lib\\monitoring\\environment-health-check.ts",
+        "type": "interface",
+        "lineNumber": 43,
+        "properties": [
+          {
+            "name": "includeMetrics",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "includeDetails",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "timeWindowMinutes",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "performDeepCheck",
+            "optional": true,
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "EnvironmentError": [
+      {
+        "file": "src\\lib\\monitoring\\environment-monitor.ts",
+        "type": "interface",
+        "lineNumber": 14,
+        "properties": [
+          {
+            "name": "type",
+            "optional": false,
+            "type": "'missing_variable' | 'invalid_format' | 'validation_failed' | 'client_init_failed' | 'network_error' | 'configuration_error'"
+          },
+          {
+            "name": "severity",
+            "optional": false,
+            "type": "'low' | 'medium' | 'high' | 'critical'"
+          },
+          {
+            "name": "variable",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "context",
+            "optional": false,
+            "type": "EnvironmentErrorContext"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "correlationId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "metadata",
+            "optional": true,
+            "type": "Record<string"
+          }
+        ]
+      }
+    ],
+    "EnvironmentErrorContext": [
+      {
+        "file": "src\\lib\\monitoring\\environment-monitor.ts",
+        "type": "interface",
+        "lineNumber": 25,
+        "properties": [
+          {
+            "name": "operation",
+            "optional": false,
+            "type": "'startup_validation' | 'client_initialization' | 'runtime_access' | 'health_check'"
+          },
+          {
+            "name": "caller",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "endpoint",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "sessionId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "environment",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "retryAttempt",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "previousErrors",
+            "optional": true,
+            "type": "string[]"
+          }
+        ]
+      }
+    ],
+    "ClientInitializationMetrics": [
+      {
+        "file": "src\\lib\\monitoring\\environment-monitor.ts",
+        "type": "interface",
+        "lineNumber": 36,
+        "properties": [
+          {
+            "name": "attemptId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "startTime",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "endTime",
+            "optional": true,
+            "type": "Date"
+          },
+          {
+            "name": "duration",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "success",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "retryCount",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "errorType",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "errorMessage",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "environment",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "correlationId",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "EnvironmentValidationMetrics": [
+      {
+        "file": "src\\lib\\monitoring\\environment-monitor.ts",
+        "type": "interface",
+        "lineNumber": 49,
+        "properties": [
+          {
+            "name": "validationId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "startTime",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "endTime",
+            "optional": true,
+            "type": "Date"
+          },
+          {
+            "name": "duration",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "totalVariables",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "validVariables",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "invalidVariables",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "missingVariables",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "environment",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "correlationId",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "EnvironmentAlert": [
+      {
+        "file": "src\\lib\\monitoring\\environment-monitor.ts",
+        "type": "interface",
+        "lineNumber": 62,
+        "properties": [
+          {
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "type",
+            "optional": false,
+            "type": "'repeated_failures' | 'critical_missing_variable' | 'client_init_failure_rate' | 'validation_performance_degradation'"
+          },
+          {
+            "name": "severity",
+            "optional": false,
+            "type": "'medium' | 'high' | 'critical'"
+          },
+          {
+            "name": "count",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "threshold",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "timeWindow",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "firstOccurrence",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "lastOccurrence",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "isActive",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "details",
+            "optional": false,
+            "type": "Record<string"
+          },
+          {
+            "name": "environment",
+            "optional": false,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "EnvironmentMonitoringStats": [
+      {
+        "file": "src\\lib\\monitoring\\environment-monitor.ts",
+        "type": "interface",
+        "lineNumber": 76,
+        "properties": [
+          {
+            "name": "totalErrors",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "errorsByType",
+            "optional": false,
+            "type": "Record<string"
+          },
+          {
+            "name": "errorsBySeverity",
+            "optional": false,
+            "type": "Record<string"
+          },
+          {
+            "name": "clientInitializationSuccessRate",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "averageValidationDuration",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "averageClientInitDuration",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "activeAlerts",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "environment",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "timeWindow",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "PerformanceMetric": [
+      {
+        "file": "src\\lib\\monitoring\\performance-monitor.ts",
+        "type": "interface",
+        "lineNumber": 8,
+        "properties": [
+          {
+            "name": "operation",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "duration",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "success",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "metadata",
+            "optional": true,
+            "type": "Record<string"
+          }
+        ]
+      }
+    ],
+    "PerformanceAlert": [
+      {
+        "file": "src\\lib\\monitoring\\performance-monitor.ts",
+        "type": "interface",
+        "lineNumber": 16,
+        "properties": [
+          {
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "operation",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "threshold",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "actualValue",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "severity",
+            "optional": false,
+            "type": "'warning' | 'critical'"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "details",
+            "optional": false,
+            "type": "Record<string"
+          }
+        ]
+      }
+    ],
+    "SecurityEvent": [
+      {
+        "file": "src\\lib\\monitoring\\security-monitor.ts",
+        "type": "interface",
+        "lineNumber": 8,
+        "properties": [
+          {
+            "name": "type",
+            "optional": false,
+            "type": "'auth_failure' | 'suspicious_access' | 'data_integrity_violation' | 'rate_limit_exceeded' | 'privilege_escalation_attempt' | 'api_access' | 'authenticated_api_access' | 'anonymous_api_access' | 'admin_operation_attempt' | 'admin_operation_success'"
+          },
+          {
+            "name": "severity",
+            "optional": false,
+            "type": "'low' | 'medium' | 'high' | 'critical'"
+          },
+          {
+            "name": "userId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "sessionId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "ipAddress",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "userAgent",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "endpoint",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "method",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "details",
+            "optional": true,
+            "type": "Record<string"
+          },
+          {
+            "name": "metadata",
+            "optional": true,
+            "type": "Record<string"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "source",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "SecurityAlert": [
+      {
+        "file": "src\\lib\\monitoring\\security-monitor.ts",
+        "type": "interface",
+        "lineNumber": 23,
+        "properties": [
+          {
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "eventType",
+            "optional": false,
+            "type": "SecurityEvent['type']"
+          },
+          {
+            "name": "severity",
+            "optional": false,
+            "type": "SecurityEvent['severity']"
+          },
+          {
+            "name": "count",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "firstOccurrence",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "lastOccurrence",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "threshold",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "timeWindow",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "isActive",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "details",
+            "optional": false,
+            "type": "Record<string"
+          }
+        ]
+      }
+    ],
+    "NavigationState": [
+      {
+        "file": "src\\lib\\navigation\\NavigationController.ts",
+        "type": "interface",
+        "lineNumber": 16,
+        "properties": [
+          {
+            "name": "isRedirecting",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "redirectPath",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "name": "redirectReason",
+            "optional": false,
+            "type": "'login' | 'logout' | 'timeout' | 'error'"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "attempt",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "lastError",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "RedirectOptions": [
+      {
+        "file": "src\\lib\\navigation\\NavigationController.ts",
+        "type": "interface",
+        "lineNumber": 25,
+        "properties": [
+          {
+            "name": "userProfile",
+            "optional": false,
+            "type": "UserProfile"
+          },
+          {
+            "name": "previousPath",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "fallbackPath",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "timeout",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "maxRetries",
+            "optional": true,
+            "type": "number"
+          }
+        ]
+      },
+      {
+        "file": "src\\lib\\utils\\auth-navigation.ts",
+        "type": "interface",
+        "lineNumber": 150,
+        "properties": [
+          {
+            "name": "isAuthenticated",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "isAdmin",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "currentPath",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "fallbackPath",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "NavigationController": [
+      {
+        "file": "src\\lib\\navigation\\NavigationController.ts",
+        "type": "interface",
+        "lineNumber": 33,
+        "properties": [
+          {
+            "name": "handlePostLoginRedirect",
+            "optional": false,
+            "type": "(options: RedirectOptions) => Promise<void>"
+          },
+          {
+            "name": "handleAuthTimeout",
+            "optional": false,
+            "type": "() => void"
+          },
+          {
+            "name": "getRedirectPath",
+            "optional": false,
+            "type": "(userProfile: UserProfile"
+          },
+          {
+            "name": "clearRedirectState",
+            "optional": false,
+            "type": "() => void"
+          },
+          {
+            "name": "getNavigationState",
+            "optional": false,
+            "type": "() => NavigationState"
+          },
+          {
+            "name": "retryLastRedirect",
+            "optional": false,
+            "type": "() => Promise<void>"
+          }
+        ]
+      }
+    ],
+    "DeploymentInfo": [
+      {
+        "file": "src\\lib\\pwa\\deployment-integration.ts",
+        "type": "interface",
+        "lineNumber": 11,
+        "properties": [
+          {
+            "name": "version",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "buildId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "environment",
+            "optional": false,
+            "type": "'development' | 'production' | 'staging'"
+          },
+          {
+            "name": "gitCommit",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "gitBranch",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "UpdateNotificationOptions": [
+      {
+        "file": "src\\lib\\pwa\\deployment-integration.ts",
+        "type": "interface",
+        "lineNumber": 20,
+        "properties": [
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "actionText",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "dismissText",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "autoReload",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "timeout",
+            "optional": true,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "ValidatedReservationData": [
+      {
+        "file": "src\\lib\\security\\enhanced-user-id-guards.ts",
+        "type": "interface",
+        "lineNumber": 648,
+        "properties": [
+          {
+            "name": "room_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "optional": false,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "purpose",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "end_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "optional": true,
+            "type": "'confirmed' | 'cancelled'"
+          }
+        ]
+      },
+      {
+        "file": "src\\lib\\security\\user-id-guards.ts",
+        "type": "interface",
+        "lineNumber": 195,
+        "properties": [
+          {
+            "name": "room_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "purpose",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "end_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "optional": true,
+            "type": "'confirmed' | 'cancelled'"
+          }
+        ]
+      }
+    ],
+    "EnvironmentSecurityConfig": [
+      {
+        "file": "src\\lib\\security\\environment-config.ts",
+        "type": "interface",
+        "lineNumber": 6,
+        "properties": [
+          {
+            "name": "requiredVariables",
+            "optional": false,
+            "type": "string[]"
+          },
+          {
+            "name": "optionalVariables",
+            "optional": false,
+            "type": "string[]"
+          },
+          {
+            "name": "securityChecks",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "requireHttps",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "requireServiceRoleKey",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "validateKeyFormats",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "checkDefaultValues",
+            "optional": false,
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "FixOperationConfig": [
+      {
+        "file": "src\\lib\\security\\fix-reservation-user-id.ts",
+        "type": "interface",
+        "lineNumber": 14,
+        "properties": [
+          {
+            "name": "dryRun",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "createBackup",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "enableRollback",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "batchSize",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "maxRetries",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "retryDelay",
+            "optional": true,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "FixOperationResult": [
+      {
+        "file": "src\\lib\\security\\fix-reservation-user-id.ts",
+        "type": "interface",
+        "lineNumber": 26,
+        "properties": [
+          {
+            "name": "success",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "reservationId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "originalUserId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "correctedUserId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "userName",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "reservationTitle",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "backupId",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "BatchFixResult": [
+      {
+        "file": "src\\lib\\security\\fix-reservation-user-id.ts",
+        "type": "interface",
+        "lineNumber": 41,
+        "properties": [
+          {
+            "name": "totalProcessed",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "successfulFixes",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "failures",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "results",
+            "optional": false,
+            "type": "FixOperationResult[]"
+          },
+          {
+            "name": "backupId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "rollbackAvailable",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "ReservationBackup": [
+      {
+        "file": "src\\lib\\security\\fix-reservation-user-id.ts",
+        "type": "interface",
+        "lineNumber": 54,
+        "properties": [
+          {
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "reservationId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "originalData",
+            "optional": false,
+            "type": "any"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "operation",
+            "optional": false,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "EnvironmentAccessContext": [
+      {
+        "file": "src\\lib\\security\\secure-environment-access.ts",
+        "type": "interface",
+        "lineNumber": 29,
+        "properties": [
+          {
+            "name": "caller",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "endpoint",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "optional": true,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "authId",
+            "optional": true,
+            "type": "AuthId"
+          },
+          {
+            "name": "sessionId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "operation",
+            "optional": false,
+            "type": "'read' | 'validate' | 'audit'"
+          },
+          {
+            "name": "purpose",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "requestId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "metadata",
+            "optional": true,
+            "type": "Record<string"
+          }
+        ]
+      }
+    ],
+    "EnvironmentAccessResult": [
+      {
+        "file": "src\\lib\\security\\secure-environment-access.ts",
+        "type": "interface",
+        "lineNumber": 45,
+        "properties": [
+          {
+            "name": "success",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "value",
+            "optional": true,
+            "type": "T"
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "accessContext",
+            "optional": false,
+            "type": "EnvironmentAccessContext"
+          },
+          {
+            "name": "performanceMetrics",
+            "optional": true,
+            "type": "PerformanceMetricContext"
+          }
+        ]
+      }
+    ],
+    "EnvironmentVariableConfig": [
+      {
+        "file": "src\\lib\\security\\secure-environment-access.ts",
+        "type": "interface",
+        "lineNumber": 56,
+        "properties": [
+          {
+            "name": "key",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "required",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "sensitive",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "allowedCallers",
+            "optional": true,
+            "type": "string[]"
+          },
+          {
+            "name": "allowedEnvironments",
+            "optional": true,
+            "type": "('development' | 'test' | 'production')[]"
+          },
+          {
+            "name": "validator",
+            "optional": true,
+            "type": "(value: string) => { valid: boolean"
+          }
+        ]
+      }
+    ],
+    "UserIdValidationResult": [
+      {
+        "file": "src\\lib\\security\\user-id-guards.ts",
+        "type": "interface",
+        "lineNumber": 13,
+        "properties": [
+          {
+            "name": "isValid",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "userId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "authId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "correctedUserId",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "UserIdContext": [
+      {
+        "file": "src\\lib\\security\\user-id-guards.ts",
+        "type": "interface",
+        "lineNumber": 21,
+        "properties": [
+          {
+            "name": "authId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "dbId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "Room": [
+      {
+        "file": "src\\lib\\services\\rooms.ts",
+        "type": "type",
+        "lineNumber": 9,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "Database[\"public\"][\"Tables\"][\"rooms\"][\"Row\"]"
+          }
+        ]
+      }
+    ],
+    "StartupValidationResult": [
+      {
+        "file": "src\\lib\\startup\\environment-startup-validator.ts",
+        "type": "interface",
+        "lineNumber": 17,
+        "properties": [
+          {
+            "name": "success",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "validationResult",
+            "optional": true,
+            "type": "ValidationResult"
+          },
+          {
+            "name": "userFriendlyError",
+            "optional": true,
+            "type": "UserFriendlyError"
+          },
+          {
+            "name": "canContinue",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "requiresUserAction",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "startupTime",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "StartupValidationOptions": [
+      {
+        "file": "src\\lib\\startup\\environment-startup-validator.ts",
+        "type": "interface",
+        "lineNumber": 26,
+        "properties": [
+          {
+            "name": "strictMode",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "includeOptional",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "failFast",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "environment",
+            "optional": true,
+            "type": "'development' | 'test' | 'production'"
+          }
+        ]
+      }
+    ],
+    "ServerStartupValidationResult": [
+      {
+        "file": "src\\lib\\startup\\server-startup-validator.ts",
+        "type": "interface",
+        "lineNumber": 17,
+        "properties": [
+          {
+            "name": "success",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "canServeRequests",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "validationResult",
+            "optional": true,
+            "type": "ValidationResult"
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "UserFriendlyError"
+          },
+          {
+            "name": "serverStartupTime",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "environment",
+            "optional": false,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "ServerValidationOptions": [
+      {
+        "file": "src\\lib\\startup\\server-startup-validator.ts",
+        "type": "interface",
+        "lineNumber": 26,
+        "properties": [
+          {
+            "name": "strictMode",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "includeOptional",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "caller",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "skipCache",
+            "optional": true,
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "ClientInitializationResult": [
+      {
+        "file": "src\\lib\\supabase\\client.ts",
+        "type": "interface",
+        "lineNumber": 18,
+        "properties": [
+          {
+            "name": "success",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "client",
+            "optional": true,
+            "type": "ReturnType<typeof createBrowserClient<Database>>"
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "{"
+          },
+          {
+            "name": "type",
+            "optional": false,
+            "type": "'environment' | 'network' | 'configuration'"
+          },
+          {
+            "name": "message",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "troubleshooting",
+            "optional": false,
+            "type": "string[]"
+          },
+          {
+            "name": "canRetry",
+            "optional": false,
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "SupabaseClientManager": [
+      {
+        "file": "src\\lib\\supabase\\client.ts",
+        "type": "interface",
+        "lineNumber": 29,
+        "properties": []
+      }
+    ],
+    "ClientStatus": [
+      {
+        "file": "src\\lib\\supabase\\client.ts",
+        "type": "interface",
+        "lineNumber": 38,
+        "properties": [
+          {
+            "name": "state",
+            "optional": false,
+            "type": "'uninitialized' | 'initializing' | 'ready' | 'error' | 'retrying'"
+          },
+          {
+            "name": "lastError",
+            "optional": true,
+            "type": "Error"
+          },
+          {
+            "name": "retryCount",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "lastInitializationAttempt",
+            "optional": true,
+            "type": "Date"
+          },
+          {
+            "name": "nextRetryAt",
+            "optional": true,
+            "type": "Date"
+          }
+        ]
+      }
+    ],
+    "AuthLogger": [
+      {
+        "file": "src\\lib\\utils\\auth-error-handler.ts",
+        "type": "interface",
+        "lineNumber": 10,
+        "properties": [
+          {
+            "name": "debug",
+            "optional": false,
+            "type": "(message: string"
+          },
+          {
+            "name": "info",
+            "optional": false,
+            "type": "(message: string"
+          },
+          {
+            "name": "warn",
+            "optional": false,
+            "type": "(message: string"
+          },
+          {
+            "name": "error",
+            "optional": false,
+            "type": "(message: string"
+          }
+        ]
+      }
+    ],
+    "ErrorHandlerOptions": [
+      {
+        "file": "src\\lib\\utils\\auth-error-handler.ts",
+        "type": "interface",
+        "lineNumber": 70,
+        "properties": [
+          {
+            "name": "showToast",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "logError",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "autoRetry",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "maxRetries",
+            "optional": true,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "AuthNavigationPolicy": [
+      {
+        "file": "src\\lib\\utils\\auth-navigation.ts",
+        "type": "interface",
+        "lineNumber": 6,
+        "properties": [
+          {
+            "name": "allowAutoRedirect",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "detectAuthStateChange",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "TimeoutConfig": [
+      {
+        "file": "src\\lib\\utils\\auth-timeout.ts",
+        "type": "interface",
+        "lineNumber": 6,
+        "properties": [
+          {
+            "name": "loginTimeout",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "redirectTimeout",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "authTimeout",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "RecoveryOption": [
+      {
+        "file": "src\\lib\\utils\\auth-timeout.ts",
+        "type": "interface",
+        "lineNumber": 19,
+        "properties": [
+          {
+            "name": "label",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "action",
+            "optional": false,
+            "type": "() => void"
+          },
+          {
+            "name": "primary",
+            "optional": true,
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "TimeoutHandler": [
+      {
+        "file": "src\\lib\\utils\\auth-timeout.ts",
+        "type": "interface",
+        "lineNumber": 25,
+        "properties": [
+          {
+            "name": "startTimeout",
+            "optional": false,
+            "type": "(type: keyof TimeoutConfig"
+          },
+          {
+            "name": "clearTimeout",
+            "optional": false,
+            "type": "(type: keyof TimeoutConfig) => void"
+          },
+          {
+            "name": "clearAllTimeouts",
+            "optional": false,
+            "type": "() => void"
+          },
+          {
+            "name": "isTimedOut",
+            "optional": false,
+            "type": "(type: keyof TimeoutConfig) => boolean"
+          }
+        ]
+      }
+    ],
+    "NetworkStatus": [
+      {
+        "file": "src\\lib\\utils\\auth-timeout.ts",
+        "type": "interface",
+        "lineNumber": 192,
+        "properties": [
+          {
+            "name": "isOnline",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "connectionType",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "effectiveType",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "UserIdMappingDebugInfo": [
+      {
+        "file": "src\\lib\\utils\\debug.ts",
+        "type": "interface",
+        "lineNumber": 9,
+        "properties": [
+          {
+            "name": "userProfile",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "authId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "dbId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "employeeId",
+            "optional": false,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "ReservationError": [
+      {
+        "file": "src\\lib\\utils\\error-handler.ts",
+        "type": "interface",
+        "lineNumber": 7,
+        "properties": [
+          {
+            "name": "type",
+            "optional": false,
+            "type": "'permission' | 'network' | 'validation' | 'server' | 'not_found' | 'conflict'"
+          },
+          {
+            "name": "code",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "details",
+            "optional": true,
+            "type": "any"
+          },
+          {
+            "name": "userMessage",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "retryable",
+            "optional": false,
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "ErrorInfo": [
+      {
+        "file": "src\\lib\\utils\\error-messages.ts",
+        "type": "interface",
+        "lineNumber": 5,
+        "properties": [
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "message",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "action",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "severity",
+            "optional": false,
+            "type": "'error' | 'warning' | 'info'"
+          }
+        ]
+      }
+    ],
+    "AuthErrorType": [
+      {
+        "file": "src\\lib\\utils\\error-messages.ts",
+        "type": "type",
+        "lineNumber": 12,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "| 'NETWORK_ERROR'\r\n  | 'TOKEN_EXPIRED' \r\n  | 'TOKEN_INVALID'\r\n  | 'EMAIL_NOT_CONFIRMED'\r\n  | 'USER_NOT_FOUND'\r\n  | 'SESSION_ERROR'\r\n  | 'PROFILE_CREATION_FAILED'\r\n  | 'UNKNOWN_ERROR'\r\n  | 'WINDOW_CLOSE_FAILED'\r\n  | 'LOGIN_TIMEOUT'\r\n  | 'REDIRECT_TIMEOUT'\r\n  | 'AUTH_TIMEOUT'\r\n  | 'INVALID_CREDENTIALS'\r\n  | 'ACCOUNT_LOCKED'\r\n  | 'PASSWORD_WEAK'\r\n  | 'EMAIL_INVALID'\r\n  | 'RATE_LIMIT_EXCEEDED'\r\n  | 'SERVER_ERROR'\r\n  | 'DATABASE_ERROR'"
+          }
+        ]
+      }
+    ],
+    "PWASignupState": [
+      {
+        "file": "src\\lib\\utils\\pwa-signup-utils.ts",
+        "type": "interface",
+        "lineNumber": 8,
+        "properties": [
+          {
+            "name": "isOnline",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "isPWA",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "canSignup",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "offlineMessage",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "SignupCompatibilityCheck": [
+      {
+        "file": "src\\lib\\utils\\pwa-signup-utils.ts",
+        "type": "interface",
+        "lineNumber": 15,
+        "properties": [
+          {
+            "name": "canProceed",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "reason",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "suggestedAction",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "PWACapabilities": [
+      {
+        "file": "src\\lib\\utils\\pwa-utils.ts",
+        "type": "interface",
+        "lineNumber": 7,
+        "properties": [
+          {
+            "name": "supportsOffline",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "supportsNotifications",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "supportsBackgroundSync",
+            "optional": false,
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "PWAEnvironmentInfo": [
+      {
+        "file": "src\\lib\\utils\\pwa-utils.ts",
+        "type": "interface",
+        "lineNumber": 13,
+        "properties": [
+          {
+            "name": "isPWA",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "displayMode",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "isStandalone",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "isIOS",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "isAndroid",
+            "optional": false,
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "PermissionCheckResult": [
+      {
+        "file": "src\\lib\\utils\\reservation-permissions.ts",
+        "type": "interface",
+        "lineNumber": 9,
+        "properties": [
+          {
+            "name": "allowed",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "reason",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "details",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "isOwnerByDbId",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "isOwnerByAuthId",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "isAdmin",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "isNotCancelled",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "userDbId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "userAuthId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "reservationUserId",
+            "optional": false,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "WindowCloseOptions": [
+      {
+        "file": "src\\lib\\utils\\window-close.ts",
+        "type": "interface",
+        "lineNumber": 6,
+        "properties": [
+          {
+            "name": "delay",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "fallbackMessage",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "showFallbackUI",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "maxRetries",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "retryInterval",
+            "optional": true,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "WindowCloseResult": [
+      {
+        "file": "src\\lib\\utils\\window-close.ts",
+        "type": "interface",
+        "lineNumber": 19,
+        "properties": [
+          {
+            "name": "success",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "method",
+            "optional": false,
+            "type": "'auto' | 'manual' | 'failed'"
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "windowClosed",
+            "optional": true,
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "WindowCloseCallback": [
+      {
+        "file": "src\\lib\\utils\\window-close.ts",
+        "type": "type",
+        "lineNumber": 30,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "(result: WindowCloseResult) => void"
+          }
+        ]
+      }
+    ],
+    "LoginFormData": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 205,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof loginSchema>"
+          }
+        ]
+      }
+    ],
+    "MagicLinkLoginFormData": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 210,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof magicLinkLoginSchema>"
+          }
+        ]
+      }
+    ],
+    "OTPVerificationFormData": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 215,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof otpVerificationSchema>"
+          }
+        ]
+      }
+    ],
+    "OTPRequestFormData": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 216,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof otpRequestSchema>"
+          }
+        ]
+      }
+    ],
+    "SignupToOtpTransitionData": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 217,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof signupToOtpTransitionSchema>"
+          }
+        ]
+      }
+    ],
+    "ReservationFormData": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 219,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof reservationSchema>"
+          }
+        ]
+      }
+    ],
+    "RoomFormData": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 220,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof roomFormSchema>"
+          }
+        ]
+      }
+    ],
+    "DateRange": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 221,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof dateRangeSchema>"
+          }
+        ]
+      }
+    ],
+    "SignupFormData": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 230,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof signupSchema>"
+          }
+        ]
+      }
+    ],
+    "NewReservationFormValues": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 279,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof newReservationFormSchema>"
+          }
+        ]
+      }
+    ],
+    "PaginationRequestData": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 343,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof paginationRequestSchema>"
+          }
+        ]
+      }
+    ],
+    "PaginationMetadata": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 344,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof paginationMetadataSchema>"
+          }
+        ]
+      },
+      {
+        "file": "src\\types\\pagination.ts",
+        "type": "interface",
+        "lineNumber": 30,
+        "properties": [
+          {
+            "name": "limit",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "offset",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "total_count",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "has_more",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "current_page",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "total_pages",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "current_count",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "PaginatedReservationsResponse": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 345,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof paginatedReservationsSchema>"
+          }
+        ]
+      }
+    ],
+    "PaginatedRoomsResponse": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 346,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof paginatedRoomsSchema>"
+          }
+        ]
+      }
+    ],
+    "PaginatedUsersResponse": [
+      {
+        "file": "src\\lib\\validations\\schemas.ts",
+        "type": "type",
+        "lineNumber": 347,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "z.infer<typeof paginatedUsersSchema>"
+          }
+        ]
+      }
+    ],
+    "AuthState": [
+      {
+        "file": "src\\types\\auth-optimization.ts",
+        "type": "interface",
+        "lineNumber": 6,
+        "properties": [
+          {
+            "name": "status",
+            "optional": false,
+            "type": "'authenticated' | 'unauthenticated' | 'pending'"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "userId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "sessionToken",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "source",
+            "optional": false,
+            "type": "'internal' | 'external_app'"
+          }
+        ]
+      }
+    ],
+    "StoredAuthState": [
+      {
+        "file": "src\\types\\auth-optimization.ts",
+        "type": "interface",
+        "lineNumber": 14,
+        "properties": [
+          {
+            "name": "version",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "state",
+            "optional": false,
+            "type": "AuthState"
+          },
+          {
+            "name": "metadata",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "createdAt",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "updatedAt",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "source",
+            "optional": false,
+            "type": "'internal' | 'external_app' | 'migration'"
+          }
+        ]
+      }
+    ],
+    "RedirectionConfig": [
+      {
+        "file": "src\\types\\auth-optimization.ts",
+        "type": "interface",
+        "lineNumber": 31,
+        "properties": [
+          {
+            "name": "baseUrl",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "verifiedPagePath",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "autoRedirectDelay",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "fallbackEnabled",
+            "optional": false,
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "AuthReturnData": [
+      {
+        "file": "src\\types\\auth-optimization.ts",
+        "type": "interface",
+        "lineNumber": 38,
+        "properties": [
+          {
+            "name": "success",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "userId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "sessionToken",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "AuthResult": [
+      {
+        "file": "src\\types\\auth-optimization.ts",
+        "type": "interface",
+        "lineNumber": 45,
+        "properties": [
+          {
+            "name": "success",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "userId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "sessionToken",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "AuthStateChangeCallback": [
+      {
+        "file": "src\\types\\auth-optimization.ts",
+        "type": "type",
+        "lineNumber": 53,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "(state: AuthState | null) => void"
+          }
+        ]
+      }
+    ],
+    "UserMetadata": [
+      {
+        "file": "src\\types\\auth.ts",
+        "type": "interface",
+        "lineNumber": 6,
+        "properties": [
+          {
+            "name": "fullName",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "optional": true,
+            "type": "'admin' | 'employee'"
+          }
+        ]
+      }
+    ],
+    "UserProfile": [
+      {
+        "file": "src\\types\\auth.ts",
+        "type": "interface",
+        "lineNumber": 16,
+        "properties": [
+          {
+            "name": "authId",
+            "optional": false,
+            "type": "AuthId"
+          },
+          {
+            "name": "dbId",
+            "optional": false,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "employeeId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "optional": false,
+            "type": "'admin' | 'employee'"
+          },
+          {
+            "name": "createdAt",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "updatedAt",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "EnhancedUserProfile": [
+      {
+        "file": "src\\types\\auth.ts",
+        "type": "interface",
+        "lineNumber": 32,
+        "properties": [
+          {
+            "name": "authId",
+            "optional": false,
+            "type": "AuthId"
+          },
+          {
+            "name": "databaseId",
+            "optional": false,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "optional": false,
+            "type": "'admin' | 'employee'"
+          },
+          {
+            "name": "isActive",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "createdAt",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "updatedAt",
+            "optional": true,
+            "type": "Date"
+          },
+          {
+            "name": "lastValidated",
+            "optional": true,
+            "type": "Date"
+          }
+        ]
+      }
+    ],
+    "LoginRequest": [
+      {
+        "file": "src\\types\\auth.ts",
+        "type": "interface",
+        "lineNumber": 48,
+        "properties": [
+          {
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "password",
+            "optional": false,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "SignupRequest": [
+      {
+        "file": "src\\types\\auth.ts",
+        "type": "interface",
+        "lineNumber": 56,
+        "properties": [
+          {
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "fullName",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "optional": true,
+            "type": "'admin' | 'employee'"
+          }
+        ]
+      }
+    ],
+    "CreateUserData": [
+      {
+        "file": "src\\types\\auth.ts",
+        "type": "interface",
+        "lineNumber": 63,
+        "properties": [
+          {
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "fullName",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "optional": true,
+            "type": "'employee' | 'admin'"
+          }
+        ]
+      }
+    ],
+    "Database": [
+      {
+        "file": "src\\types\\database.ts",
+        "type": "interface",
+        "lineNumber": 15,
+        "properties": [
+          {
+            "name": "public",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "Tables",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "users",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "Row",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "auth_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "employee_id",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "optional": false,
+            "type": "'employee' | 'admin'"
+          },
+          {
+            "name": "created_at",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "updated_at",
+            "optional": false,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "EnhancedUser": [
+      {
+        "file": "src\\types\\database.ts",
+        "type": "interface",
+        "lineNumber": 283,
+        "properties": [
+          {
+            "name": "id",
+            "optional": false,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "auth_id",
+            "optional": false,
+            "type": "AuthId"
+          },
+          {
+            "name": "employee_id",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "optional": false,
+            "type": "'employee' | 'admin'"
+          },
+          {
+            "name": "created_at",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "updated_at",
+            "optional": false,
+            "type": "Date"
+          }
+        ]
+      }
+    ],
+    "EnhancedReservation": [
+      {
+        "file": "src\\types\\database.ts",
+        "type": "interface",
+        "lineNumber": 298,
+        "properties": [
+          {
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "room_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "optional": false,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "purpose",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "end_time",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "status",
+            "optional": false,
+            "type": "'confirmed' | 'cancelled'"
+          },
+          {
+            "name": "cancellation_reason",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "created_at",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "updated_at",
+            "optional": false,
+            "type": "Date"
+          }
+        ]
+      }
+    ],
+    "EnhancedPublicReservation": [
+      {
+        "file": "src\\types\\database.ts",
+        "type": "interface",
+        "lineNumber": 315,
+        "properties": [
+          {
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "room_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "optional": false,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "purpose",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "name": "department",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "user_name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "end_time",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "is_mine",
+            "optional": false,
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "EnhancedReservationInsert": [
+      {
+        "file": "src\\types\\database.ts",
+        "type": "interface",
+        "lineNumber": 331,
+        "properties": [
+          {
+            "name": "room_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "optional": false,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "purpose",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "end_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "optional": true,
+            "type": "'confirmed' | 'cancelled'"
+          },
+          {
+            "name": "cancellation_reason",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "EnhancedReservationUpdate": [
+      {
+        "file": "src\\types\\database.ts",
+        "type": "interface",
+        "lineNumber": 345,
+        "properties": [
+          {
+            "name": "room_id",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "optional": true,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "title",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "purpose",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "end_time",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "optional": true,
+            "type": "'confirmed' | 'cancelled'"
+          },
+          {
+            "name": "cancellation_reason",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "DatabaseTypeConverters": [
+      {
+        "file": "src\\types\\database.ts",
+        "type": "interface",
+        "lineNumber": 359,
+        "properties": [
+          {
+            "name": "reservationToInsert",
+            "optional": false,
+            "type": "(reservation: EnhancedReservationInsert) => ReservationInsert"
+          },
+          {
+            "name": "reservationToUpdate",
+            "optional": false,
+            "type": "(reservation: EnhancedReservationUpdate) => ReservationUpdate"
+          },
+          {
+            "name": "userFromDatabase",
+            "optional": false,
+            "type": "(user: User) => EnhancedUser"
+          },
+          {
+            "name": "reservationFromDatabase",
+            "optional": false,
+            "type": "(reservation: Reservation) => EnhancedReservation"
+          },
+          {
+            "name": "publicReservationFromDatabase",
+            "optional": false,
+            "type": "(reservation: PublicReservation) => EnhancedPublicReservation"
+          }
+        ]
+      }
+    ],
+    "Json": [
+      {
+        "file": "src\\types\\database.ts",
+        "type": "type",
+        "lineNumber": 7,
+        "properties": [
+          {
+            "name": "public",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "Tables",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "users",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "Row",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "auth_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "employee_id",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "optional": false,
+            "type": "'employee' | 'admin'"
+          },
+          {
+            "name": "created_at",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "updated_at",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "Insert",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "auth_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "employee_id",
+            "optional": true,
+            "type": "string | null"
+          },
+          {
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "optional": true,
+            "type": "'employee' | 'admin'"
+          },
+          {
+            "name": "Update",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "auth_id",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "employee_id",
+            "optional": true,
+            "type": "string | null"
+          },
+          {
+            "name": "name",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "optional": true,
+            "type": "'employee' | 'admin'"
+          },
+          {
+            "name": "updated_at",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "rooms",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "Row",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "capacity",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "location",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "amenities",
+            "optional": false,
+            "type": "Json"
+          },
+          {
+            "name": "is_active",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "created_at",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "updated_at",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "Insert",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "capacity",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "location",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "amenities",
+            "optional": true,
+            "type": "Json"
+          },
+          {
+            "name": "is_active",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "Update",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "name",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "capacity",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "location",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "amenities",
+            "optional": true,
+            "type": "Json"
+          },
+          {
+            "name": "is_active",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "reservations",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "Row",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "room_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "purpose",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "end_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "optional": false,
+            "type": "'confirmed' | 'cancelled'"
+          },
+          {
+            "name": "cancellation_reason",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "created_at",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "updated_at",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "Insert",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "room_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "purpose",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "end_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "optional": true,
+            "type": "'confirmed' | 'cancelled'"
+          },
+          {
+            "name": "cancellation_reason",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "Update",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "room_id",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "purpose",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "end_time",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "optional": true,
+            "type": "'confirmed' | 'cancelled'"
+          },
+          {
+            "name": "cancellation_reason",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "Views",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "Functions",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "check_email_exists",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "Args",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "p_email",
+            "optional": false,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "Tables": [
+      {
+        "file": "src\\types\\database.ts",
+        "type": "type",
+        "lineNumber": 191,
+        "properties": [
+          {
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "room_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "purpose",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "name": "department",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "user_name",
+            "optional": false,
+            "type": "string // 예약자 이름 추가"
+          },
+          {
+            "name": "start_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "end_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "is_mine",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "total_count",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "has_more",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "room_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "end_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "room_name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "is_mine",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "total_count",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "has_more",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "limit",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "offset",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "total_count",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "has_more",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "current_page",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "total_pages",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "room",
+            "optional": false,
+            "type": "Room"
+          },
+          {
+            "name": "user",
+            "optional": false,
+            "type": "User"
+          },
+          {
+            "name": "projector",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "whiteboard",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "wifi",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "tv",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "microphone",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "speakers",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "id",
+            "optional": false,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "auth_id",
+            "optional": false,
+            "type": "AuthId"
+          },
+          {
+            "name": "employee_id",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "optional": false,
+            "type": "'employee' | 'admin'"
+          },
+          {
+            "name": "created_at",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "updated_at",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "room_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "optional": false,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "purpose",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "end_time",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "status",
+            "optional": false,
+            "type": "'confirmed' | 'cancelled'"
+          },
+          {
+            "name": "cancellation_reason",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "created_at",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "updated_at",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "room_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "optional": false,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "purpose",
+            "optional": false,
+            "type": "string | null"
+          },
+          {
+            "name": "department",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "user_name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "end_time",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "is_mine",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "room_id",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "optional": false,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "title",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "purpose",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "end_time",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "optional": true,
+            "type": "'confirmed' | 'cancelled'"
+          },
+          {
+            "name": "cancellation_reason",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "room_id",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "user_id",
+            "optional": true,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "title",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "purpose",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "start_time",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "end_time",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "optional": true,
+            "type": "'confirmed' | 'cancelled'"
+          },
+          {
+            "name": "cancellation_reason",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "reservationToInsert",
+            "optional": false,
+            "type": "(reservation: EnhancedReservationInsert) => ReservationInsert"
+          },
+          {
+            "name": "reservationToUpdate",
+            "optional": false,
+            "type": "(reservation: EnhancedReservationUpdate) => ReservationUpdate"
+          },
+          {
+            "name": "userFromDatabase",
+            "optional": false,
+            "type": "(user: User) => EnhancedUser"
+          },
+          {
+            "name": "reservationFromDatabase",
+            "optional": false,
+            "type": "(reservation: Reservation) => EnhancedReservation"
+          },
+          {
+            "name": "publicReservationFromDatabase",
+            "optional": false,
+            "type": "(reservation: PublicReservation) => EnhancedPublicReservation"
+          }
+        ]
+      }
+    ],
+    "UserIdValidationContext": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "interface",
+        "lineNumber": 59,
+        "properties": [
+          {
+            "name": "operation",
+            "optional": false,
+            "type": "'create' | 'update' | 'delete' | 'query' | 'auth_check'"
+          },
+          {
+            "name": "table",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "optional": false,
+            "type": "unknown"
+          },
+          {
+            "name": "authContext",
+            "optional": true,
+            "type": "AuthContext"
+          },
+          {
+            "name": "requestId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "source",
+            "optional": false,
+            "type": "'client' | 'server' | 'middleware' | 'api'"
+          },
+          {
+            "name": "metadata",
+            "optional": true,
+            "type": "Record<string"
+          }
+        ]
+      }
+    ],
+    "AuthContext": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "interface",
+        "lineNumber": 73,
+        "properties": [
+          {
+            "name": "authId",
+            "optional": false,
+            "type": "AuthId"
+          },
+          {
+            "name": "sessionId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "optional": false,
+            "type": "'admin' | 'employee'"
+          },
+          {
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "isAuthenticated",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "permissions",
+            "optional": true,
+            "type": "string[]"
+          }
+        ]
+      },
+      {
+        "file": "src\\types\\routes.ts",
+        "type": "interface",
+        "lineNumber": 42,
+        "properties": [
+          {
+            "name": "isAuthenticated",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "userRole",
+            "optional": true,
+            "type": "UserRole"
+          },
+          {
+            "name": "userId",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "EnhancedUserIdentity": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "interface",
+        "lineNumber": 85,
+        "properties": [
+          {
+            "name": "databaseId",
+            "optional": false,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "authId",
+            "optional": false,
+            "type": "AuthId"
+          },
+          {
+            "name": "email",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "department",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "role",
+            "optional": false,
+            "type": "'admin' | 'employee'"
+          },
+          {
+            "name": "isActive",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "createdAt",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "updatedAt",
+            "optional": true,
+            "type": "Date"
+          },
+          {
+            "name": "lastValidated",
+            "optional": true,
+            "type": "Date"
+          }
+        ]
+      }
+    ],
+    "SecurityEventContext": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "interface",
+        "lineNumber": 123,
+        "properties": [
+          {
+            "name": "eventType",
+            "optional": false,
+            "type": "SecurityEventType"
+          },
+          {
+            "name": "severity",
+            "optional": false,
+            "type": "SecuritySeverity"
+          },
+          {
+            "name": "userId",
+            "optional": true,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "authId",
+            "optional": true,
+            "type": "AuthId"
+          },
+          {
+            "name": "sessionId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "ipAddress",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "userAgent",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "endpoint",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "operation",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "table",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "source",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "metadata",
+            "optional": false,
+            "type": "Record<string"
+          },
+          {
+            "name": "correlationId",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "SecurityMonitoringConfig": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "interface",
+        "lineNumber": 143,
+        "properties": [
+          {
+            "name": "enableRealTimeAlerts",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "alertThresholds",
+            "optional": false,
+            "type": "Record<SecurityEventType"
+          },
+          {
+            "name": "count",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "timeWindowMinutes",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "PerformanceMetricContext": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "interface",
+        "lineNumber": 173,
+        "properties": [
+          {
+            "name": "operation",
+            "optional": false,
+            "type": "PerformanceOperation"
+          },
+          {
+            "name": "duration",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "success",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "userId",
+            "optional": true,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "authId",
+            "optional": true,
+            "type": "AuthId"
+          },
+          {
+            "name": "endpoint",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "queryType",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "recordCount",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "cacheHit",
+            "optional": true,
+            "type": "boolean"
+          },
+          {
+            "name": "resourceUsage",
+            "optional": true,
+            "type": "ResourceUsage"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "correlationId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "metadata",
+            "optional": false,
+            "type": "Record<string"
+          }
+        ]
+      }
+    ],
+    "ResourceUsage": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "interface",
+        "lineNumber": 192,
+        "properties": [
+          {
+            "name": "memoryMB",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "cpuPercent",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "diskIOKB",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "networkIOKB",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "databaseConnections",
+            "optional": true,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "PerformanceMonitoringConfig": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "interface",
+        "lineNumber": 203,
+        "properties": [
+          {
+            "name": "enableMetricCollection",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "thresholds",
+            "optional": false,
+            "type": "Record<PerformanceOperation"
+          },
+          {
+            "name": "warningMs",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "criticalMs",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "DataIntegrityCheckResult": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "interface",
+        "lineNumber": 233,
+        "properties": [
+          {
+            "name": "isValid",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "violations",
+            "optional": false,
+            "type": "DataIntegrityViolation[]"
+          },
+          {
+            "name": "correctionSuggestions",
+            "optional": true,
+            "type": "DataIntegrityCorrection[]"
+          },
+          {
+            "name": "metadata",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "checkType",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "optional": false,
+            "type": "Date"
+          },
+          {
+            "name": "duration",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "recordsChecked",
+            "optional": false,
+            "type": "number"
+          }
+        ]
+      }
+    ],
+    "DataIntegrityViolation": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "interface",
+        "lineNumber": 248,
+        "properties": [
+          {
+            "name": "type",
+            "optional": false,
+            "type": "DataIntegrityViolationType"
+          },
+          {
+            "name": "severity",
+            "optional": false,
+            "type": "'low' | 'medium' | 'high' | 'critical'"
+          },
+          {
+            "name": "table",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "column",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "recordId",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "currentValue",
+            "optional": true,
+            "type": "any"
+          },
+          {
+            "name": "expectedValue",
+            "optional": true,
+            "type": "any"
+          },
+          {
+            "name": "constraint",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "DataIntegrityCorrection": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "interface",
+        "lineNumber": 263,
+        "properties": [
+          {
+            "name": "violationId",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "correctionType",
+            "optional": false,
+            "type": "'update' | 'delete' | 'insert' | 'manual_review'"
+          },
+          {
+            "name": "sql",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "riskLevel",
+            "optional": false,
+            "type": "'low' | 'medium' | 'high'"
+          },
+          {
+            "name": "requiresApproval",
+            "optional": false,
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "EnhancedUserIdValidationResult": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "interface",
+        "lineNumber": 279,
+        "properties": [
+          {
+            "name": "isValid",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "userId",
+            "optional": true,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "authId",
+            "optional": true,
+            "type": "AuthId"
+          },
+          {
+            "name": "userIdentity",
+            "optional": true,
+            "type": "EnhancedUserIdentity"
+          },
+          {
+            "name": "error",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "correctedUserId",
+            "optional": true,
+            "type": "DatabaseUserId"
+          },
+          {
+            "name": "validationContext",
+            "optional": false,
+            "type": "UserIdValidationContext"
+          },
+          {
+            "name": "securityEvents",
+            "optional": true,
+            "type": "SecurityEventContext[]"
+          },
+          {
+            "name": "performanceMetrics",
+            "optional": true,
+            "type": "PerformanceMetricContext"
+          },
+          {
+            "name": "integrityChecks",
+            "optional": true,
+            "type": "DataIntegrityCheckResult"
+          }
+        ]
+      }
+    ],
+    "BatchUserIdValidationResult": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "interface",
+        "lineNumber": 295,
+        "properties": [
+          {
+            "name": "totalCount",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "validCount",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "invalidCount",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "correctedCount",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "results",
+            "optional": false,
+            "type": "Map<string"
+          },
+          {
+            "name": "summary",
+            "optional": false,
+            "type": "{"
+          },
+          {
+            "name": "validationDuration",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "errorTypes",
+            "optional": false,
+            "type": "Record<string"
+          },
+          {
+            "name": "correctionTypes",
+            "optional": false,
+            "type": "Record<string"
+          }
+        ]
+      }
+    ],
+    "AuthId": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "type",
+        "lineNumber": 15,
+        "properties": []
+      }
+    ],
+    "DatabaseUserId": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "type",
+        "lineNumber": 21,
+        "properties": []
+      }
+    ],
+    "SecurityEventType": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "type",
+        "lineNumber": 105,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "| 'auth_failure' \r\n  | 'suspicious_access' \r\n  | 'data_integrity_violation' \r\n  | 'rate_limit_exceeded' \r\n  | 'privilege_escalation_attempt'\r\n  | 'user_id_mismatch'\r\n  | 'invalid_uuid_format'\r\n  | 'unauthorized_operation'"
+          }
+        ]
+      }
+    ],
+    "SecuritySeverity": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "type",
+        "lineNumber": 118,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "'low' | 'medium' | 'high' | 'critical'"
+          }
+        ]
+      }
+    ],
+    "PerformanceOperation": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "type",
+        "lineNumber": 160,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "| 'authentication'\r\n  | 'authorization'\r\n  | 'database_query'\r\n  | 'rpc_function'\r\n  | 'data_validation'\r\n  | 'environment_check'\r\n  | 'user_id_validation'\r\n  | 'security_check'"
+          }
+        ]
+      }
+    ],
+    "DataIntegrityViolationType": [
+      {
+        "file": "src\\types\\enhanced-types.ts",
+        "type": "type",
+        "lineNumber": 221,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "| 'user_id_mismatch'\r\n  | 'foreign_key_violation'\r\n  | 'constraint_violation'\r\n  | 'duplicate_key'\r\n  | 'invalid_format'\r\n  | 'missing_required_field'\r\n  | 'referential_integrity'"
+          }
+        ]
+      }
+    ],
+    "PaginatedRequest": [
+      {
+        "file": "src\\types\\pagination.ts",
+        "type": "interface",
+        "lineNumber": 14,
+        "properties": [
+          {
+            "name": "limit",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "offset",
+            "optional": true,
+            "type": "number"
+          },
+          {
+            "name": "sortBy",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "sortOrder",
+            "optional": true,
+            "type": "'asc' | 'desc'"
+          },
+          {
+            "name": "search",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "PaginatedResponse": [
+      {
+        "file": "src\\types\\pagination.ts",
+        "type": "interface",
+        "lineNumber": 50,
+        "properties": [
+          {
+            "name": "data",
+            "optional": false,
+            "type": "T[]"
+          },
+          {
+            "name": "pagination",
+            "optional": false,
+            "type": "PaginationMetadata"
+          },
+          {
+            "name": "message",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "metadata",
+            "optional": true,
+            "type": "Record<string"
+          }
+        ]
+      }
+    ],
+    "PaginationState": [
+      {
+        "file": "src\\types\\pagination.ts",
+        "type": "interface",
+        "lineNumber": 266,
+        "properties": [
+          {
+            "name": "limit",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "offset",
+            "optional": false,
+            "type": "number"
+          },
+          {
+            "name": "sortBy",
+            "optional": true,
+            "type": "string"
+          },
+          {
+            "name": "sortOrder",
+            "optional": false,
+            "type": "'asc' | 'desc'"
+          },
+          {
+            "name": "search",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "PaginationActions": [
+      {
+        "file": "src\\types\\pagination.ts",
+        "type": "interface",
+        "lineNumber": 277,
+        "properties": [
+          {
+            "name": "setLimit",
+            "optional": false,
+            "type": "(limit: number) => void"
+          },
+          {
+            "name": "setOffset",
+            "optional": false,
+            "type": "(offset: number) => void"
+          },
+          {
+            "name": "setSortBy",
+            "optional": false,
+            "type": "(sortBy?: string) => void"
+          },
+          {
+            "name": "setSortOrder",
+            "optional": false,
+            "type": "(sortOrder: 'asc' | 'desc') => void"
+          },
+          {
+            "name": "setSearch",
+            "optional": false,
+            "type": "(search?: string) => void"
+          },
+          {
+            "name": "nextPage",
+            "optional": false,
+            "type": "() => void"
+          },
+          {
+            "name": "previousPage",
+            "optional": false,
+            "type": "() => void"
+          },
+          {
+            "name": "goToPage",
+            "optional": false,
+            "type": "(page: number) => void"
+          },
+          {
+            "name": "reset",
+            "optional": false,
+            "type": "() => void"
+          }
+        ]
+      }
+    ],
+    "RouteConfig": [
+      {
+        "file": "src\\types\\routes.ts",
+        "type": "interface",
+        "lineNumber": 14,
+        "properties": [
+          {
+            "name": "path",
+            "optional": false,
+            "type": "string"
+          },
+          {
+            "name": "accessLevel",
+            "optional": false,
+            "type": "RouteAccessLevel"
+          },
+          {
+            "name": "requiresAuth",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "allowedRoles",
+            "optional": true,
+            "type": "UserRole[]"
+          },
+          {
+            "name": "description",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "RouteMatch": [
+      {
+        "file": "src\\types\\routes.ts",
+        "type": "interface",
+        "lineNumber": 30,
+        "properties": [
+          {
+            "name": "matches",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "config",
+            "optional": false,
+            "type": "RouteConfig | null"
+          },
+          {
+            "name": "params",
+            "optional": true,
+            "type": "Record<string"
+          }
+        ]
+      }
+    ],
+    "AccessCheckResult": [
+      {
+        "file": "src\\types\\routes.ts",
+        "type": "interface",
+        "lineNumber": 54,
+        "properties": [
+          {
+            "name": "allowed",
+            "optional": false,
+            "type": "boolean"
+          },
+          {
+            "name": "reason",
+            "optional": true,
+            "type": "'not_authenticated' | 'insufficient_role' | 'route_not_found'"
+          },
+          {
+            "name": "redirectTo",
+            "optional": true,
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "RouteAccessLevel": [
+      {
+        "file": "src\\types\\routes.ts",
+        "type": "type",
+        "lineNumber": 4,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "'public' | 'semi-public' | 'private'"
+          }
+        ]
+      }
+    ],
+    "UserRole": [
+      {
+        "file": "src\\types\\routes.ts",
+        "type": "type",
+        "lineNumber": 9,
+        "properties": [
+          {
+            "name": "definition",
+            "type": "'user' | 'admin'"
+          }
+        ]
+      }
+    ]
+  }
+}

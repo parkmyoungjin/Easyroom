@@ -1,0 +1,99 @@
+{
+  "stage": "pre_deployment",
+  "environment": "production",
+  "timestamp": "2025-07-22T22:59:00.603Z",
+  "success": false,
+  "exitCode": 2,
+  "summary": {
+    "totalChecks": 3,
+    "passedChecks": 0,
+    "failedChecks": 3,
+    "criticalIssues": 1,
+    "errorIssues": 3,
+    "warningIssues": 0,
+    "totalIssues": 4
+  },
+  "checks": [
+    {
+      "name": "Comprehensive Data Integrity Analysis",
+      "passed": false,
+      "issues": [
+        {
+          "id": "orphaned_reservation_1753225140760_q17xmflq9",
+          "type": "orphaned_reservation",
+          "severity": "critical",
+          "description": "Failed to query orphaned reservations: invalid input syntax for type uuid: \"SELECT id FROM users\"",
+          "recordId": null,
+          "metadata": {},
+          "timestamp": "2025-07-22T22:59:00.760Z",
+          "resolved": false
+        }
+      ],
+      "statistics": {
+        "authIdConfusion": 0,
+        "duplicateAuthIds": 0,
+        "orphanedUsers": 0,
+        "totalUsers": 0,
+        "totalReservations": 0,
+        "activeReservations": 0,
+        "totalIssues": 1,
+        "criticalIssues": 1,
+        "errorIssues": 0,
+        "warningIssues": 0
+      }
+    },
+    {
+      "name": "Automated Consistency Check",
+      "passed": false,
+      "issues": [
+        {
+          "description": "Database query failed: invalid input syntax for type uuid: \"SELECT id FROM users\"",
+          "recordId": null,
+          "severity": "error",
+          "timestamp": "2025-07-22T22:59:01.147Z",
+          "checkName": "Orphaned Reservations"
+        }
+      ],
+      "statistics": {
+        "totalChecks": 4,
+        "passedChecks": 3,
+        "failedChecks": 1,
+        "totalIssues": 1,
+        "highestSeverity": "critical"
+      }
+    },
+    {
+      "name": "Legacy Validation Report",
+      "passed": false,
+      "issues": [
+        {
+          "description": "Database query error: invalid input syntax for type uuid: \"SELECT id FROM users\"",
+          "recordId": null,
+          "timestamp": "2025-07-22T22:59:01.326Z",
+          "severity": "error",
+          "checkName": "Reservation User ID Consistency"
+        },
+        {
+          "description": "Email duplication check failed: Could not find the function public.check_duplicate_emails without parameters in the schema cache",
+          "recordId": null,
+          "timestamp": "2025-07-22T22:59:01.425Z",
+          "severity": "error",
+          "checkName": "User Data Consistency"
+        }
+      ],
+      "statistics": {
+        "totalIssues": 2,
+        "passedChecks": 1,
+        "failedChecks": 2
+      }
+    }
+  ],
+  "recommendations": [
+    "IMMEDIATE ACTION REQUIRED: Initiate deployment rollback",
+    "Do not proceed with deployment until critical issues are resolved",
+    "Address all critical data integrity issues before deployment",
+    "Fix all error-level issues to ensure data consistency"
+  ],
+  "rollbackRequired": true,
+  "rollbackReason": "Critical issues exceed threshold: 1 > 0"
+}

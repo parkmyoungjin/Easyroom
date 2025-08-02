@@ -1,0 +1,12 @@
+[
+    "src/__tests__/validation/performance-validation.test.tsx",
+    "src/__tests__/error-scenarios/otp-error-handling.test.ts",
+    "src/__tests__/auth/SmartVerifiedPage.test.tsx",
+    "src/lib/routes/__tests__/performance.test.ts",
+    "src/__tests__/monitoring/comprehensive-monitoring-integration.test.ts",
+    "src/contexts/__tests__/AuthContext.test.tsx",
+    "src/hooks/__tests__/useAuth.test.tsx",
+    "src/__tests__/middleware.test.ts",
+    "src/features/auth/components/__tests__/SignupForm.test.tsx",
+    "src/lib/utils/__tests__/error-messages.test.ts"
+]

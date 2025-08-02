@@ -1,0 +1,660 @@
+{
+  "timestamp": "2025-07-29T11:40:00.239Z",
+  "summary": {
+    "totalChanges": 72,
+    "successfulFiles": 42,
+    "failedFiles": 0,
+    "success": true
+  },
+  "changes": [
+    {
+      "file": "src\\app\\auth\\callback\\__tests__\\page.test.tsx",
+      "lineNumber": 10,
+      "from": "@/lib/utils/window-close",
+      "to": "../../../../lib/utils/window-close",
+      "type": "absolute_to_relative",
+      "originalLine": "import * as windowCloseUtils from '@/lib/utils/window-close';",
+      "newLine": "import * as windowCloseUtils from '../../../../lib/utils/window-close';"
+    },
+    {
+      "file": "src\\app\\auth\\callback\\__tests__\\page.test.tsx",
+      "lineNumber": 9,
+      "from": "@/lib/supabase/client",
+      "to": "../../../../lib/supabase/client",
+      "type": "absolute_to_relative",
+      "originalLine": "import { createClient } from '@/lib/supabase/client';",
+      "newLine": "import { createClient } from '../../../../lib/supabase/client';"
+    },
+    {
+      "file": "src\\app\\layout.tsx",
+      "lineNumber": 4,
+      "from": "./providers",
+      "to": "@/app/providers",
+      "type": "relative_to_absolute",
+      "originalLine": "import Providers from './providers';",
+      "newLine": "import Providers from '@/app/providers';"
+    },
+    {
+      "file": "src\\app\\layout.tsx",
+      "lineNumber": 3,
+      "from": "./globals.css",
+      "to": "@/app/globals.css",
+      "type": "relative_to_absolute",
+      "originalLine": "import './globals.css';",
+      "newLine": "import '@/app/globals.css';"
+    },
+    {
+      "file": "src\\app\\page.tsx",
+      "lineNumber": 4,
+      "from": "./page-content",
+      "to": "@/app/page-content",
+      "type": "relative_to_absolute",
+      "originalLine": "import PageContent from './page-content';",
+      "newLine": "import PageContent from '@/app/page-content';"
+    },
+    {
+      "file": "src\\app\\reservations\\new\\page.tsx",
+      "lineNumber": 6,
+      "from": "./NewReservationForm",
+      "to": "@/app/reservations/new/NewReservationForm",
+      "type": "relative_to_absolute",
+      "originalLine": "import NewReservationForm from './NewReservationForm';",
+      "newLine": "import NewReservationForm from '@/app/reservations/new/NewReservationForm';"
+    },
+    {
+      "file": "src\\contexts\\AuthContext.tsx",
+      "lineNumber": 10,
+      "from": "./SupabaseProvider",
+      "to": "@/contexts/SupabaseProvider",
+      "type": "relative_to_absolute",
+      "originalLine": "import { useSupabaseClient } from './SupabaseProvider';",
+      "newLine": "import { useSupabaseClient } from '@/contexts/SupabaseProvider';"
+    },
+    {
+      "file": "src\\contexts\\__tests__\\SupabaseProvider.test.tsx",
+      "lineNumber": 4,
+      "from": "@/lib/supabase/client",
+      "to": "../../lib/supabase/client",
+      "type": "absolute_to_relative",
+      "originalLine": "import { getClientManager } from '@/lib/supabase/client';",
+      "newLine": "import { getClientManager } from '../../lib/supabase/client';"
+    },
+    {
+      "file": "src\\features\\admin\\components\\AdminDashboard.tsx",
+      "lineNumber": 12,
+      "from": "./StatisticsDownload",
+      "to": "@/features/admin/components/StatisticsDownload",
+      "type": "relative_to_absolute",
+      "originalLine": "import { StatisticsDownload } from './StatisticsDownload';",
+      "newLine": "import { StatisticsDownload } from '@/features/admin/components/StatisticsDownload';"
+    },
+    {
+      "file": "src\\features\\admin\\components\\AdminDashboard.tsx",
+      "lineNumber": 11,
+      "from": "./ReservationList",
+      "to": "@/features/admin/components/ReservationList",
+      "type": "relative_to_absolute",
+      "originalLine": "import { ReservationList } from './ReservationList';",
+      "newLine": "import { ReservationList } from '@/features/admin/components/ReservationList';"
+    },
+    {
+      "file": "src\\features\\admin\\components\\AdminDashboard.tsx",
+      "lineNumber": 10,
+      "from": "./RoomManagement",
+      "to": "@/features/admin/components/RoomManagement",
+      "type": "relative_to_absolute",
+      "originalLine": "import { RoomManagement } from './RoomManagement';",
+      "newLine": "import { RoomManagement } from '@/features/admin/components/RoomManagement';"
+    },
+    {
+      "file": "src\\features\\auth\\components\\__tests__\\LoginForm-integration.test.tsx",
+      "lineNumber": 50,
+      "from": "@/hooks/use-toast",
+      "to": "../../../../hooks/use-toast",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockUseToast = require('@/hooks/use-toast').useToast;",
+      "newLine": "const mockUseToast = require('../../../../hooks/use-toast').useToast;"
+    },
+    {
+      "file": "src\\features\\auth\\components\\__tests__\\LoginForm-integration.test.tsx",
+      "lineNumber": 49,
+      "from": "@/components/pwa/OfflineHandler",
+      "to": "../../../../components/pwa/OfflineHandler",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockUseOfflineStatus = require('@/components/pwa/OfflineHandler').useOfflineStatus;",
+      "newLine": "const mockUseOfflineStatus = require('../../../../components/pwa/OfflineHandler').useOfflineStatus;"
+    },
+    {
+      "file": "src\\features\\auth\\components\\__tests__\\LoginForm-integration.test.tsx",
+      "lineNumber": 48,
+      "from": "@/hooks/useAuth",
+      "to": "../../../../hooks/useAuth",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockUseAuth = require('@/hooks/useAuth').useAuth;",
+      "newLine": "const mockUseAuth = require('../../../../hooks/useAuth').useAuth;"
+    },
+    {
+      "file": "src\\features\\auth\\components\\__tests__\\SignupForm-otp-compatibility.test.tsx",
+      "lineNumber": 108,
+      "from": "@/lib/utils/auth-error-handler",
+      "to": "../../../../lib/utils/auth-error-handler",
+      "type": "absolute_to_relative",
+      "originalLine": "import { handleAuthError } from '@/lib/utils/auth-error-handler';",
+      "newLine": "import { handleAuthError } from '../../../../lib/utils/auth-error-handler';"
+    },
+    {
+      "file": "src\\features\\auth\\components\\__tests__\\SignupForm-otp-compatibility.test.tsx",
+      "lineNumber": 100,
+      "from": "@/hooks/use-toast",
+      "to": "../../../../hooks/use-toast",
+      "type": "absolute_to_relative",
+      "originalLine": "import { useToast } from '@/hooks/use-toast';",
+      "newLine": "import { useToast } from '../../../../hooks/use-toast';"
+    },
+    {
+      "file": "src\\features\\auth\\components\\__tests__\\SignupForm-otp-compatibility.test.tsx",
+      "lineNumber": 99,
+      "from": "@/hooks/useAuth",
+      "to": "../../../../hooks/useAuth",
+      "type": "absolute_to_relative",
+      "originalLine": "import { useAuth } from '@/hooks/useAuth';",
+      "newLine": "import { useAuth } from '../../../../hooks/useAuth';"
+    },
+    {
+      "file": "src\\features\\auth\\components\\__tests__\\SignupForm.test.tsx",
+      "lineNumber": 159,
+      "from": "@/hooks/use-toast",
+      "to": "../../../../hooks/use-toast",
+      "type": "absolute_to_relative",
+      "originalLine": "const { useToast } = require('@/hooks/use-toast');",
+      "newLine": "const { useToast } = require('../../../../hooks/use-toast');"
+    },
+    {
+      "file": "src\\features\\auth\\components\\__tests__\\SignupForm.test.tsx",
+      "lineNumber": 158,
+      "from": "@/lib/error-handling/environment-error-handler",
+      "to": "../../../../lib/error-handling/environment-error-handler",
+      "type": "absolute_to_relative",
+      "originalLine": "const { handleEnvironmentError } = require('@/lib/error-handling/environment-error-handler');",
+      "newLine": "const { handleEnvironmentError } = require('../../../../lib/error-handling/environment-error-handler');"
+    },
+    {
+      "file": "src\\features\\auth\\components\\__tests__\\SignupForm.test.tsx",
+      "lineNumber": 157,
+      "from": "@/hooks/useAuth",
+      "to": "../../../../hooks/useAuth",
+      "type": "absolute_to_relative",
+      "originalLine": "const { useAuth } = require('@/hooks/useAuth');",
+      "newLine": "const { useAuth } = require('../../../../hooks/useAuth');"
+    },
+    {
+      "file": "src\\features\\reservation\\components\\ReservationCalendarView.tsx",
+      "lineNumber": 11,
+      "from": "./ReservationDetailDialog",
+      "to": "@/features/reservation/components/ReservationDetailDialog",
+      "type": "relative_to_absolute",
+      "originalLine": "import { ReservationDetailDialog } from \"./ReservationDetailDialog\";",
+      "newLine": "import { ReservationDetailDialog } from \"@/features/reservation/components/ReservationDetailDialog\";"
+    },
+    {
+      "file": "src\\features\\reservation\\components\\ReservationListView.tsx",
+      "lineNumber": 15,
+      "from": "./ReservationCancelDialog",
+      "to": "@/features/reservation/components/ReservationCancelDialog",
+      "type": "relative_to_absolute",
+      "originalLine": "import { ReservationCancelDialog } from './ReservationCancelDialog';",
+      "newLine": "import { ReservationCancelDialog } from '@/features/reservation/components/ReservationCancelDialog';"
+    },
+    {
+      "file": "src\\features\\reservation\\components\\ReservationView.tsx",
+      "lineNumber": 8,
+      "from": "./ReservationCalendarView",
+      "to": "@/features/reservation/components/ReservationCalendarView",
+      "type": "relative_to_absolute",
+      "originalLine": "import ReservationCalendarView from './ReservationCalendarView';",
+      "newLine": "import ReservationCalendarView from '@/features/reservation/components/ReservationCalendarView';"
+    },
+    {
+      "file": "src\\hooks\\useCancelReservation.ts",
+      "lineNumber": 10,
+      "from": "./useReservations",
+      "to": "@/hooks/useReservations",
+      "type": "relative_to_absolute",
+      "originalLine": "import { reservationKeys } from './useReservations';",
+      "newLine": "import { reservationKeys } from '@/hooks/useReservations';"
+    },
+    {
+      "file": "src\\hooks\\useCreateReservation.ts",
+      "lineNumber": 10,
+      "from": "./useReservations",
+      "to": "@/hooks/useReservations",
+      "type": "relative_to_absolute",
+      "originalLine": "import { reservationKeys } from './useReservations';",
+      "newLine": "import { reservationKeys } from '@/hooks/useReservations';"
+    },
+    {
+      "file": "src\\hooks\\useCreateRoom.ts",
+      "lineNumber": 3,
+      "from": "./useRooms",
+      "to": "@/hooks/useRooms",
+      "type": "relative_to_absolute",
+      "originalLine": "import { roomKeys } from './useRooms';",
+      "newLine": "import { roomKeys } from '@/hooks/useRooms';"
+    },
+    {
+      "file": "src\\hooks\\useUpdateReservation.ts",
+      "lineNumber": 12,
+      "from": "./useReservations",
+      "to": "@/hooks/useReservations",
+      "type": "relative_to_absolute",
+      "originalLine": "import { reservationKeys } from './useReservations';",
+      "newLine": "import { reservationKeys } from '@/hooks/useReservations';"
+    },
+    {
+      "file": "src\\hooks\\useUpdateRoom.ts",
+      "lineNumber": 3,
+      "from": "./useRooms",
+      "to": "@/hooks/useRooms",
+      "type": "relative_to_absolute",
+      "originalLine": "import { roomKeys } from './useRooms';",
+      "newLine": "import { roomKeys } from '@/hooks/useRooms';"
+    },
+    {
+      "file": "src\\hooks\\__tests__\\useAuth-integration.test.ts",
+      "lineNumber": 54,
+      "from": "@/lib/utils/auth-timeout",
+      "to": "../../lib/utils/auth-timeout",
+      "type": "absolute_to_relative",
+      "originalLine": "import { getNetworkStatus, isNetworkError } from '@/lib/utils/auth-timeout';",
+      "newLine": "import { getNetworkStatus, isNetworkError } from '../../lib/utils/auth-timeout';"
+    },
+    {
+      "file": "src\\hooks\\__tests__\\useAuth-migration.test.ts",
+      "lineNumber": 9,
+      "from": "@/lib/auth/session-compatibility",
+      "to": "../../lib/auth/session-compatibility",
+      "type": "absolute_to_relative",
+      "originalLine": "import { validateOTPSessionStructure, validateMiddlewareCompatibility } from '@/lib/auth/session-compatibility';",
+      "newLine": "import { validateOTPSessionStructure, validateMiddlewareCompatibility } from '../../lib/auth/session-compatibility';"
+    },
+    {
+      "file": "src\\hooks\\__tests__\\useAuth.test.tsx",
+      "lineNumber": 6,
+      "from": "@/lib/utils/auth-timeout",
+      "to": "../../lib/utils/auth-timeout",
+      "type": "absolute_to_relative",
+      "originalLine": "import { getNetworkStatus, isNetworkError } from '@/lib/utils/auth-timeout';",
+      "newLine": "import { getNetworkStatus, isNetworkError } from '../../lib/utils/auth-timeout';"
+    },
+    {
+      "file": "src\\hooks\\__tests__\\useAuth.test.tsx",
+      "lineNumber": 5,
+      "from": "@/contexts/SupabaseProvider",
+      "to": "../../contexts/SupabaseProvider",
+      "type": "absolute_to_relative",
+      "originalLine": "import { useSupabaseClient } from '@/contexts/SupabaseProvider';",
+      "newLine": "import { useSupabaseClient } from '../../contexts/SupabaseProvider';"
+    },
+    {
+      "file": "src\\hooks\\__tests__\\useAuth.test.tsx",
+      "lineNumber": 4,
+      "from": "@/contexts/AuthContext",
+      "to": "../../contexts/AuthContext",
+      "type": "absolute_to_relative",
+      "originalLine": "import { useAuthContext } from '@/contexts/AuthContext';",
+      "newLine": "import { useAuthContext } from '../../contexts/AuthContext';"
+    },
+    {
+      "file": "src\\lib\\auth\\migration-script.ts",
+      "lineNumber": 3,
+      "from": "./universal-auth-state-manager",
+      "to": "@/lib/auth/universal-auth-state-manager",
+      "type": "relative_to_absolute",
+      "originalLine": "import { UniversalAuthStateManager } from './universal-auth-state-manager';",
+      "newLine": "import { UniversalAuthStateManager } from '@/lib/auth/universal-auth-state-manager';"
+    },
+    {
+      "file": "src\\lib\\auth\\optimized-auth-system.ts",
+      "lineNumber": 4,
+      "from": "./simplified-redirection-handler",
+      "to": "@/lib/auth/simplified-redirection-handler",
+      "type": "relative_to_absolute",
+      "originalLine": "import { SimplifiedRedirectionHandler } from './simplified-redirection-handler';",
+      "newLine": "import { SimplifiedRedirectionHandler } from '@/lib/auth/simplified-redirection-handler';"
+    },
+    {
+      "file": "src\\lib\\auth\\optimized-auth-system.ts",
+      "lineNumber": 3,
+      "from": "./universal-auth-state-manager",
+      "to": "@/lib/auth/universal-auth-state-manager",
+      "type": "relative_to_absolute",
+      "originalLine": "import { UniversalAuthStateManager } from './universal-auth-state-manager';",
+      "newLine": "import { UniversalAuthStateManager } from '@/lib/auth/universal-auth-state-manager';"
+    },
+    {
+      "file": "src\\lib\\auth\\universal-auth-state-manager.ts",
+      "lineNumber": 9,
+      "from": "./auth-health-monitor",
+      "to": "@/lib/auth/auth-health-monitor",
+      "type": "relative_to_absolute",
+      "originalLine": "import { AuthHealthMonitor } from './auth-health-monitor';",
+      "newLine": "import { AuthHealthMonitor } from '@/lib/auth/auth-health-monitor';"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 461,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockSecureAccess = require('@/lib/security/secure-environment-access');",
+      "newLine": "const mockSecureAccess = require('../../security/secure-environment-access');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 435,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockSecureAccess = require('@/lib/security/secure-environment-access');",
+      "newLine": "const mockSecureAccess = require('../../security/secure-environment-access');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 420,
+      "from": "@/lib/utils/logger",
+      "to": "../../utils/logger",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockLogger = require('@/lib/utils/logger');",
+      "newLine": "const mockLogger = require('../../utils/logger');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 413,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockSecureAccess = require('@/lib/security/secure-environment-access');",
+      "newLine": "const mockSecureAccess = require('../../security/secure-environment-access');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 401,
+      "from": "@/lib/utils/logger",
+      "to": "../../utils/logger",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockLogger = require('@/lib/utils/logger');",
+      "newLine": "const mockLogger = require('../../utils/logger');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 388,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockSecureAccess = require('@/lib/security/secure-environment-access');",
+      "newLine": "const mockSecureAccess = require('../../security/secure-environment-access');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 375,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockSecureAccess = require('@/lib/security/secure-environment-access');",
+      "newLine": "const mockSecureAccess = require('../../security/secure-environment-access');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 356,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockSecureAccess = require('@/lib/security/secure-environment-access');",
+      "newLine": "const mockSecureAccess = require('../../security/secure-environment-access');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 318,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockSecureAccess = require('@/lib/security/secure-environment-access');",
+      "newLine": "const mockSecureAccess = require('../../security/secure-environment-access');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 219,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockSecureAccess = require('@/lib/security/secure-environment-access');",
+      "newLine": "const mockSecureAccess = require('../../security/secure-environment-access');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 195,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockSecureAccess = require('@/lib/security/secure-environment-access');",
+      "newLine": "const mockSecureAccess = require('../../security/secure-environment-access');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 177,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockSecureAccess = require('@/lib/security/secure-environment-access');",
+      "newLine": "const mockSecureAccess = require('../../security/secure-environment-access');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 151,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockSecureAccess = require('@/lib/security/secure-environment-access');",
+      "newLine": "const mockSecureAccess = require('../../security/secure-environment-access');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 116,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockSecureAccess = require('@/lib/security/secure-environment-access');",
+      "newLine": "const mockSecureAccess = require('../../security/secure-environment-access');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 84,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockSecureAccess = require('@/lib/security/secure-environment-access');",
+      "newLine": "const mockSecureAccess = require('../../security/secure-environment-access');"
+    },
+    {
+      "file": "src\\lib\\config\\__tests__\\environment-validator.test.ts",
+      "lineNumber": 50,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "const mockSecureAccess = require('@/lib/security/secure-environment-access');",
+      "newLine": "const mockSecureAccess = require('../../security/secure-environment-access');"
+    },
+    {
+      "file": "src\\lib\\monitoring\\environment-health-check.ts",
+      "lineNumber": 7,
+      "from": "./environment-monitor",
+      "to": "@/lib/monitoring/environment-monitor",
+      "type": "relative_to_absolute",
+      "originalLine": "import { environmentMonitor } from './environment-monitor';",
+      "newLine": "import { environmentMonitor } from '@/lib/monitoring/environment-monitor';"
+    },
+    {
+      "file": "src\\lib\\monitoring\\environment-monitor.ts",
+      "lineNumber": 8,
+      "from": "./security-monitor",
+      "to": "@/lib/monitoring/security-monitor",
+      "type": "relative_to_absolute",
+      "originalLine": "import { securityMonitor } from './security-monitor';",
+      "newLine": "import { securityMonitor } from '@/lib/monitoring/security-monitor';"
+    },
+    {
+      "file": "src\\lib\\monitoring\\integration.ts",
+      "lineNumber": 7,
+      "from": "./performance-monitor",
+      "to": "@/lib/monitoring/performance-monitor",
+      "type": "relative_to_absolute",
+      "originalLine": "import { performanceMonitor, measureAuthentication, measureAuthorization, measureDatabaseQuery } from './performance-monitor';",
+      "newLine": "import { performanceMonitor, measureAuthentication, measureAuthorization, measureDatabaseQuery } from '@/lib/monitoring/performance-monitor';"
+    },
+    {
+      "file": "src\\lib\\monitoring\\integration.ts",
+      "lineNumber": 6,
+      "from": "./security-monitor",
+      "to": "@/lib/monitoring/security-monitor",
+      "type": "relative_to_absolute",
+      "originalLine": "import { securityMonitor, recordAuthFailure, recordSuspiciousAccess, recordPrivilegeEscalationAttempt } from './security-monitor';",
+      "newLine": "import { securityMonitor, recordAuthFailure, recordSuspiciousAccess, recordPrivilegeEscalationAttempt } from '@/lib/monitoring/security-monitor';"
+    },
+    {
+      "file": "src\\lib\\navigation\\__tests__\\NavigationController.test.ts",
+      "lineNumber": 6,
+      "from": "@/types/auth",
+      "to": "../../../types/auth",
+      "type": "absolute_to_relative",
+      "originalLine": "import { UserProfile } from '@/types/auth';",
+      "newLine": "import { UserProfile } from '../../../types/auth';"
+    },
+    {
+      "file": "src\\lib\\routes\\matcher.ts",
+      "lineNumber": 2,
+      "from": "./config",
+      "to": "@/lib/routes/config",
+      "type": "relative_to_absolute",
+      "originalLine": "import { routeConfigs } from './config';",
+      "newLine": "import { routeConfigs } from '@/lib/routes/config';"
+    },
+    {
+      "file": "src\\lib\\routes\\__tests__\\config.test.ts",
+      "lineNumber": 2,
+      "from": "@/types/routes",
+      "to": "../../../types/routes",
+      "type": "absolute_to_relative",
+      "originalLine": "import { RouteAccessLevel } from '@/types/routes';",
+      "newLine": "import { RouteAccessLevel } from '../../../types/routes';"
+    },
+    {
+      "file": "src\\lib\\routes\\__tests__\\e2e-scenarios.test.ts",
+      "lineNumber": 10,
+      "from": "@/types/routes",
+      "to": "../../../types/routes",
+      "type": "absolute_to_relative",
+      "originalLine": "import { AuthContext } from '@/types/routes';",
+      "newLine": "import { AuthContext } from '../../../types/routes';"
+    },
+    {
+      "file": "src\\lib\\routes\\__tests__\\integration.test.ts",
+      "lineNumber": 10,
+      "from": "@/types/routes",
+      "to": "../../../types/routes",
+      "type": "absolute_to_relative",
+      "originalLine": "import { AuthContext, RouteConfig } from '@/types/routes';",
+      "newLine": "import { AuthContext, RouteConfig } from '../../../types/routes';"
+    },
+    {
+      "file": "src\\lib\\routes\\__tests__\\matcher.test.ts",
+      "lineNumber": 10,
+      "from": "@/types/routes",
+      "to": "../../../types/routes",
+      "type": "absolute_to_relative",
+      "originalLine": "import { AuthContext } from '@/types/routes';",
+      "newLine": "import { AuthContext } from '../../../types/routes';"
+    },
+    {
+      "file": "src\\lib\\routes\\__tests__\\performance.test.ts",
+      "lineNumber": 10,
+      "from": "@/types/routes",
+      "to": "../../../types/routes",
+      "type": "absolute_to_relative",
+      "originalLine": "import { AuthContext } from '@/types/routes';",
+      "newLine": "import { AuthContext } from '../../../types/routes';"
+    },
+    {
+      "file": "src\\lib\\security\\environment-manager.ts",
+      "lineNumber": 2,
+      "from": "./environment-config",
+      "to": "@/lib/security/environment-config",
+      "type": "relative_to_absolute",
+      "originalLine": "import { getEnvironmentConfig, validateEnvironmentConfig } from './environment-config';",
+      "newLine": "import { getEnvironmentConfig, validateEnvironmentConfig } from '@/lib/security/environment-config';"
+    },
+    {
+      "file": "src\\lib\\security\\fix-reservation-user-id.ts",
+      "lineNumber": 9,
+      "from": "./user-id-guards",
+      "to": "@/lib/security/user-id-guards",
+      "type": "relative_to_absolute",
+      "originalLine": "import { UserIdGuards } from './user-id-guards';",
+      "newLine": "import { UserIdGuards } from '@/lib/security/user-id-guards';"
+    },
+    {
+      "file": "src\\lib\\security\\secure-environment-access.ts",
+      "lineNumber": 15,
+      "from": "./environment-manager",
+      "to": "@/lib/security/environment-manager",
+      "type": "relative_to_absolute",
+      "originalLine": "import { getServiceRoleKey } from './environment-manager';",
+      "newLine": "import { getServiceRoleKey } from '@/lib/security/environment-manager';"
+    },
+    {
+      "file": "src\\lib\\security\\user-id-guards-server.ts",
+      "lineNumber": 5,
+      "from": "./user-id-guards",
+      "to": "@/lib/security/user-id-guards",
+      "type": "relative_to_absolute",
+      "originalLine": "import { isValidUUID, type UserIdValidationResult } from './user-id-guards';",
+      "newLine": "import { isValidUUID, type UserIdValidationResult } from '@/lib/security/user-id-guards';"
+    },
+    {
+      "file": "src\\lib\\startup\\__tests__\\environment-startup-validator.test.ts",
+      "lineNumber": 35,
+      "from": "@/lib/error-handling/environment-error-handler",
+      "to": "../../error-handling/environment-error-handler",
+      "type": "absolute_to_relative",
+      "originalLine": "import { handleEnvironmentError } from '@/lib/error-handling/environment-error-handler';",
+      "newLine": "import { handleEnvironmentError } from '../../error-handling/environment-error-handler';"
+    },
+    {
+      "file": "src\\lib\\startup\\__tests__\\environment-startup-validator.test.ts",
+      "lineNumber": 34,
+      "from": "@/lib/config/environment-validator",
+      "to": "../../config/environment-validator",
+      "type": "absolute_to_relative",
+      "originalLine": "import { validateEnvironment, quickEnvironmentCheck } from '@/lib/config/environment-validator';",
+      "newLine": "import { validateEnvironment, quickEnvironmentCheck } from '../../config/environment-validator';"
+    },
+    {
+      "file": "src\\lib\\supabase\\__tests__\\client-basic.test.ts",
+      "lineNumber": 16,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "import { getPublicEnvVar } from '@/lib/security/secure-environment-access';",
+      "newLine": "import { getPublicEnvVar } from '../../security/secure-environment-access';"
+    },
+    {
+      "file": "src\\lib\\supabase\\__tests__\\client.test.ts",
+      "lineNumber": 11,
+      "from": "@/lib/security/secure-environment-access",
+      "to": "../../security/secure-environment-access",
+      "type": "absolute_to_relative",
+      "originalLine": "import { getPublicEnvVar } from '@/lib/security/secure-environment-access';",
+      "newLine": "import { getPublicEnvVar } from '../../security/secure-environment-access';"
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,1508 @@
+{
+  "timestamp": "2025-07-29T12:22:39.782Z",
+  "summary": {
+    "totalDependencies": 64,
+    "unusedCount": 64,
+    "potentiallyUnusedCount": 0,
+    "safeCount": 0
+  },
+  "unusedDependencies": [
+    {
+      "name": "@hookform/resolvers",
+      "version": "^4.1.3",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "other",
+      "risk": "very_low"
+    },
+    {
+      "name": "@supabase/ssr",
+      "version": "^0.6.1",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "database",
+      "risk": "very_low"
+    },
+    {
+      "name": "autoprefixer",
+      "version": "10.4.20",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "build",
+      "risk": "very_low"
+    },
+    {
+      "name": "axios",
+      "version": "^1.7.9",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "utility",
+      "risk": "very_low"
+    },
+    {
+      "name": "class-variance-authority",
+      "version": "^0.7.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "other",
+      "risk": "very_low"
+    },
+    {
+      "name": "clsx",
+      "version": "^2.1.1",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "utility",
+      "risk": "very_low"
+    },
+    {
+      "name": "critters",
+      "version": "^0.0.23",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "other",
+      "risk": "very_low"
+    },
+    {
+      "name": "date-fns",
+      "version": "^4.1.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "utility",
+      "risk": "very_low"
+    },
+    {
+      "name": "date-fns-tz",
+      "version": "^3.2.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "utility",
+      "risk": "very_low"
+    },
+    {
+      "name": "dotenv",
+      "version": "^16.6.1",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "other",
+      "risk": "very_low"
+    },
+    {
+      "name": "framer-motion",
+      "version": "^11",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "ui",
+      "risk": "very_low"
+    },
+    {
+      "name": "node-cron",
+      "version": "^3.0.3",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "other",
+      "risk": "very_low"
+    },
+    {
+      "name": "server-only",
+      "version": "0.0.1",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "other",
+      "risk": "very_low"
+    },
+    {
+      "name": "ts-pattern",
+      "version": "^5",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "other",
+      "risk": "very_low"
+    },
+    {
+      "name": "ua-parser-js",
+      "version": "^2.0.4",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "other",
+      "risk": "very_low"
+    },
+    {
+      "name": "zod",
+      "version": "^3.25.74",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "utility",
+      "risk": "very_low"
+    },
+    {
+      "name": "zustand",
+      "version": "^4",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "other",
+      "risk": "very_low"
+    },
+    {
+      "name": "@eslint/eslintrc",
+      "version": "^3",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "build",
+      "risk": "very_low"
+    },
+    {
+      "name": "@testing-library/jest-dom",
+      "version": "^6.6.3",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "testing",
+      "risk": "very_low"
+    },
+    {
+      "name": "@testing-library/user-event",
+      "version": "^14.6.1",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "testing",
+      "risk": "very_low"
+    },
+    {
+      "name": "@types/jest",
+      "version": "^29.5.14",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "testing",
+      "risk": "very_low"
+    },
+    {
+      "name": "@types/node",
+      "version": "^20",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "development",
+      "risk": "very_low"
+    },
+    {
+      "name": "@types/ua-parser-js",
+      "version": "^0.7.39",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "development",
+      "risk": "very_low"
+    },
+    {
+      "name": "eslint",
+      "version": "^9",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "build",
+      "risk": "very_low"
+    },
+    {
+      "name": "jest",
+      "version": "^29.7.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 13
+      },
+      "category": "testing",
+      "risk": "very_low"
+    },
+    {
+      "name": "jest-environment-jsdom",
+      "version": "^29.7.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "testing",
+      "risk": "very_low"
+    },
+    {
+      "name": "postcss",
+      "version": "^8",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "build",
+      "risk": "very_low"
+    },
+    {
+      "name": "tailwind-merge",
+      "version": "^2.5.2",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "ui",
+      "risk": "very_low"
+    },
+    {
+      "name": "terser-webpack-plugin",
+      "version": "^5.3.14",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "development",
+      "risk": "very_low"
+    },
+    {
+      "name": "tsx",
+      "version": "^4.7.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 3
+      },
+      "category": "development",
+      "risk": "very_low"
+    },
+    {
+      "name": "@next/third-parties",
+      "version": "15.2.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@radix-ui/react-accordion",
+      "version": "^1.2.3",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@radix-ui/react-avatar",
+      "version": "^1.1.2",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@radix-ui/react-checkbox",
+      "version": "^1.1.1",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@radix-ui/react-dialog",
+      "version": "^1.1.14",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@radix-ui/react-dropdown-menu",
+      "version": "^2.1.1",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@radix-ui/react-label",
+      "version": "^2.1.7",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@radix-ui/react-popover",
+      "version": "^1.1.14",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@radix-ui/react-progress",
+      "version": "^1.1.7",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@radix-ui/react-select",
+      "version": "^2.1.4",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@radix-ui/react-separator",
+      "version": "^1.1.1",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@radix-ui/react-slot",
+      "version": "^1.2.3",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@radix-ui/react-switch",
+      "version": "^1.2.5",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@radix-ui/react-tabs",
+      "version": "^1.1.12",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@radix-ui/react-toast",
+      "version": "^1.2.14",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@supabase/auth-helpers-nextjs",
+      "version": "^0.10.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@supabase/supabase-js",
+      "version": "^2.50.5",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "database",
+      "risk": "high"
+    },
+    {
+      "name": "@tanstack/react-query",
+      "version": "^5",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "lucide-react",
+      "version": "^0.469.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "next",
+      "version": "^15.3.5",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 5
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "next-themes",
+      "version": "^0.4.3",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "react",
+      "version": "^19.0.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "react-day-picker",
+      "version": "^9.8.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "react-dom",
+      "version": "^19.0.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "react-hook-form",
+      "version": "^7.60.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "react-use",
+      "version": "^17",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@tailwindcss/typography",
+      "version": "^0.5.10",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "ui",
+      "risk": "high"
+    },
+    {
+      "name": "@testing-library/react",
+      "version": "^16.0.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@types/react",
+      "version": "^19",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "@types/react-dom",
+      "version": "^19",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "eslint-config-next",
+      "version": "15.1.0",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "framework",
+      "risk": "high"
+    },
+    {
+      "name": "tailwindcss",
+      "version": "^3.4.1",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "ui",
+      "risk": "high"
+    },
+    {
+      "name": "tailwindcss-animate",
+      "version": "^1.0.7",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "ui",
+      "risk": "high"
+    },
+    {
+      "name": "typescript",
+      "version": "^5",
+      "usage": {
+        "directImports": 0,
+        "indirectReferences": 0,
+        "configFiles": 0,
+        "scriptReferences": 0
+      },
+      "category": "build",
+      "risk": "high"
+    }
+  ],
+  "potentiallyUnused": [],
+  "safeDependencies": [],
+  "recommendations": {
+    "safeToRemove": [
+      {
+        "name": "@hookform/resolvers",
+        "version": "^4.1.3",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "other",
+        "risk": "very_low"
+      },
+      {
+        "name": "@supabase/ssr",
+        "version": "^0.6.1",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "database",
+        "risk": "very_low"
+      },
+      {
+        "name": "axios",
+        "version": "^1.7.9",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "utility",
+        "risk": "very_low"
+      },
+      {
+        "name": "class-variance-authority",
+        "version": "^0.7.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "other",
+        "risk": "very_low"
+      },
+      {
+        "name": "clsx",
+        "version": "^2.1.1",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "utility",
+        "risk": "very_low"
+      },
+      {
+        "name": "critters",
+        "version": "^0.0.23",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "other",
+        "risk": "very_low"
+      },
+      {
+        "name": "date-fns",
+        "version": "^4.1.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "utility",
+        "risk": "very_low"
+      },
+      {
+        "name": "date-fns-tz",
+        "version": "^3.2.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "utility",
+        "risk": "very_low"
+      },
+      {
+        "name": "dotenv",
+        "version": "^16.6.1",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "other",
+        "risk": "very_low"
+      },
+      {
+        "name": "framer-motion",
+        "version": "^11",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "ui",
+        "risk": "very_low"
+      },
+      {
+        "name": "node-cron",
+        "version": "^3.0.3",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "other",
+        "risk": "very_low"
+      },
+      {
+        "name": "server-only",
+        "version": "0.0.1",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "other",
+        "risk": "very_low"
+      },
+      {
+        "name": "ts-pattern",
+        "version": "^5",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "other",
+        "risk": "very_low"
+      },
+      {
+        "name": "ua-parser-js",
+        "version": "^2.0.4",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "other",
+        "risk": "very_low"
+      },
+      {
+        "name": "zod",
+        "version": "^3.25.74",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "utility",
+        "risk": "very_low"
+      },
+      {
+        "name": "zustand",
+        "version": "^4",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "other",
+        "risk": "very_low"
+      },
+      {
+        "name": "@testing-library/jest-dom",
+        "version": "^6.6.3",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "testing",
+        "risk": "very_low"
+      },
+      {
+        "name": "@testing-library/user-event",
+        "version": "^14.6.1",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "testing",
+        "risk": "very_low"
+      },
+      {
+        "name": "@types/jest",
+        "version": "^29.5.14",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "testing",
+        "risk": "very_low"
+      },
+      {
+        "name": "@types/node",
+        "version": "^20",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "development",
+        "risk": "very_low"
+      },
+      {
+        "name": "@types/ua-parser-js",
+        "version": "^0.7.39",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "development",
+        "risk": "very_low"
+      },
+      {
+        "name": "jest",
+        "version": "^29.7.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 13
+        },
+        "category": "testing",
+        "risk": "very_low"
+      },
+      {
+        "name": "jest-environment-jsdom",
+        "version": "^29.7.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "testing",
+        "risk": "very_low"
+      },
+      {
+        "name": "tailwind-merge",
+        "version": "^2.5.2",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "ui",
+        "risk": "very_low"
+      },
+      {
+        "name": "terser-webpack-plugin",
+        "version": "^5.3.14",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "development",
+        "risk": "very_low"
+      },
+      {
+        "name": "tsx",
+        "version": "^4.7.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 3
+        },
+        "category": "development",
+        "risk": "very_low"
+      }
+    ],
+    "needsReview": [],
+    "keepForNow": [
+      {
+        "name": "@next/third-parties",
+        "version": "15.2.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@radix-ui/react-accordion",
+        "version": "^1.2.3",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@radix-ui/react-avatar",
+        "version": "^1.1.2",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@radix-ui/react-checkbox",
+        "version": "^1.1.1",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@radix-ui/react-dialog",
+        "version": "^1.1.14",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@radix-ui/react-dropdown-menu",
+        "version": "^2.1.1",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@radix-ui/react-label",
+        "version": "^2.1.7",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@radix-ui/react-popover",
+        "version": "^1.1.14",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@radix-ui/react-progress",
+        "version": "^1.1.7",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@radix-ui/react-select",
+        "version": "^2.1.4",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@radix-ui/react-separator",
+        "version": "^1.1.1",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@radix-ui/react-slot",
+        "version": "^1.2.3",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@radix-ui/react-switch",
+        "version": "^1.2.5",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@radix-ui/react-tabs",
+        "version": "^1.1.12",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@radix-ui/react-toast",
+        "version": "^1.2.14",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@supabase/auth-helpers-nextjs",
+        "version": "^0.10.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@supabase/supabase-js",
+        "version": "^2.50.5",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "database",
+        "risk": "high"
+      },
+      {
+        "name": "@tanstack/react-query",
+        "version": "^5",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "lucide-react",
+        "version": "^0.469.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "next",
+        "version": "^15.3.5",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 5
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "next-themes",
+        "version": "^0.4.3",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "react",
+        "version": "^19.0.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "react-day-picker",
+        "version": "^9.8.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "react-dom",
+        "version": "^19.0.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "react-hook-form",
+        "version": "^7.60.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "react-use",
+        "version": "^17",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@tailwindcss/typography",
+        "version": "^0.5.10",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "ui",
+        "risk": "high"
+      },
+      {
+        "name": "@testing-library/react",
+        "version": "^16.0.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@types/react",
+        "version": "^19",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "@types/react-dom",
+        "version": "^19",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "eslint-config-next",
+        "version": "15.1.0",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "framework",
+        "risk": "high"
+      },
+      {
+        "name": "tailwindcss",
+        "version": "^3.4.1",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "ui",
+        "risk": "high"
+      },
+      {
+        "name": "tailwindcss-animate",
+        "version": "^1.0.7",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "ui",
+        "risk": "high"
+      },
+      {
+        "name": "typescript",
+        "version": "^5",
+        "usage": {
+          "directImports": 0,
+          "indirectReferences": 0,
+          "configFiles": 0,
+          "scriptReferences": 0
+        },
+        "category": "build",
+        "risk": "high"
+      }
+    ]
+  }
+}

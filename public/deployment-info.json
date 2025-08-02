@@ -1,0 +1,16 @@
+{
+  "version": "0.1.0-20250802.2354",
+  "buildId": "unknown",
+  "timestamp": 1754146496355,
+  "buildTime": "2025-08-02T14:54:56.355Z",
+  "environment": "production",
+  "gitCommit": "unknown",
+  "gitBranch": "unknown",
+  "gitCommitDate": "2025-08-02T14:54:56.354Z",
+  "packageVersion": "0.1.0",
+  "nodeVersion": "v18.20.8",
+  "platform": "win32",
+  "arch": "x64",
+  "vercel": {},
+  "netlify": {}
+}

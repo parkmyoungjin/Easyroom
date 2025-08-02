@@ -1,0 +1,584 @@
+{
+  "timestamp": "2025-07-29T12:00:28.033Z",
+  "statistics": {
+    "totalSpecs": 11,
+    "averageRelevance": 74.46969696969697,
+    "averageCompleteness": 87.87878787878788
+  },
+  "analysisResults": [
+    {
+      "name": "magic-link-auth-fix",
+      "path": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\.kiro\\specs\\magic-link-auth-fix",
+      "relativePath": ".kiro\\specs\\magic-link-auth-fix",
+      "files": {
+        "requirements.md": {
+          "exists": true,
+          "size": 3911,
+          "lastModified": "2025-07-28T07:55:13.859Z",
+          "contentLength": 3911,
+          "hasContent": true
+        },
+        "design.md": {
+          "exists": false
+        },
+        "tasks.md": {
+          "exists": false
+        }
+      },
+      "completeness": 33.33333333333333,
+      "lastModified": "2025-07-28T07:55:13.859Z",
+      "relevanceScore": 50.83333333333333,
+      "implementationStatus": "likely_implemented",
+      "issues": [],
+      "relatedFiles": [
+        "app\\api\\auth\\check-email\\route.ts",
+        "app\\api\\reservations\\public-authenticated\\route.ts",
+        "app\\auth\\callback\\route.ts",
+        "app\\auth\\callback\\__tests__\\page.test.tsx",
+        "components\\auth\\AuthErrorToast.tsx",
+        "components\\auth\\EmailVerificationPrompt.tsx",
+        "components\\auth\\MagicLinkHandler.tsx",
+        "components\\auth\\MigrationMessage.tsx",
+        "components\\auth\\SmartVerifiedPage.tsx",
+        "components\\loading\\AuthLoadingState.tsx"
+      ]
+    },
+    {
+      "name": "security-monitoring-fix",
+      "path": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\.kiro\\specs\\security-monitoring-fix",
+      "relativePath": ".kiro\\specs\\security-monitoring-fix",
+      "files": {
+        "requirements.md": {
+          "exists": true,
+          "size": 2161,
+          "lastModified": "2025-07-23T06:03:52.298Z",
+          "contentLength": 2161,
+          "hasContent": true
+        },
+        "design.md": {
+          "exists": false
+        },
+        "tasks.md": {
+          "exists": false
+        }
+      },
+      "completeness": 33.33333333333333,
+      "lastModified": "2025-07-23T06:03:52.298Z",
+      "relevanceScore": 63.33333333333333,
+      "implementationStatus": "likely_implemented",
+      "issues": [],
+      "relatedFiles": [
+        "app\\api\\monitoring\\dashboard\\route.ts",
+        "app\\api\\monitoring\\environment\\route.ts",
+        "app\\api\\monitoring\\generate-report\\route.ts",
+        "app\\api\\monitoring\\reports\\[filename]\\route.ts",
+        "components\\monitoring\\MonitoringDashboard.tsx",
+        "lib\\monitoring\\enhanced-monitoring-types.ts",
+        "lib\\monitoring\\environment-health-check.ts",
+        "lib\\monitoring\\environment-monitor.ts",
+        "lib\\monitoring\\integration.ts",
+        "lib\\monitoring\\performance-monitor.ts"
+      ]
+    },
+    {
+      "name": "code-architecture-cleanup",
+      "path": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\.kiro\\specs\\code-architecture-cleanup",
+      "relativePath": ".kiro\\specs\\code-architecture-cleanup",
+      "files": {
+        "requirements.md": {
+          "exists": true,
+          "size": 4157,
+          "lastModified": "2025-07-29T10:55:11.022Z",
+          "contentLength": 2087,
+          "hasContent": true
+        },
+        "design.md": {
+          "exists": true,
+          "size": 8910,
+          "lastModified": "2025-07-29T11:01:52.757Z",
+          "contentLength": 7208,
+          "hasContent": true
+        },
+        "tasks.md": {
+          "exists": true,
+          "size": 5928,
+          "lastModified": "2025-07-29T11:58:02.313Z",
+          "contentLength": 3390,
+          "hasContent": true
+        }
+      },
+      "completeness": 100,
+      "lastModified": "2025-07-29T11:58:02.313Z",
+      "relevanceScore": 70,
+      "implementationStatus": "not_implemented",
+      "issues": [],
+      "relatedFiles": [],
+      "taskCompletion": {
+        "completed": 9,
+        "total": 26,
+        "percentage": 34.61538461538461
+      }
+    },
+    {
+      "name": "environment-config-fix",
+      "path": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\.kiro\\specs\\environment-config-fix",
+      "relativePath": ".kiro\\specs\\environment-config-fix",
+      "files": {
+        "requirements.md": {
+          "exists": true,
+          "size": 3230,
+          "lastModified": "2025-07-23T06:44:22.400Z",
+          "contentLength": 3230,
+          "hasContent": true
+        },
+        "design.md": {
+          "exists": true,
+          "size": 9617,
+          "lastModified": "2025-07-23T06:45:59.449Z",
+          "contentLength": 9617,
+          "hasContent": true
+        },
+        "tasks.md": {
+          "exists": true,
+          "size": 3874,
+          "lastModified": "2025-07-23T13:53:16.193Z",
+          "contentLength": 3874,
+          "hasContent": true
+        }
+      },
+      "completeness": 100,
+      "lastModified": "2025-07-23T13:53:16.193Z",
+      "relevanceScore": 70,
+      "implementationStatus": "likely_implemented",
+      "issues": [],
+      "relatedFiles": [
+        "app\\api\\monitoring\\environment\\route.ts",
+        "lib\\config\\env.ts",
+        "lib\\config\\environment-validator.ts",
+        "lib\\config\\__tests__\\environment-validator.test.ts",
+        "lib\\error-handling\\environment-error-handler.ts",
+        "lib\\error-handling\\__tests__\\environment-error-handler.test.ts",
+        "lib\\monitoring\\environment-health-check.ts",
+        "lib\\monitoring\\environment-monitor.ts",
+        "lib\\routes\\config.ts",
+        "lib\\routes\\__tests__\\config.test.ts"
+      ],
+      "taskCompletion": {
+        "completed": 7,
+        "total": 8,
+        "percentage": 87.5
+      }
+    },
+    {
+      "name": "login-loading-fix",
+      "path": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\.kiro\\specs\\login-loading-fix",
+      "relativePath": ".kiro\\specs\\login-loading-fix",
+      "files": {
+        "requirements.md": {
+          "exists": true,
+          "size": 3095,
+          "lastModified": "2025-07-21T13:44:51.000Z",
+          "contentLength": 1541,
+          "hasContent": true
+        },
+        "design.md": {
+          "exists": true,
+          "size": 6817,
+          "lastModified": "2025-07-21T13:43:48.000Z",
+          "contentLength": 4911,
+          "hasContent": true
+        },
+        "tasks.md": {
+          "exists": true,
+          "size": 3360,
+          "lastModified": "2025-07-21T15:12:22.000Z",
+          "contentLength": 3360,
+          "hasContent": true
+        }
+      },
+      "completeness": 100,
+      "lastModified": "2025-07-21T15:12:22.000Z",
+      "relevanceScore": 70,
+      "implementationStatus": "likely_implemented",
+      "issues": [],
+      "relatedFiles": [
+        "app\\login\\page.tsx",
+        "components\\loading\\AuthLoadingState.tsx",
+        "components\\ui\\enhanced-loading-state.tsx",
+        "components\\ui\\loading-spinner.tsx",
+        "components\\ui\\__tests__\\enhanced-loading-state.test.tsx",
+        "features\\auth\\components\\LoginForm.tsx",
+        "features\\auth\\components\\__tests__\\LoginForm-basic.test.tsx",
+        "features\\auth\\components\\__tests__\\LoginForm-integration.test.tsx",
+        "features\\auth\\hooks\\useLogin.ts",
+        "hooks\\useEnhancedLoadingState.ts"
+      ],
+      "taskCompletion": {
+        "completed": 7,
+        "total": 10,
+        "percentage": 70
+      }
+    },
+    {
+      "name": "auth-infinite-loop-fix",
+      "path": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\.kiro\\specs\\auth-infinite-loop-fix",
+      "relativePath": ".kiro\\specs\\auth-infinite-loop-fix",
+      "files": {
+        "requirements.md": {
+          "exists": true,
+          "size": 2960,
+          "lastModified": "2025-07-29T05:57:37.616Z",
+          "contentLength": 2960,
+          "hasContent": true
+        },
+        "design.md": {
+          "exists": true,
+          "size": 10824,
+          "lastModified": "2025-07-29T06:01:04.015Z",
+          "contentLength": 10824,
+          "hasContent": true
+        },
+        "tasks.md": {
+          "exists": true,
+          "size": 2811,
+          "lastModified": "2025-07-29T08:20:45.744Z",
+          "contentLength": 2811,
+          "hasContent": true
+        }
+      },
+      "completeness": 100,
+      "lastModified": "2025-07-29T08:20:45.744Z",
+      "relevanceScore": 77.5,
+      "implementationStatus": "likely_implemented",
+      "issues": [],
+      "relatedFiles": [
+        "app\\api\\auth\\check-email\\route.ts",
+        "app\\api\\reservations\\public-authenticated\\route.ts",
+        "app\\auth\\callback\\route.ts",
+        "app\\auth\\callback\\__tests__\\page.test.tsx",
+        "components\\auth\\AuthErrorToast.tsx",
+        "components\\auth\\EmailVerificationPrompt.tsx",
+        "components\\auth\\MagicLinkHandler.tsx",
+        "components\\auth\\MigrationMessage.tsx",
+        "components\\auth\\SmartVerifiedPage.tsx",
+        "components\\loading\\AuthLoadingState.tsx"
+      ],
+      "taskCompletion": {
+        "completed": 4,
+        "total": 4,
+        "percentage": 100
+      }
+    },
+    {
+      "name": "supabase-otp-auth-migration",
+      "path": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\.kiro\\specs\\supabase-otp-auth-migration",
+      "relativePath": ".kiro\\specs\\supabase-otp-auth-migration",
+      "files": {
+        "requirements.md": {
+          "exists": true,
+          "size": 5408,
+          "lastModified": "2025-07-28T12:29:21.926Z",
+          "contentLength": 5408,
+          "hasContent": true
+        },
+        "design.md": {
+          "exists": true,
+          "size": 9386,
+          "lastModified": "2025-07-28T12:47:22.035Z",
+          "contentLength": 9380,
+          "hasContent": true
+        },
+        "tasks.md": {
+          "exists": true,
+          "size": 3458,
+          "lastModified": "2025-07-28T14:49:05.613Z",
+          "contentLength": 3458,
+          "hasContent": true
+        }
+      },
+      "completeness": 100,
+      "lastModified": "2025-07-28T14:49:05.613Z",
+      "relevanceScore": 77.5,
+      "implementationStatus": "likely_implemented",
+      "issues": [],
+      "relatedFiles": [
+        "app\\api\\auth\\check-email\\route.ts",
+        "app\\api\\reservations\\public-authenticated\\route.ts",
+        "app\\auth\\callback\\route.ts",
+        "app\\auth\\callback\\__tests__\\page.test.tsx",
+        "components\\auth\\AuthErrorToast.tsx",
+        "components\\auth\\EmailVerificationPrompt.tsx",
+        "components\\auth\\MagicLinkHandler.tsx",
+        "components\\auth\\MigrationMessage.tsx",
+        "components\\auth\\SmartVerifiedPage.tsx",
+        "components\\loading\\AuthLoadingState.tsx"
+      ],
+      "taskCompletion": {
+        "completed": 6,
+        "total": 6,
+        "percentage": 100
+      }
+    },
+    {
+      "name": "auth-context-integration",
+      "path": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\.kiro\\specs\\auth-context-integration",
+      "relativePath": ".kiro\\specs\\auth-context-integration",
+      "files": {
+        "requirements.md": {
+          "exists": true,
+          "size": 3768,
+          "lastModified": "2025-07-29T04:07:17.326Z",
+          "contentLength": 3510,
+          "hasContent": true
+        },
+        "design.md": {
+          "exists": true,
+          "size": 8646,
+          "lastModified": "2025-07-29T04:09:41.651Z",
+          "contentLength": 8536,
+          "hasContent": true
+        },
+        "tasks.md": {
+          "exists": true,
+          "size": 5405,
+          "lastModified": "2025-07-29T05:52:34.475Z",
+          "contentLength": 5403,
+          "hasContent": true
+        }
+      },
+      "completeness": 100,
+      "lastModified": "2025-07-29T05:52:34.475Z",
+      "relevanceScore": 80,
+      "implementationStatus": "likely_implemented",
+      "issues": [],
+      "relatedFiles": [
+        "app\\api\\auth\\check-email\\route.ts",
+        "app\\api\\reservations\\public-authenticated\\route.ts",
+        "app\\auth\\callback\\route.ts",
+        "app\\auth\\callback\\__tests__\\page.test.tsx",
+        "components\\auth\\AuthErrorToast.tsx",
+        "components\\auth\\EmailVerificationPrompt.tsx",
+        "components\\auth\\MagicLinkHandler.tsx",
+        "components\\auth\\MigrationMessage.tsx",
+        "components\\auth\\SmartVerifiedPage.tsx",
+        "components\\loading\\AuthLoadingState.tsx"
+      ],
+      "taskCompletion": {
+        "completed": 13,
+        "total": 14,
+        "percentage": 92.85714285714286
+      }
+    },
+    {
+      "name": "pagination-system-fix",
+      "path": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\.kiro\\specs\\pagination-system-fix",
+      "relativePath": ".kiro\\specs\\pagination-system-fix",
+      "files": {
+        "requirements.md": {
+          "exists": true,
+          "size": 4548,
+          "lastModified": "2025-07-23T02:29:34.641Z",
+          "contentLength": 4548,
+          "hasContent": true
+        },
+        "design.md": {
+          "exists": true,
+          "size": 6809,
+          "lastModified": "2025-07-23T02:32:10.488Z",
+          "contentLength": 6807,
+          "hasContent": true
+        },
+        "tasks.md": {
+          "exists": true,
+          "size": 2629,
+          "lastModified": "2025-07-23T06:12:59.587Z",
+          "contentLength": 2629,
+          "hasContent": true
+        }
+      },
+      "completeness": 100,
+      "lastModified": "2025-07-23T06:12:59.587Z",
+      "relevanceScore": 80,
+      "implementationStatus": "likely_implemented",
+      "issues": [],
+      "relatedFiles": [
+        "hooks\\usePagination.ts",
+        "lib\\auth\\optimized-auth-system.ts",
+        "lib\\security\\fix-reservation-user-id.ts",
+        "lib\\utils\\api-pagination.ts",
+        "types\\pagination.ts",
+        "__tests__\\api\\pagination-functionality.test.ts",
+        "__tests__\\api\\pagination-support.test.ts",
+        "__tests__\\auth\\optimized-auth-system.test.ts",
+        "__tests__\\database\\pagination-rpc-functions.test.ts",
+        "__tests__\\enhanced-type-system.test.ts"
+      ],
+      "taskCompletion": {
+        "completed": 9,
+        "total": 10,
+        "percentage": 90
+      }
+    },
+    {
+      "name": "code-refactoring-optimization",
+      "path": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\.kiro\\specs\\code-refactoring-optimization",
+      "relativePath": ".kiro\\specs\\code-refactoring-optimization",
+      "files": {
+        "requirements.md": {
+          "exists": true,
+          "size": 5768,
+          "lastModified": "2025-07-22T11:38:39.000Z",
+          "contentLength": 5768,
+          "hasContent": true
+        },
+        "design.md": {
+          "exists": true,
+          "size": 9467,
+          "lastModified": "2025-07-22T11:40:36.000Z",
+          "contentLength": 9467,
+          "hasContent": true
+        },
+        "tasks.md": {
+          "exists": true,
+          "size": 4814,
+          "lastModified": "2025-07-23T00:16:30.330Z",
+          "contentLength": 4814,
+          "hasContent": true
+        }
+      },
+      "completeness": 100,
+      "lastModified": "2025-07-23T00:16:30.330Z",
+      "relevanceScore": 90,
+      "implementationStatus": "partially_implemented",
+      "issues": [],
+      "relatedFiles": [
+        "lib\\utils\\query-optimization.ts",
+        "types\\auth-optimization.ts"
+      ],
+      "taskCompletion": {
+        "completed": 12,
+        "total": 12,
+        "percentage": 100
+      }
+    },
+    {
+      "name": "pwa-auth-optimization",
+      "path": "C:\\Users\\admin\\Desktop\\mycode\\Easyroom\\.kiro\\specs\\pwa-auth-optimization",
+      "relativePath": ".kiro\\specs\\pwa-auth-optimization",
+      "files": {
+        "requirements.md": {
+          "exists": true,
+          "size": 4946,
+          "lastModified": "2025-07-25T11:15:46.306Z",
+          "contentLength": 4946,
+          "hasContent": true
+        },
+        "design.md": {
+          "exists": true,
+          "size": 9069,
+          "lastModified": "2025-07-25T11:23:54.613Z",
+          "contentLength": 9069,
+          "hasContent": true
+        },
+        "tasks.md": {
+          "exists": true,
+          "size": 2654,
+          "lastModified": "2025-07-25T12:10:27.588Z",
+          "contentLength": 2654,
+          "hasContent": true
+        }
+      },
+      "completeness": 100,
+      "lastModified": "2025-07-25T12:10:27.588Z",
+      "relevanceScore": 90,
+      "implementationStatus": "likely_implemented",
+      "issues": [],
+      "relatedFiles": [
+        "app\\api\\auth\\check-email\\route.ts",
+        "app\\api\\reservations\\public-authenticated\\route.ts",
+        "app\\auth\\callback\\route.ts",
+        "app\\auth\\callback\\__tests__\\page.test.tsx",
+        "components\\auth\\AuthErrorToast.tsx",
+        "components\\auth\\EmailVerificationPrompt.tsx",
+        "components\\auth\\MagicLinkHandler.tsx",
+        "components\\auth\\MigrationMessage.tsx",
+        "components\\auth\\SmartVerifiedPage.tsx",
+        "components\\loading\\AuthLoadingState.tsx"
+      ],
+      "taskCompletion": {
+        "completed": 5,
+        "total": 5,
+        "percentage": 100
+      }
+    }
+  ],
+  "cleanupPlan": {
+    "toKeep": [
+      {
+        "name": "code-architecture-cleanup",
+        "reason": "높은 관련성 (70.0점)",
+        "recommendation": "keep_active"
+      },
+      {
+        "name": "environment-config-fix",
+        "reason": "높은 관련성 (70.0점)",
+        "recommendation": "keep_active"
+      },
+      {
+        "name": "login-loading-fix",
+        "reason": "높은 관련성 (70.0점)",
+        "recommendation": "keep_active"
+      },
+      {
+        "name": "auth-infinite-loop-fix",
+        "reason": "높은 관련성 (77.5점)",
+        "recommendation": "keep_active"
+      },
+      {
+        "name": "supabase-otp-auth-migration",
+        "reason": "높은 관련성 (77.5점)",
+        "recommendation": "keep_active"
+      },
+      {
+        "name": "auth-context-integration",
+        "reason": "높은 관련성 (80.0점)",
+        "recommendation": "keep_active"
+      },
+      {
+        "name": "pagination-system-fix",
+        "reason": "높은 관련성 (80.0점)",
+        "recommendation": "keep_active"
+      },
+      {
+        "name": "code-refactoring-optimization",
+        "reason": "높은 관련성 (90.0점)",
+        "recommendation": "keep_active"
+      },
+      {
+        "name": "pwa-auth-optimization",
+        "reason": "높은 관련성 (90.0점)",
+        "recommendation": "keep_active"
+      }
+    ],
+    "toArchive": [
+      {
+        "name": "magic-link-auth-fix",
+        "reason": "구현 완료로 추정, 중간 관련성 (50.8점)",
+        "recommendation": "archive"
+      },
+      {
+        "name": "security-monitoring-fix",
+        "reason": "구현 완료로 추정, 중간 관련성 (63.3점)",
+        "recommendation": "archive"
+      }
+    ],
+    "toDelete": [],
+    "toUpdate": [],
+    "statistics": {
+      "total": 11,
+      "highRelevance": 9,
+      "mediumRelevance": 2,
+      "lowRelevance": 0
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "timestamp": "2025-07-29T11:48:45.962Z",
+  "summary": {
+    "totalChanges": 2,
+    "totalErrors": 0,
+    "success": true
+  },
+  "changes": [
+    {
+      "type": "type_consolidation",
+      "typeName": "ValidatedReservationData",
+      "action": "moved_to_types_database",
+      "affectedFiles": [
+        "src/lib/security/user-id-guards.ts",
+        "src/lib/security/enhanced-user-id-guards.ts"
+      ]
+    },
+    {
+      "type": "structure_optimization",
+      "action": "optimized_type_imports",
+      "description": "타입 파일 import/export 구조 정리"
+    }
+  ],
+  "errors": []
+}

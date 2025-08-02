@@ -1,0 +1,43 @@
+{
+  "trigger": "Critical issues exceed threshold: 1 > 0",
+  "strategy": "manual",
+  "timestamp": "2025-07-22T22:58:54.797Z",
+  "success": true,
+  "actions": [
+    {
+      "action": "Manual rollback initiated",
+      "success": true,
+      "details": "Awaiting administrator action",
+      "timestamp": "2025-07-22T22:58:54.797Z"
+    },
+    {
+      "action": "Manual rollback instructions created",
+      "success": true,
+      "details": "ci-reports\\MANUAL_ROLLBACK_INSTRUCTIONS.md",
+      "timestamp": "2025-07-22T22:58:54.800Z"
+    }
+  ],
+  "errors": [],
+  "recommendations": [
+    {
+      "recommendation": "Review data integrity issues in detail",
+      "priority": "high",
+      "timestamp": "2025-07-22T22:58:54.797Z"
+    },
+    {
+      "recommendation": "Determine if rollback is necessary based on issue severity",
+      "priority": "high",
+      "timestamp": "2025-07-22T22:58:54.797Z"
+    },
+    {
+      "recommendation": "If rollback needed, run: npm run rollback:execute",
+      "priority": "medium",
+      "timestamp": "2025-07-22T22:58:54.797Z"
+    },
+    {
+      "recommendation": "Monitor system closely after any changes",
+      "priority": "medium",
+      "timestamp": "2025-07-22T22:58:54.797Z"
+    }
+  ]
+}

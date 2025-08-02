@@ -1,0 +1,58 @@
+{
+  "timestamp": "2025-07-29T12:14:22.704Z",
+  "summary": {
+    "totalChanges": 4,
+    "totalErrors": 0,
+    "success": true
+  },
+  "changes": [
+    {
+      "type": "directory_creation",
+      "description": "테스트 유틸리티 디렉토리 및 공통 파일 생성",
+      "path": "src\\__tests__\\utils"
+    },
+    {
+      "type": "utility_analysis",
+      "description": "26개의 통합 가능한 유틸리티 식별",
+      "utilities": [
+        "mockCreateClient",
+        "mockUserProfile",
+        "mockGetClientManager",
+        "mockToast",
+        "mockRouter",
+        "mockSupabaseAuth",
+        "mockSupabase",
+        "mockGetNetworkStatus",
+        "mockIsNetworkError",
+        "mockData",
+        "mockPush",
+        "mockReplace",
+        "mockLocalStorage",
+        "mockAddEventListener",
+        "mockRemoveEventListener",
+        "mockLocation",
+        "mockLogger",
+        "mockConsoleLog",
+        "mockValidationResult",
+        "mockEnv",
+        "mockPaginatedData",
+        "mockFetch",
+        "mockPages",
+        "mockQuery",
+        "mockRpcFunction",
+        "mockGetServiceRoleKey"
+      ]
+    },
+    {
+      "type": "guideline_creation",
+      "description": "테스트 작성 가이드라인 생성",
+      "path": "src\\__tests__\\utils\\TESTING_GUIDELINES.md"
+    },
+    {
+      "type": "quality_check",
+      "description": "TypeScript 검사 통과",
+      "status": "success"
+    }
+  ],
+  "errors": []
+}
