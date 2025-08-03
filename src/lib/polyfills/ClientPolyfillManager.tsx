@@ -56,8 +56,8 @@ interface ClientPolyfillManagerProps {
  */
 export function ClientPolyfillManager({ 
   children, 
-  enableServiceWorker = process.env.NODE_ENV !== 'development',
-  enablePWAComponents = process.env.NODE_ENV !== 'development' 
+  enableServiceWorker = process.env.NODE_ENV === 'production',
+  enablePWAComponents = process.env.NODE_ENV === 'production' 
 }: ClientPolyfillManagerProps) {
   const [isInitialized, setIsInitialized] = useState(false);
   const [compatibility, setCompatibility] = useState<BrowserCompatibilityResult | null>(null);
@@ -82,8 +82,8 @@ export function ClientPolyfillManager({
       return;
     }
     
-    // Load service worker if enabled and supported
-    if (enableServiceWorker && compatibilityResult.isSupported) {
+    // Load service worker if enabled and supported (production only)
+    if (enableServiceWorker && compatibilityResult.isSupported && process.env.NODE_ENV === 'production') {
       loadServiceWorker().then(() => {
         setServiceWorkerLoaded(true);
       }).catch(error => {
@@ -105,7 +105,7 @@ export function ClientPolyfillManager({
       {isInitialized && enableServiceWorker && serviceWorkerLoaded && (
         <ServiceWorkerManager />
       )}
-      {isInitialized && enablePWAComponents && compatibility?.isSupported && (
+      {isInitialized && enablePWAComponents && compatibility?.isSupported && process.env.NODE_ENV === 'production' && (
         <>
           <InstallPrompt />
           <OfflineHandler />

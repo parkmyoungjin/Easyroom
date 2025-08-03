@@ -1,6 +1,6 @@
 // Enhanced middleware with proper types and error handling
 
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import type { Session, User } from '@supabase/supabase-js';
 import { checkRouteAccess } from '@/lib/routes/matcher';
@@ -10,6 +10,19 @@ import { securityMonitor } from '@/lib/monitoring/security-monitor';
 import { canServeRequest } from '@/lib/startup/server-startup-validator';
 import { handleMagicLinkRedirect } from '@/lib/auth/migration-compatibility';
 import { categorizeAuthError } from '@/lib/auth/error-handler';
+
+// 상세 로깅을 원하는 경로 목록 (개발 환경에서만 사용)
+const LOG_MIDDLEWARE_DEBUG_PATHS = ['/login', '/signup', '/reservations/new'];
+
+// 로깅을 제외할 경로 패턴
+const SKIP_LOGGING_PATTERNS = [
+  '/.well-known/',
+  '/_next/',
+  '/favicon.ico',
+  '/sw.js',
+  '/icons/',
+  '/manifest.json'
+];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = new URL(request.url);
@@ -32,15 +45,32 @@ export async function middleware(request: NextRequest) {
   }
 
   // ✅ [핵심 수정 1] 응답 객체를 먼저 생성하는 것은 동일하게 유지합니다.
-  const response = NextResponse.next({
+  let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
   });
 
-  // ✅ [핵심 수정 2] createServerClient 대신 createMiddlewareClient를 사용합니다.
-  // 이 함수는 req, res 객체만으로 쿠키 관리를 완벽하게 처리합니다.
-  const supabase = createMiddlewareClient({ req: request, res: response });
+  // ✅ [핵심 수정 2] createServerClient를 사용하여 쿠키 관리를 완벽하게 처리합니다.
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          // 쿠키가 변경되면, response 객체의 쿠키도 업데이트해야 함
+          response.cookies.set({ name, value, ...options });
+        },
+        remove(name: string, options: CookieOptions) {
+          // 쿠키가 삭제되면, response 객체의 쿠키도 업데이트해야 함
+          response.cookies.set({ name, value: '', ...options });
+        },
+      },
+    }
+  );
 
   // Enhanced session handling with comprehensive error handling and debugging
   let session: Session | null = null;
@@ -48,8 +78,15 @@ export async function middleware(request: NextRequest) {
   let sessionError: string | null = null;
   let cookieParsingError: string | null = null;
   
-  // Cookie inspection for debugging (without exposing sensitive data)
+  // 로깅 제외 경로 체크
+  const shouldSkipLogging = SKIP_LOGGING_PATTERNS.some(pattern => pathname.startsWith(pattern));
+
+  // Cookie inspection for debugging (개발 환경에서만, 필요한 경로에서만)
   const inspectCookies = () => {
+    if (process.env.NODE_ENV !== 'development' || shouldSkipLogging) {
+      return [];
+    }
+    
     const cookies = request.cookies.getAll();
     const authCookies = cookies.filter(cookie => 
       cookie.name.includes('supabase') || 
@@ -65,20 +102,22 @@ export async function middleware(request: NextRequest) {
       endsWithValidChar: cookie.value ? /[\}\]]$/.test(cookie.value) : false,
       looksLikeJson: cookie.value ? /^[\{\[].*[\}\]]$/.test(cookie.value) : false,
       containsQuotes: cookie.value ? cookie.value.includes('"') : false,
-      firstChar: cookie.value ? cookie.value.charAt(0) : null,
-      lastChar: cookie.value ? cookie.value.charAt(cookie.value.length - 1) : null
+      // 민감한 정보는 개발 환경에서도 제거
+      // firstChar, lastChar, value 등은 제거
     }));
   };
 
   try {
-    // Log initial cookie state for debugging
+    // Log initial cookie state for debugging (개발 환경에서만)
     const cookieInfo = inspectCookies();
-    console.log('[Middleware] Cookie inspection:', {
-      pathname,
-      totalCookies: request.cookies.getAll().length,
-      authCookies: cookieInfo.length,
-      cookieDetails: cookieInfo
-    });
+    if (process.env.NODE_ENV === 'development' && !shouldSkipLogging && cookieInfo.length > 0) {
+      console.log('[Middleware] Cookie inspection:', {
+        pathname,
+        totalCookies: request.cookies.getAll().length,
+        authCookies: cookieInfo.length,
+        cookieDetails: cookieInfo
+      });
+    }
 
     // First attempt: getSession() with enhanced error handling
     const sessionResult = await supabase.auth.getSession();
@@ -252,19 +291,21 @@ export async function middleware(request: NextRequest) {
     });
   }
 
-  // Enhanced authentication state logging with error context
-  console.log('[Middleware] Auth check:', { 
-    pathname, 
-    hasUser: !!user, 
-    userId: user?.id,
-    userEmail: user?.email,
-    hasSession: !!session,
-    sessionExpiry: session?.expires_at ? new Date(session.expires_at * 1000).toISOString() : null,
-    sessionError: sessionError || null,
-    cookieParsingError: cookieParsingError || null,
-    authenticationStatus: user ? 'authenticated' : 'unauthenticated',
-    errorCategory: cookieParsingError ? 'cookie_parsing' : sessionError ? 'session_error' : 'none'
-  });
+  // Enhanced authentication state logging with error context (조건부 로깅)
+  if (!shouldSkipLogging && (process.env.NODE_ENV === 'development' || sessionError || cookieParsingError)) {
+    console.log('[Middleware] Auth check:', { 
+      pathname, 
+      hasUser: !!user, 
+      userId: user?.id,
+      userEmail: user?.email,
+      hasSession: !!session,
+      sessionExpiry: session?.expires_at ? new Date(session.expires_at * 1000).toISOString() : null,
+      sessionError: sessionError || null,
+      cookieParsingError: cookieParsingError || null,
+      authenticationStatus: user ? 'authenticated' : 'unauthenticated',
+      errorCategory: cookieParsingError ? 'cookie_parsing' : sessionError ? 'session_error' : 'none'
+    });
+  }
 
   let userRole: UserRole | undefined;
   if (user) {
@@ -323,9 +364,9 @@ export async function middleware(request: NextRequest) {
 
   const accessResult = checkRouteAccess(pathname, authContext);
   
-  // ✅ [디버깅] /reservations/new 경로에 대한 상세 로깅
-  if (pathname === '/reservations/new') {
-    console.log('[Middleware] DEBUG - New reservation page access:', {
+  // ✅ [디버깅] 특정 경로에 대한 상세 로깅 (개발 환경에서만)
+  if (process.env.NODE_ENV === 'development' && LOG_MIDDLEWARE_DEBUG_PATHS.includes(pathname)) {
+    console.log(`[Middleware] DEBUG - ${pathname} access:`, {
       isAuthenticated: !!user,
       userRole,
       userId: user?.id,

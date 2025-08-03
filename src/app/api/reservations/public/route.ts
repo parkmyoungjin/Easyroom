@@ -1,7 +1,7 @@
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteClient } from '@/lib/supabase/actions';
+import { createClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/utils/logger';
 import { ReservationErrorHandler } from '@/lib/utils/error-handler';
 
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     const queryString = searchParams.toString();
 
     // 사용자 인증 상태 확인
-    const supabase = createRouteClient();
+    const supabase = await createClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     
     const isAuthenticated = !authError && !!user;

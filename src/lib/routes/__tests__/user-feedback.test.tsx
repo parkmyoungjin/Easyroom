@@ -16,6 +16,20 @@ import AuthStateIndicator from '@/components/ui/auth-state-indicator';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SupabaseProvider } from '@/contexts/SupabaseProvider';
 
+// Mock environment variables
+const originalEnv = process.env;
+beforeAll(() => {
+  process.env = {
+    ...originalEnv,
+    NEXT_PUBLIC_SUPABASE_URL: 'https://test.supabase.co',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key'
+  };
+});
+
+afterAll(() => {
+  process.env = originalEnv;
+});
+
 // Mock dependencies
 jest.mock('next/navigation');
 jest.mock('@/hooks/useAuth');

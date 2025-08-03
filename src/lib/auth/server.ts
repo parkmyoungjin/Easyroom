@@ -9,7 +9,7 @@ import { cache } from 'react'
  */
 export const getUser = cache(async (): Promise<User | null> => {
   try {
-    const supabase = createServerClient()
+    const supabase = await createServerClient()
     const { data: { user }, error } = await supabase.auth.getUser()
     
     if (error || !user) {
@@ -28,7 +28,7 @@ export const getUser = cache(async (): Promise<User | null> => {
  * auth.users와 public.users를 조인하여 완전한 UserProfile 객체를 반환합니다.
  */
 export const getUserProfile = cache(async (): Promise<UserProfile | null> => {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
@@ -116,7 +116,7 @@ export async function requireAuth(): Promise<UserProfile> {
  * 📝 사용자 프로필 업데이트 (camelCase)
  */
 export async function updateUserProfile(updates: Partial<Pick<UserMetadata, 'fullName' | 'department' | 'role'>>) {
-  const supabase = createServerClient()
+  const supabase = await createServerClient()
   
   const { data, error } = await supabase.auth.updateUser({
     data: updates

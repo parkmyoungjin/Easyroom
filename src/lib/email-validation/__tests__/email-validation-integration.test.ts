@@ -4,15 +4,34 @@ import {
   getEmailValidationService,
   getLastValidationError 
 } from '../email-validation-service';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database';
 
-// Mock the entire Supabase client module
-jest.mock('@/lib/supabase/client');
+// Create a mock SupabaseClient for testing
+const createMockSupabaseClient = (): jest.Mocked<SupabaseClient<Database>> => {
+  return {
+    rpc: jest.fn(),
+    from: jest.fn(),
+    auth: {} as any,
+    storage: {} as any,
+    realtime: {} as any,
+    rest: {} as any,
+    functions: {} as any,
+    channel: jest.fn(),
+    getChannels: jest.fn(),
+    removeChannel: jest.fn(),
+    removeAllChannels: jest.fn(),
+  } as jest.Mocked<SupabaseClient<Database>>;
+};
 
 describe('EmailValidationService Integration Tests', () => {
+  let mockSupabase: jest.Mocked<SupabaseClient<Database>>;
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useFakeTimers();
+    mockSupabase = createMockSupabaseClient();
   });
 
   afterEach(() => {
@@ -37,7 +56,7 @@ describe('EmailValidationService Integration Tests', () => {
 
   describe('checkEmailExists - Validation Errors', () => {
     it('should return validation error for invalid email format', async () => {
-      const result = await checkEmailExists('invalid-email');
+      const result = await checkEmailExists(mockSupabase, 'invalid-email');
 
       expect(result.exists).toBe(false);
       expect(result.error).toBeDefined();
@@ -48,50 +67,65 @@ describe('EmailValidationService Integration Tests', () => {
     });
 
     it('should handle empty email string', async () => {
-      const result = await checkEmailExists('');
+      const result = await checkEmailExists(mockSupabase, '');
       expect(result.exists).toBe(false);
       expect(result.error!.type).toBe('validation_error');
     });
 
+    it('should handle null client gracefully', async () => {
+      const result = await checkEmailExists(null as any, 'test@example.com');
+      expect(result.exists).toBe(false);
+      expect(result.error).toBeDefined();
+      expect(result.error!.type).toBe('client_not_ready');
+      expect(result.error!.message).toBe('Supabase client not provided');
+      expect(result.error!.userMessage).toBe('서비스 연결에 문제가 있습니다.');
+      expect(result.error!.canRetry).toBe(false);
+    });
+
     it('should handle special characters in valid email', async () => {
-      // Mock successful Supabase response with proper chaining
-      const mockMaybeSingle = jest.fn().mockResolvedValue({
-        data: null,
+      // Mock successful RPC response
+      mockSupabase.rpc.mockResolvedValue({
+        data: false,
         error: null
       });
-      
-      const mockEq = jest.fn().mockReturnValue({
-        maybeSingle: mockMaybeSingle
-      });
-      
-      const mockSelect = jest.fn().mockReturnValue({
-        eq: mockEq
-      });
-      
-      const mockFrom = jest.fn().mockReturnValue({
-        select: mockSelect
-      });
-
-      const mockSupabase = {
-        from: mockFrom
-      };
-
-      // Mock the dynamic import to return the properly structured client
-      jest.doMock('@/lib/supabase/client', () => ({
-        createClient: jest.fn().mockReturnValue(mockSupabase)
-      }));
-
-      // Clear module cache to ensure fresh import
-      jest.resetModules();
-      
-      // Re-import the function to get the mocked version
-      const { checkEmailExists: mockedCheckEmailExists } = await import('../email-validation-service');
 
       const specialEmail = 'test+tag@example.com';
-      const result = await mockedCheckEmailExists(specialEmail);
+      const result = await checkEmailExists(mockSupabase, specialEmail);
       
       expect(result.exists).toBe(false);
       expect(result.error).toBeUndefined();
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('check_email_exists', { p_email: specialEmail });
+    });
+
+    it('should work with mocked successful database response', async () => {
+      // Mock RPC to return true (email exists)
+      mockSupabase.rpc.mockResolvedValue({
+        data: true,
+        error: null
+      });
+
+      const result = await checkEmailExists(mockSupabase, 'existing@example.com');
+      
+      expect(result.exists).toBe(true);
+      expect(result.error).toBeUndefined();
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('check_email_exists', { p_email: 'existing@example.com' });
+    });
+
+    it('should handle database errors properly', async () => {
+      // Mock RPC to return a non-retryable database error
+      const dbError = { message: 'Invalid query syntax', code: 'SYNTAX_ERROR' };
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: dbError
+      });
+
+      const result = await checkEmailExists(mockSupabase, 'test@example.com');
+      
+      expect(result.exists).toBe(false);
+      expect(result.error).toBeDefined();
+      expect(result.error!.type).toBe('database_error');
+      expect(result.error!.message).toBe('Invalid query syntax');
+      expect(result.error!.canRetry).toBe(false);
     });
   });
 
@@ -103,7 +137,7 @@ describe('EmailValidationService Integration Tests', () => {
     });
 
     it('should track last validation error', async () => {
-      const result = await checkEmailExists('invalid-email');
+      const result = await checkEmailExists(mockSupabase, 'invalid-email');
       expect(result.error).toBeDefined();
       expect(getLastValidationError()).toBe('Invalid email format');
     });
@@ -111,7 +145,7 @@ describe('EmailValidationService Integration Tests', () => {
 
   describe('Error Message Localization', () => {
     it('should provide Korean user messages for validation errors', async () => {
-      const result = await checkEmailExists('invalid-email');
+      const result = await checkEmailExists(mockSupabase, 'invalid-email');
       expect(result.error!.userMessage).toBe('올바른 이메일 형식을 입력해주세요.');
     });
   });
@@ -119,7 +153,7 @@ describe('EmailValidationService Integration Tests', () => {
   describe('Edge Cases', () => {
     it('should handle very long email addresses', async () => {
       const longEmail = 'a'.repeat(250) + '@example.com'; // This will exceed 254 char limit
-      const result = await checkEmailExists(longEmail);
+      const result = await checkEmailExists(mockSupabase, longEmail);
       expect(result.exists).toBe(false);
       expect(result.error).toBeDefined();
       expect(result.error!.type).toBe('validation_error');
@@ -140,7 +174,7 @@ describe('EmailValidationService Integration Tests', () => {
 
   describe('Enhanced Error Handling Integration', () => {
     it('should provide comprehensive error information for debugging', async () => {
-      const result = await checkEmailExists('invalid@');
+      const result = await checkEmailExists(mockSupabase, 'invalid@');
       
       expect(result.error).toBeDefined();
       expect(result.error!.type).toBe('validation_error');
@@ -152,21 +186,48 @@ describe('EmailValidationService Integration Tests', () => {
 
     it('should handle different error types appropriately', async () => {
       // Test validation error
-      const validationResult = await checkEmailExists('');
+      const validationResult = await checkEmailExists(mockSupabase, '');
       expect(validationResult.error!.type).toBe('validation_error');
       expect(validationResult.error!.canRetry).toBe(false);
 
       // Test long email
-      const longEmailResult = await checkEmailExists('a'.repeat(300) + '@example.com');
+      const longEmailResult = await checkEmailExists(mockSupabase, 'a'.repeat(300) + '@example.com');
       expect(longEmailResult.error!.type).toBe('validation_error');
       expect(longEmailResult.error!.canRetry).toBe(false);
     });
 
     it('should provide user-friendly Korean messages for all error types', async () => {
-      const result = await checkEmailExists('invalid-format');
+      const result = await checkEmailExists(mockSupabase, 'invalid-format');
       expect(result.error!.userMessage).toBe('올바른 이메일 형식을 입력해주세요.');
       expect(typeof result.error!.userMessage).toBe('string');
       expect(result.error!.userMessage.length).toBeGreaterThan(0);
+    });
+
+    it('should categorize network errors correctly', async () => {
+      // Mock network error that should be categorized as network_error
+      const networkError = { message: 'fetch failed due to network issue', code: 'NETWORK_ERROR' };
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: networkError
+      });
+
+      // Mock the retry logic to avoid actual delays in tests
+      const originalSetTimeout = global.setTimeout;
+      global.setTimeout = jest.fn((callback) => {
+        callback();
+        return 1 as any;
+      });
+
+      const result = await checkEmailExists(mockSupabase, 'test@example.com');
+      
+      // Restore original setTimeout
+      global.setTimeout = originalSetTimeout;
+      
+      expect(result.exists).toBe(false);
+      expect(result.error).toBeDefined();
+      expect(result.error!.type).toBe('network_error');
+      expect(result.error!.canRetry).toBe(true);
+      expect(result.error!.userMessage).toBe('네트워크 연결에 문제가 있습니다. 인터넷 연결을 확인하고 다시 시도해주세요.');
     });
   });
 });

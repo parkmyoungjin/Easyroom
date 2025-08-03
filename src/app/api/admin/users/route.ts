@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteClient, createAdminRouteClient } from '@/lib/supabase/actions';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { logger } from '@/lib/utils/logger';
 import { ReservationErrorHandler } from '@/lib/utils/error-handler';
 import { securityMonitor } from '@/lib/monitoring/security-monitor';
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     
     const { limit, offset, sortBy, sortOrder, search } = paginationValidation.pagination;
 
-    const supabase = createRouteClient();
+    const supabase = await createClient();
 
     // Check authentication and admin privileges
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -124,10 +124,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Use admin client for privileged operations (bypasses RLS)
-    const supabaseAdmin = createAdminRouteClient({
-      endpoint: '/api/admin/users',
-      userId: user.id
-    });
+    const supabaseAdmin = createAdminClient();
 
     // Execute paginated query for users
     const result = await executePaginatedQuery<User>(

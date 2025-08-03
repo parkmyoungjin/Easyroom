@@ -9,10 +9,10 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { SupabaseClient, User } from '@supabase/supabase-js';
+import { SupabaseClient, User, Session } from '@supabase/supabase-js';
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 import { UserProfile } from '@/types/auth';
-import { createAuthId, createDatabaseUserId } from '@/types/enhanced-types';
+import { ProfileRpcResult, convertRpcResultToUserProfile } from '@/lib/auth/profile-utils';
 
 // ============================================================================
 // TYPES AND INTERFACES - Simplified for Single Gate Architecture
@@ -41,19 +41,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // PROFILE HELPER FUNCTION - '방탄 계약'이 적용된 최종 버전
 // ============================================================================
 
-// ✅ [1단계] RPC가 반환하는 데이터의 형태를 TypeScript에게 알려주기 위한 타입을 정의합니다.
-// 이 타입의 속성 이름은 SQL 함수의 RETURNS TABLE (...)에 정의된 컬럼 이름과 정확히 일치해야 합니다.
-type ProfileRpcResult = {
-  authId: string;
-  dbId: string;
-  employeeId: string | null;
-  email: string;
-  name: string;
-  department: string;
-  role: 'admin' | 'employee';
-  createdAt: string;
-  updatedAt: string | null;
-};
+// ============================================================================
+// AUTH PROVIDER PROPS - 서버-클라이언트 동기화를 위한 Props 인터페이스
+// ============================================================================
+
+/**
+ * AuthProvider Props 인터페이스
+ * 서버에서 가져온 초기 데이터를 클라이언트에 주입하기 위한 props
+ */
+export interface AuthProviderProps {
+  children: React.ReactNode;
+  initialSession?: Session | null;
+  initialProfile?: UserProfile | null;
+}
 
 /**
  * 사용자 프로필을 원자적으로 조회하거나 생성합니다.
@@ -78,49 +78,34 @@ async function getOrCreateProfile(supabase: SupabaseClient): Promise<UserProfile
   }
 
   // ✅ [최종 진화] 데이터 보증 (Operation: Data Assurance)
-  // 모든 속성의 유효성을 검증하고 안전한 기본값을 보증합니다.
-  // 이제 하위 컴포넌트는 데이터 유효성을 걱정할 필요가 없습니다.
-  return {
-    authId: createAuthId(typedData.authId),
-    dbId: createDatabaseUserId(typedData.dbId),
-    
-    // ✅ employeeId는 null일 수 있으므로 명시적으로 유지
-    employeeId: typedData.employeeId || undefined,
-    
-    // ✅ email은 non-nullable로 가정하지만 방어적으로 처리
-    email: (typedData.email && typeof typedData.email === 'string') 
-      ? typedData.email 
-      : 'unknown@example.com',
-    
-    // ✅ [핵심 보증] name은 절대 null이나 빈 문자열이 아님을 보증
-    name: (typedData.name && typeof typedData.name === 'string' && typedData.name.trim()) 
-      ? typedData.name.trim() 
-      : '알 수 없는 사용자',
-    
-    // ✅ [핵심 보증] department는 절대 null이나 빈 문자열이 아님을 보증
-    department: (typedData.department && typeof typedData.department === 'string' && typedData.department.trim()) 
-      ? typedData.department.trim() 
-      : '소속 없음',
-    
-    // ✅ [핵심 보증] role은 절대 null이 아니며 유효한 값임을 보증
-    role: (typedData.role === 'admin' || typedData.role === 'employee') 
-      ? typedData.role 
-      : 'employee',
-    
-    createdAt: typedData.createdAt,
-    updatedAt: typedData.updatedAt || undefined,
-  };
+  // 공통 변환 유틸리티 함수를 사용하여 일관된 데이터 변환 보장
+  return convertRpcResultToUserProfile(typedData);
 }
 
 // ============================================================================
 // SINGLE GATE AUTH PROVIDER - 단일 관문 인증 제공자
 // ============================================================================
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ 
+  children, 
+  initialSession = null, 
+  initialProfile = null 
+}: AuthProviderProps) => {
   const supabase = useSupabaseClient();
-  const [user, setUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [authStatus, setAuthStatus] = useState<AuthStatus>('loading');
+  
+  // ✅ [핵심 수정] useState의 초기값을 서버에서 받은 props로 설정
+  const [user, setUser] = useState<User | null>(initialSession?.user ?? null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(initialProfile ?? null);
+  
+  // ✅ [핵심 수정] authStatus의 초기값도 props에 따라 결정
+  const [authStatus, setAuthStatus] = useState<AuthStatus>(() => {
+    if (initialSession && initialProfile) {
+      console.log('[AuthProvider] Initialized with server data: authenticated');
+      return 'authenticated';
+    }
+    console.log('[AuthProvider] No initial data: loading');
+    return 'loading'; // 초기 데이터가 없으면, 클라이언트에서 확인해야 하므로 'loading'
+  });
 
   // --- 실행 잠금(Execution Lock) ---
   const isProcessing = useRef(false);

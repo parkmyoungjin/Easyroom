@@ -26,11 +26,33 @@ import {
   setMinutes,
   getHours,
   getMinutes,
+  isSaturday,
+  isSunday,
 } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { toZonedTime } from 'date-fns-tz';
 
 // 한국 시간대 상수 (UTC+9)
 const KST_OFFSET = 9 * 60 * 60 * 1000; // 9시간을 밀리초로 변환
+const KOREA_TIME_ZONE = 'Asia/Seoul';
+
+// ✅ 중앙화된 시간 관리 - 애플리케이션의 "현재"를 정의
+export const getCurrentKSTTime = (): Date => {
+  return toZonedTime(new Date(), KOREA_TIME_ZONE);
+};
+
+export const getTodayKST = (): Date => {
+  return startOfDay(getCurrentKSTTime());
+};
+
+// ✅ 중앙화된 날짜 검증 함수들
+export const isDateInPastKST = (date: Date): boolean => {
+  return date < getTodayKST();
+};
+
+export const isDateWeekendKST = (date: Date): boolean => {
+  return isSaturday(date) || isSunday(date);
+};
 
 // UTC 시간을 한국 시간으로 변환 
 export const utcToKst = (date: Date | string): Date => {
@@ -147,7 +169,7 @@ export const navigateDate = (
 // 날짜 상태 체크 (한국 시간 기준)
 export const getDateStatus = (date: Date | string) => {
   const kstTime = utcToKst(date);
-  const kstNow = utcToKst(new Date());
+  const kstNow = getCurrentKSTTime(); // ✅ 중앙화된 함수 사용
   
   if (isSameDay(kstTime, kstNow)) return 'today';
   if (isSameDay(kstTime, addDays(kstNow, 1))) return 'tomorrow';
@@ -262,7 +284,7 @@ export const separateDateAndTime = (isoString: string) => {
 
 // 현재 시간 기준으로 가장 가까운 30분 단위 시간 반환 (한국 시간 기준)
 export const getNextAvailableTime = (baseDate?: Date) => {
-  const kstNow = baseDate ? utcToKst(baseDate) : utcToKst(new Date());
+  const kstNow = baseDate ? utcToKst(baseDate) : getCurrentKSTTime(); // ✅ 중앙화된 함수 사용
   const minutes = getMinutes(kstNow);
   const roundedMinutes = Math.ceil(minutes / 30) * 30;
   
@@ -286,7 +308,7 @@ export const isBusinessHours = (date: Date | string) => {
 // 상대적 시간 표시 (예: "2시간 후", "30분 전", 한국 시간 기준)
 export const getRelativeTime = (date: Date | string) => {
   const kstTime = utcToKst(date);
-  const kstNow = utcToKst(new Date());
+  const kstNow = getCurrentKSTTime(); // ✅ 중앙화된 함수 사용
   const diffInMinutes = differenceInMinutes(kstTime, kstNow);
   
   if (Math.abs(diffInMinutes) < 1) {
@@ -345,13 +367,13 @@ export const formatDateTimeForDisplay = (date: Date | string): string => {
 
 // 한국 시간 기준으로 현재 시간이 업무 시간인지 확인
 export const isCurrentTimeBusinessHours = (): boolean => {
-  const kstNow = utcToKst(new Date());
+  const kstNow = getCurrentKSTTime(); // ✅ 중앙화된 함수 사용
   return isBusinessHours(kstNow);
 };
 
 // 한국 시간 기준으로 다음 가능한 예약 시간 반환
 export const getNextAvailableKSTTime = (baseDate?: Date): Date => {
-  const kstNow = utcToKst(baseDate || new Date());
+  const kstNow = utcToKst(baseDate || getCurrentKSTTime()); // ✅ 중앙화된 함수 사용
   return setMinutes(setHours(addDays(kstNow, getHours(kstNow) === 23 ? 1 : 0), (getHours(kstNow) + 1) % 24), 0);
 };
 
@@ -400,4 +422,11 @@ export const normalizeDateRange = (startDate: string, endDate: string) => {
     start: normalizeDateForQuery(startDate, false),
     end: normalizeDateForQuery(endDate, true)
   };
-}; 
+};
+
+// Schema validation function - for use in environments where React hooks cannot be used
+export const isDateTimeInFutureKST = (date: Date, timeString: string): boolean => {
+  const kstNow = getCurrentKSTTime();
+  const selectedDateTime = new Date(`${format(date, "yyyy-MM-dd")}T${timeString}`);
+  return selectedDateTime > kstNow;
+};

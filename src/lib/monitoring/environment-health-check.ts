@@ -6,7 +6,7 @@
 
 import { environmentMonitor } from '@/lib/monitoring/environment-monitor';
 import { secureEnvironmentAccess } from '@/lib/security/secure-environment-access';
-import { createClient } from '@/lib/supabase/client';
+import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 import { logger } from '@/lib/utils/logger';
 
 // ============================================================================
@@ -253,8 +253,37 @@ class EnvironmentHealthChecker {
    */
   private async checkSupabaseClient(deepCheck: boolean): Promise<ComponentHealth> {
     try {
-      // With auth-helpers, client is always ready when created
-      const supabase = createClient();
+      // Check if we're in a browser environment
+      if (typeof window === 'undefined') {
+        // Server-side: assume healthy if environment variables are set
+        const hasUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const hasKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        
+        if (hasUrl && hasKey) {
+          return {
+            status: 'healthy',
+            message: 'Supabase configuration is available (server-side)',
+            lastCheck: new Date(),
+            metrics: {
+              retryCount: 0,
+              state: 1
+            }
+          };
+        } else {
+          return {
+            status: 'critical',
+            message: 'Supabase configuration is missing',
+            lastCheck: new Date(),
+            metrics: {
+              retryCount: 0,
+              state: 0
+            }
+          };
+        }
+      }
+
+      // Client-side: check actual client
+      const supabase = useSupabaseClient();
       const isReady = !!supabase;
 
       if (isReady) {
@@ -269,7 +298,6 @@ class EnvironmentHealthChecker {
         };
       }
 
-      // With auth-helpers, if client creation fails, it's a critical error
       return {
         status: 'critical',
         message: 'Supabase client is not available',

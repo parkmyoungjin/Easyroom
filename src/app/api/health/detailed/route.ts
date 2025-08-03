@@ -6,8 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteClient } from '@/lib/supabase/actions';
-import type { TypedSupabaseClient } from '@/lib/supabase/server'; // Supabase 클라이언트 타입을 위해 import
+import { createClient, type TypedSupabaseClient } from '@/lib/supabase/server';
 import { environmentManager } from '@/lib/security/environment-manager';
 import { securityMonitor } from '@/lib/monitoring/security-monitor';
 import { performanceMonitor } from '@/lib/monitoring/performance-monitor';
@@ -98,7 +97,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     logger.info('상세 시스템 상태 확인 시작');
 
     // GET 핸들러 최상단에서 클라이언트를 한 번만 생성합니다.
-    const supabase = createRouteClient();
+    const supabase = await createClient();
 
     // 모든 상태 정보를 병렬로 수집합니다.
     const [

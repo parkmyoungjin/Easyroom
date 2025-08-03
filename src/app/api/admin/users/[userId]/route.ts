@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createRouteClient, createAdminRouteClient } from '@/lib/supabase/actions';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { ReservationErrorHandler } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
 import { securityMonitor } from '@/lib/monitoring/security-monitor';
@@ -32,8 +32,8 @@ export async function DELETE(
 
     logger.apiCall('/api/admin/users/[userId]', 'DELETE', undefined, true, { targetUserId: userId, requestId });
     
-    // 서버 사이드에서 관리자 권한 확인 - auth-helpers 방식으로 변경
-    const supabase = createRouteClient();
+    // 서버 사이드에서 관리자 권한 확인 - ssr 방식으로 변경
+    const supabase = await createClient();
     const sessionResult = await performanceMonitor.measureAuthentication(
       async () => await supabase.auth.getSession(),
       {
@@ -103,8 +103,8 @@ export async function DELETE(
       endpoint: '/api/admin/users/[userId]'
     });
 
-    // 보안이 강화된 관리자 클라이언트 생성 - auth-helpers 방식으로 변경
-    const supabaseAdmin = createAdminRouteClient()
+    // 보안이 강화된 관리자 클라이언트 생성 - ssr 방식으로 변경
+    const supabaseAdmin = createAdminClient();
 
     // 사용자 삭제 with performance monitoring
     await performanceMonitor.measureDatabaseQuery(

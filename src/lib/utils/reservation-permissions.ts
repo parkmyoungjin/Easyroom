@@ -5,6 +5,7 @@
 import type { UserProfile } from '@/types/auth';
 import type { ReservationWithDetails } from '@/types/database';
 import { logger } from './logger';
+import { getCurrentKSTTime } from './date';
 
 export interface PermissionCheckResult {
   allowed: boolean;
@@ -86,7 +87,7 @@ export function canCancelReservation(
 
   // 취소는 시작 시간 10분 전까지만 가능
   const startTime = new Date(reservation.start_time);
-  const now = new Date();
+  const now = getCurrentKSTTime(); // ✅ 중앙화된 함수 사용
   const timeDiff = startTime.getTime() - now.getTime();
   const minutesDiff = Math.floor(timeDiff / (1000 * 60));
   const canCancelByTime = minutesDiff >= 10;
@@ -187,16 +188,18 @@ export function isReservationOwner(
 /**
  * 예약의 user_id를 올바른 사용자 DB ID로 수정합니다
  * 이 함수는 Auth ID로 저장된 잘못된 user_id를 수정하기 위해 사용됩니다
+ * 
+ * @param supabaseClient - Supabase 클라이언트 인스턴스
+ * @param reservationId - 수정할 예약 ID
+ * @param correctDbId - 올바른 사용자 DB ID
  */
 export async function fixReservationUserId(
+  supabaseClient: any,
   reservationId: string,
   correctDbId: string
 ): Promise<boolean> {
   try {
-    const { createClient } = await import('@/lib/supabase/client');
-    const supabase = await createClient();
-    
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('reservations')
       .update({ user_id: correctDbId })
       .eq('id', reservationId);

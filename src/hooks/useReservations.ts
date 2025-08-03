@@ -99,7 +99,9 @@ export function useMyReservations(): { data: ReservationWithDetails[] | undefine
   const { userProfile } = useAuthContext();
   const supabase = useSupabaseClient();
 
-  return useQuery(buildQueryOptions({
+  // ✅ [핵심 수정] buildQueryOptions를 통해 기본 옵션을 생성한 후,
+  // 동적 데이터 동기화를 위한 refetch 정책을 명시적으로 추가합니다.
+  const queryOptions = buildQueryOptions({
     queryKey: reservationKeys.my(userProfile?.dbId), // authId 대신 dbId 사용
     queryFn: createStandardFetch(
       () => { // ✅ [핵심 수정] 로직이 매우 단순해짐
@@ -117,10 +119,18 @@ export function useMyReservations(): { data: ReservationWithDetails[] | undefine
     enabled: !!userProfile?.dbId && !!supabase,
     dataType: 'semi-static',
     cacheConfig: {
-      customStaleTime: 0,
-      customGcTime: 5 * 60 * 1000
+      customStaleTime: 0, // 데이터는 받자마자 '낡은 것'으로 간주
+      customGcTime: 5 * 60 * 1000,
     }
-  }));
+  });
+
+  return useQuery({
+    ...queryOptions,
+    // ✅ [핵심 강화] 이 데이터가 '언제' 다시 최신화되어야 하는지를 명확하게 선언합니다.
+    refetchOnMount: 'always',      // 컴포넌트가 마운트될 때마다 항상 데이터를 다시 가져옵니다.
+    refetchOnWindowFocus: true,    // 사용자가 다른 탭을 봤다가 돌아오면 데이터를 다시 가져옵니다.
+    refetchOnReconnect: true,      // 인터넷 연결이 끊겼다가 다시 연결되면 데이터를 다시 가져옵니다.
+  });
 }
 
 // ID로 예약을 가져오는 훅
@@ -201,7 +211,11 @@ export function useCreateReservation() {
     },
     onSuccess: () => {
       toast.success('예약 완료', { description: '예약이 성공적으로 완료되었습니다.' });
-      queryClient.invalidateQueries({ queryKey: reservationKeys.all });
+      // ✅ [핵심 수정] "reservations"라는 최상위 키를 사용하여,
+      // 관련된 모든 쿼리를 정밀하게 타겟팅하여 무효화한다.
+      // 이 한 줄은 react-query에게 "['reservations']로 시작하는 키를 가진
+      // 모든 활성 쿼리를 즉시 다시 가져오라"고 지시하는, 가장 강력하고 명확한 명령이다.
+      queryClient.invalidateQueries({ queryKey: ['reservations'] });
     },
     onError: (error: Error) => {
       logger.error('예약 생성 실패', error);

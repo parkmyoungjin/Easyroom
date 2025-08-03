@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuthContext } from '@/contexts/AuthContext';
-import { useSupabaseStatus } from '@/contexts/SupabaseProvider';
+import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 
 interface AuthLoadingStateProps {
   children: React.ReactNode;
@@ -24,7 +24,12 @@ export function AuthLoadingState({
   const [loadingPhase, setLoadingPhase] = useState<'hydrating' | 'supabase' | 'auth' | 'ready'>('hydrating');
   
   const { authStatus } = useAuthContext();
-  const { isReady: isSupabaseReady, isLoading: isSupabaseLoading, error: supabaseError } = useSupabaseStatus();
+  const supabase = useSupabaseClient();
+  
+  // With new SSR architecture, Supabase client is always ready
+  const isSupabaseReady = !!supabase;
+  const isSupabaseLoading = false;
+  const supabaseError = null;
 
   // Handle hydration
   useEffect(() => {

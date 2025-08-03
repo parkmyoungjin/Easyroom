@@ -1,8 +1,7 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
+import { checkEmailExists } from '@/lib/email-validation/email-validation-service';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { Database } from '@/types/database';
 
 export const dynamic = 'force-dynamic';
 
@@ -17,20 +16,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = createRouteHandlerClient<Database>({ cookies });
+    const supabase = await createClient();
 
-    // 새로운 check_email_exists 함수 사용
-    const { data, error } = await supabase
-      .rpc('check_email_exists', { p_email: email });
+    // Use the enhanced email validation service with dependency injection
+    const result = await checkEmailExists(supabase, email);
 
-    if (error) {
-      console.error('Email check error:', error);
-      // 에러가 있어도 진행 (보수적 접근)
+    if (result.error) {
+      console.error('Email check error:', result.error);
+      
+      // Return appropriate error response based on error type
+      if (result.error.type === 'validation_error') {
+        return NextResponse.json(
+          { error: result.error.userMessage },
+          { status: 400 }
+        );
+      }
+      
+      // For other errors, return conservative response (assume email doesn't exist)
       return NextResponse.json({ exists: false });
     }
 
     return NextResponse.json({ 
-      exists: data === true 
+      exists: result.exists 
     });
 
   } catch (error) {

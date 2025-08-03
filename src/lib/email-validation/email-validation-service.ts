@@ -1,8 +1,9 @@
-// Dynamic imports to avoid ES module issues in tests
-
 // ============================================================================
 // TYPES AND INTERFACES
 // ============================================================================
+
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database';
 
 export interface EmailCheckResult {
   exists: boolean;
@@ -16,7 +17,7 @@ export interface EmailCheckResult {
 }
 
 export interface EmailValidationService {
-  checkEmailExists(email: string): Promise<EmailCheckResult>;
+  checkEmailExists(supabase: SupabaseClient<Database>, email: string): Promise<EmailCheckResult>;
   validateEmailFormat(email: string): boolean;
   getValidationError(): string | null;
 }
@@ -63,11 +64,24 @@ class EnhancedEmailValidationService implements EmailValidationService {
   /**
    * Check if email exists in the database with comprehensive error handling
    */
-  async checkEmailExists(email: string): Promise<EmailCheckResult> {
+  async checkEmailExists(supabase: SupabaseClient<Database>, email: string): Promise<EmailCheckResult> {
     // Reset previous error
     this.lastValidationError = null;
 
-    // Validate email format first
+    // Validate client parameter first
+    if (!supabase) {
+      const error = {
+        type: 'client_not_ready' as const,
+        message: 'Supabase client not provided',
+        userMessage: '서비스 연결에 문제가 있습니다.',
+        canRetry: false,
+        technicalDetails: 'SupabaseClient parameter is null or undefined'
+      };
+      this.lastValidationError = error.message;
+      return { exists: false, error };
+    }
+
+    // Validate email format
     if (!this.validateEmailFormat(email)) {
       const error = {
         type: 'validation_error' as const,
@@ -81,7 +95,7 @@ class EnhancedEmailValidationService implements EmailValidationService {
     }
 
     // Attempt email check with retry logic
-    return this.attemptEmailCheckWithRetry(email, 0);
+    return this.attemptEmailCheckWithRetry(supabase, email, 0);
   }
 
   /**
@@ -126,39 +140,23 @@ class EnhancedEmailValidationService implements EmailValidationService {
   /**
    * Attempt email check with retry logic for transient failures
    */
-  private async attemptEmailCheckWithRetry(email: string, retryCount: number): Promise<EmailCheckResult> {
+  private async attemptEmailCheckWithRetry(supabase: SupabaseClient<Database>, email: string, retryCount: number): Promise<EmailCheckResult> {
     try {
-      // Dynamic import to avoid ES module issues in tests
-      const { createClient } = await import('@/lib/supabase/client');
-      
-      // With auth-helpers, client is always ready when created
-      const supabase = createClient();
-      
-      if (!supabase) {
-        return this.handleClientInitializationError({
-          type: 'configuration',
-          message: 'Failed to create Supabase client',
-          canRetry: false
-        }, email, retryCount);
-      }
-      
-      // Perform the database query - use maybeSingle() to handle 0 or 1 results
-      const { data, error } = await supabase
-        .from('users')
-        .select('id')
-        .eq('email', email)
-        .maybeSingle();
+      // Execute the database query using the injected client
+      const { data, error } = await supabase.rpc('check_email_exists', { p_email: email });
 
-      // Handle database errors
       if (error) {
-        return this.handleDatabaseError(error, email, retryCount);
+        return this.handleDatabaseError(error, supabase, email, retryCount);
       }
 
-      // Success - return result
-      return { exists: !!data };
+      // Return successful result
+      return {
+        exists: Boolean(data),
+        error: undefined
+      };
 
     } catch (error) {
-      return this.handleUnexpectedError(error, email, retryCount);
+      return this.handleUnexpectedError(error, supabase, email, retryCount);
     }
   }
 
@@ -167,6 +165,7 @@ class EnhancedEmailValidationService implements EmailValidationService {
    */
   private async handleClientInitializationError(
     initError: { type: string; message: string; canRetry: boolean },
+    supabase: SupabaseClient<Database>,
     email: string,
     retryCount: number
   ): Promise<EmailCheckResult> {
@@ -183,7 +182,7 @@ class EnhancedEmailValidationService implements EmailValidationService {
 
     // Retry if possible
     if (initError.canRetry && this.shouldRetry(initError.message, retryCount)) {
-      return this.scheduleRetry(email, retryCount, errorResult);
+      return this.scheduleRetry(supabase, email, retryCount, errorResult);
     }
 
     this.lastValidationError = initError.message;
@@ -195,6 +194,7 @@ class EnhancedEmailValidationService implements EmailValidationService {
    */
   private async handleDatabaseError(
     dbError: any,
+    supabase: SupabaseClient<Database>,
     email: string,
     retryCount: number
   ): Promise<EmailCheckResult> {
@@ -224,7 +224,7 @@ class EnhancedEmailValidationService implements EmailValidationService {
 
     // Retry if appropriate
     if (canRetry && this.shouldRetry(errorMessage, retryCount)) {
-      return this.scheduleRetry(email, retryCount, errorResult);
+      return this.scheduleRetry(supabase, email, retryCount, errorResult);
     }
 
     this.lastValidationError = errorMessage;
@@ -236,6 +236,7 @@ class EnhancedEmailValidationService implements EmailValidationService {
    */
   private async handleUnexpectedError(
     error: unknown,
+    supabase: SupabaseClient<Database>,
     email: string,
     retryCount: number
   ): Promise<EmailCheckResult> {
@@ -255,7 +256,7 @@ class EnhancedEmailValidationService implements EmailValidationService {
 
     // Retry if appropriate
     if (canRetry && this.shouldRetry(errorMessage, retryCount)) {
-      return this.scheduleRetry(email, retryCount, errorResult);
+      return this.scheduleRetry(supabase, email, retryCount, errorResult);
     }
 
     this.lastValidationError = errorMessage;
@@ -266,6 +267,7 @@ class EnhancedEmailValidationService implements EmailValidationService {
    * Schedule retry with exponential backoff
    */
   private async scheduleRetry(
+    supabase: SupabaseClient<Database>,
     email: string,
     retryCount: number,
     lastError: EmailCheckResult
@@ -279,7 +281,7 @@ class EnhancedEmailValidationService implements EmailValidationService {
     await new Promise(resolve => setTimeout(resolve, delay));
 
     // Attempt retry
-    return this.attemptEmailCheckWithRetry(email, retryCount + 1);
+    return this.attemptEmailCheckWithRetry(supabase, email, retryCount + 1);
   }
 
   /**
@@ -361,8 +363,8 @@ const emailValidationService = EnhancedEmailValidationService.getInstance();
 /**
  * Check if email exists with comprehensive error handling
  */
-export async function checkEmailExists(email: string): Promise<EmailCheckResult> {
-  return emailValidationService.checkEmailExists(email);
+export async function checkEmailExists(supabase: SupabaseClient<Database>, email: string): Promise<EmailCheckResult> {
+  return emailValidationService.checkEmailExists(supabase, email);
 }
 
 /**

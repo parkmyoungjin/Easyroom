@@ -53,7 +53,12 @@ function getPackageVersion() {
 /**
  * Generate version string
  */
-function generateVersion(packageVersion, gitInfo) {
+function generateVersion(packageVersion, gitInfo, environment) {
+  // Use fixed version for development to prevent unnecessary update notifications
+  if (environment === 'development') {
+    return `${packageVersion}-dev`;
+  }
+  
   const timestamp = new Date();
   const year = timestamp.getFullYear();
   const month = String(timestamp.getMonth() + 1).padStart(2, '0');
@@ -78,15 +83,16 @@ function generateVersion(packageVersion, gitInfo) {
 function generateDeploymentInfo() {
   const gitInfo = getGitInfo();
   const packageVersion = getPackageVersion();
-  const version = generateVersion(packageVersion, gitInfo);
-  const timestamp = Date.now();
-  const buildTime = new Date().toISOString();
   
   // Get environment information
   const environment = process.env.NODE_ENV || 
                      process.env.VERCEL_ENV || 
                      process.env.NETLIFY_CONTEXT || 
                      'production';
+  
+  const version = generateVersion(packageVersion, gitInfo, environment);
+  const timestamp = Date.now();
+  const buildTime = new Date().toISOString();
 
   const deploymentInfo = {
     version,

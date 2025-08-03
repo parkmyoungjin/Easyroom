@@ -17,17 +17,12 @@ Object.defineProperty(global, 'crypto', {
 // Mock server-only module to prevent import errors
 jest.mock('server-only', () => ({}));
 
-// Mock Supabase actions (server-only module)
-jest.mock('@/lib/supabase/actions', () => ({
-  createRouteClient: jest.fn(),
-  createAdminRouteClient: jest.fn()
+// Mock Supabase server (current architecture)
+jest.mock('@/lib/supabase/server', () => ({
+  createClient: jest.fn()
 }));
 
-// Mock Supabase server
-jest.mock('@/lib/supabase/server', () => ({
-  createClient: jest.fn(),
-  createAdminClient: jest.fn()
-}));
+
 
 // Mock logger
 jest.mock('@/lib/utils/logger', () => ({
@@ -105,11 +100,9 @@ jest.mock('@/lib/utils/api-pagination', () => ({
 }));
 
 import { createClient } from '@/lib/supabase/server';
-import { createRouteClient } from '@/lib/supabase/actions';
 import { logger } from '@/lib/utils/logger';
 
 const mockCreateClient = createClient as jest.MockedFunction<typeof createClient>;
-const mockCreateRouteClient = createRouteClient as jest.MockedFunction<typeof createRouteClient>;
 
 describe('Public Reservations API Endpoints', () => {
   let mockSupabase: any;
@@ -138,7 +131,6 @@ describe('Public Reservations API Endpoints', () => {
     };
     
     mockCreateClient.mockResolvedValue(mockSupabase);
-    mockCreateRouteClient.mockReturnValue(mockSupabase);
     
     mockRequest = new NextRequest('http://localhost:3000/api/reservations/public?startDate=2025-01-20&endDate=2025-01-21');
   });

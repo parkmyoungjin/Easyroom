@@ -1,7 +1,7 @@
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteClient } from '@/lib/supabase/actions';
+import { createClient } from '@/lib/supabase/server';
 import { normalizeDateForQuery } from '@/lib/utils/date';
 import { logger } from '@/lib/utils/logger';
 import { ReservationErrorHandler } from '@/lib/utils/error-handler';
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
     }
 
     // anon 클라이언트 사용 (RLS 정책 적용)
-    const supabase = createRouteClient();
+    const supabase = await createClient();
 
     // RPC 함수 호출 - 비인증 사용자용
     try {

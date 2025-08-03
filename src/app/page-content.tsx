@@ -11,8 +11,6 @@ import {
   Calendar, Users, Clock, Settings, LogOut, BarChart3, LogIn, UserPlus, ArrowRight 
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-// ✅ 임시 테스트 컴포넌트 추가 (Operation: Atomic Profile)
-import AtomicProfileTest from '@/components/test/AtomicProfileTest';
 
 // ✅ 재사용 가능한 ActionCard 컴포넌트 (기존과 동일)
 interface ActionCardProps { title: string; description: string; icon: React.ElementType; onClick: () => void; disabled?: boolean; }
@@ -182,13 +180,7 @@ export default function PageContent() {
             </section>
           )}
 
-          {/* 🧪 임시 테스트 섹션 - Operation: Atomic Profile */}
-          {isAuthenticated() && (
-            <section>
-              <h2 className="text-xl font-semibold mb-4 text-blue-600">🧪 Atomic Profile RPC Test</h2>
-              <AtomicProfileTest />
-            </section>
-          )}
+
 
           {/* Info Section for Guests */}
           {/* ✅ isAuthenticated() 호출로 변경 */}

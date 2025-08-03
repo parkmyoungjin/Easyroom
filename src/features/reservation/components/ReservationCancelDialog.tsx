@@ -18,6 +18,7 @@ import { ko } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/lib/utils/logger';
 import { canCancelReservation, getPermissionErrorMessage } from '@/lib/utils/reservation-permissions';
+import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 import { useAuth } from '@/hooks/useAuth';
 import { ReservationErrorHandler } from '@/lib/utils/error-handler';
 
@@ -31,6 +32,7 @@ export function ReservationCancelDialog({ reservation, open, onOpenChange }: Res
   const { mutate: cancelReservation, isPending } = useCancelReservation();
   const { toast } = useToast();
   const { userProfile } = useAuth();
+  const supabase = useSupabaseClient();
   const [cancelReason, setCancelReason] = useState('');
   const [confirmStep, setConfirmStep] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
@@ -62,16 +64,18 @@ export function ReservationCancelDialog({ reservation, open, onOpenChange }: Res
       });
       
       // 백그라운드에서 user_id 수정 (실패해도 취소는 계속)
-      import('@/lib/utils/reservation-permissions').then(({ fixReservationUserId }) => {
-        fixReservationUserId(reservationId, userProfile.dbId!).then(success => {
-          if (success) {
-            logger.debug('예약 user_id 자동 수정 완료', {
-              reservationId,
-              newUserId: userProfile.dbId
-            });
-          }
+      if (supabase) {
+        import('@/lib/utils/reservation-permissions').then(({ fixReservationUserId }) => {
+          fixReservationUserId(supabase, reservationId, userProfile.dbId!).then(success => {
+            if (success) {
+              logger.debug('예약 user_id 자동 수정 완료', {
+                reservationId,
+                newUserId: userProfile.dbId
+              });
+            }
+          });
         });
-      });
+      }
     }
     
     if (!permissionResult.allowed) {

@@ -8,16 +8,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
-import type { Database } from '@/types/database';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    // Create middleware client for cookie parsing test
-    const response = NextResponse.next();
-    const supabase = createMiddlewareClient<Database>({ req: request, res: response });
+    // Create server client for session verification
+    const supabase = await createClient();
 
     // Only test cookie parsing - no database queries or complex logic
     const { data, error } = await supabase.auth.getSession();

@@ -2,11 +2,11 @@
 jest.mock('server-only', () => ({}));
 
 import { validateUserIdServer, getCorrectUserIdFromAuthIdServer } from '../user-id-guards-server';
-import { createClient as createServerClient } from '@/lib/supabase/server';
+import { createClient } from '@/lib/supabase/server';
 
 // Mock the server client
 jest.mock('@/lib/supabase/server', () => ({
-  createServerClient: jest.fn(),
+  createClient: jest.fn(),
 }));
 
 // Mock logger to avoid console output during tests
@@ -21,12 +21,12 @@ const mockSupabase = {
   from: jest.fn(),
 };
 
-const mockCreateServerClient = createServerClient as jest.MockedFunction<typeof createServerClient>;
+const mockCreateClient = createClient as jest.MockedFunction<typeof createClient>;
 
 describe('User ID Guards Server', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCreateServerClient.mockReturnValue(mockSupabase as any);
+    mockCreateClient.mockResolvedValue(mockSupabase as any);
   });
 
   describe('validateUserIdServer', () => {

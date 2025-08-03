@@ -22,7 +22,7 @@ export async function validateUserIdServer(userId: string): Promise<UserIdValida
       };
     }
 
-    const supabaseServer = createServerClient();
+    const supabaseServer = await createServerClient();
 
     // Check if user_id exists in users table
     const { data: user, error } = await supabaseServer
@@ -82,7 +82,7 @@ export async function getCorrectUserIdFromAuthIdServer(authId: string): Promise<
       return null;
     }
 
-    const supabaseServer = createServerClient();
+    const supabaseServer = await createServerClient();
 
     const { data: user, error } = await supabaseServer
       .from('users')

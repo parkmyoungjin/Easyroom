@@ -34,11 +34,34 @@ interface AuditEvent {
   metadata?: LogData;
 }
 
+// Log level hierarchy (higher number = higher priority)
+const LOG_LEVELS = {
+  debug: 0,
+  info: 1,
+  warn: 2,
+  error: 3,
+  security: 4,
+  audit: 4
+} as const;
+
 class Logger {
+  private readonly logLevel: LogLevel;
+  
+  constructor() {
+    // Get log level from environment variable, default to 'info' for production, 'debug' for development
+    const envLogLevel = process.env.NEXT_PUBLIC_LOG_LEVEL as LogLevel;
+    const defaultLevel = process.env.NODE_ENV === 'development' ? 'debug' : 'info';
+    this.logLevel = envLogLevel || defaultLevel;
+  }
+
   private get isDevelopment(): boolean {
     // Use process.env directly to avoid circular dependency
     // This is safe since NODE_ENV is a standard environment variable
     return process.env.NODE_ENV === 'development';
+  }
+
+  private shouldLog(level: LogLevel): boolean {
+    return LOG_LEVELS[level] >= LOG_LEVELS[this.logLevel];
   }
 
   private sanitizeData(data: LogData): LogData {
@@ -47,12 +70,22 @@ class Logger {
     // 민감한 정보 제거
     const sensitiveKeys = [
       'password', 'token', 'key', 'secret', 'auth_id', 
-      'user_id', 'id', 'email', 'phone', 'access_token'
+      'user_id', 'id', 'email', 'phone', 'access_token', 'value'
     ];
     
     Object.keys(sanitized).forEach(key => {
       if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive))) {
         sanitized[key] = '[REDACTED]';
+      }
+      
+      // 특별히 쿠키 상세 정보에서 value 제거 (프로덕션 보안 강화)
+      if (key === 'cookieDetails' && Array.isArray(sanitized[key])) {
+        sanitized[key] = sanitized[key].map((cookie: any) => ({
+          name: cookie.name,
+          hasValue: cookie.hasValue,
+          valueLength: cookie.valueLength,
+          // value 자체는 제거하여 민감 정보 노출 방지
+        }));
       }
     });
     
@@ -60,23 +93,27 @@ class Logger {
   }
 
   debug(message: string, data?: LogData) {
-    if (this.isDevelopment) {
+    if (this.shouldLog('debug')) {
       console.log(`🔍 [DEBUG] ${message}`, data ? this.sanitizeData(data) : '');
     }
   }
 
   info(message: string, data?: LogData) {
-    if (this.isDevelopment) {
+    if (this.shouldLog('info')) {
       console.info(`ℹ️ [INFO] ${message}`, data ? this.sanitizeData(data) : '');
     }
   }
 
   warn(message: string, data?: LogData) {
-    console.warn(`⚠️ [WARN] ${message}`, data ? this.sanitizeData(data) : '');
+    if (this.shouldLog('warn')) {
+      console.warn(`⚠️ [WARN] ${message}`, data ? this.sanitizeData(data) : '');
+    }
   }
 
   error(message: string, error?: Error | LogData) {
-    console.error(`❌ [ERROR] ${message}`, error);
+    if (this.shouldLog('error')) {
+      console.error(`❌ [ERROR] ${message}`, error);
+    }
   }
 
   // 프로덕션에서도 중요한 에러는 로깅
@@ -88,6 +125,8 @@ class Logger {
    * 보안 관련 이벤트 로깅
    */
   security(event: SecurityEvent) {
+    if (!this.shouldLog('security')) return;
+    
     const logEntry = {
       level: 'SECURITY',
       timestamp: event.timestamp,
@@ -117,6 +156,8 @@ class Logger {
    * 감사 추적 이벤트 로깅
    */
   audit(event: AuditEvent) {
+    if (!this.shouldLog('audit')) return;
+    
     const logEntry = {
       level: 'AUDIT',
       timestamp: event.timestamp,

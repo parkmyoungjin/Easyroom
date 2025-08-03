@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { format, startOfToday, isWeekend } from "date-fns";
+import { isDateTimeInFutureKST } from "@/lib/utils/date";
 
 // Base schemas for enums
 export const userRoleSchema = z.enum(['employee', 'admin']);
@@ -268,9 +269,8 @@ export const newReservationFormSchema = z.object({
   message: "예약은 오전 8시부터 오후 7시까지만 가능합니다",
   path: ["startTime"],
 }).refine((data) => {
-  const now = new Date();
-  const selectedDateTime = new Date(`${format(data.date, "yyyy-MM-dd")}T${data.startTime}`);
-  return selectedDateTime > now;
+  // ✅ 중앙화된 시간 검증 함수 사용
+  return isDateTimeInFutureKST(data.date, data.startTime);
 }, {
   message: "현재 시간 이후로만 예약할 수 있습니다",
   path: ["startTime"],

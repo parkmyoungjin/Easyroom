@@ -394,6 +394,12 @@ async function handleDeploymentCheck() {
     }
     
     const deploymentInfo = await response.json();
+    
+    // Skip deployment checks in development/preview environments
+    if (deploymentInfo.environment !== 'production') {
+      console.log('Deployment check skipped for non-production environment:', deploymentInfo.environment);
+      return;
+    }
     const storedVersion = await getStoredVersion();
     
     // Check if this is a new deployment

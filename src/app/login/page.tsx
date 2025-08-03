@@ -9,7 +9,7 @@ import { LoginForm } from '@/features/auth/components/LoginForm';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { MailCheck, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useSupabase } from '@/contexts/SupabaseProvider';
+
 
 // --- 개선된 로딩 스피너 컴포넌트 ---
 const LoadingSpinner = ({ message = "인증 상태 확인 중..." }: { message?: string }) => (

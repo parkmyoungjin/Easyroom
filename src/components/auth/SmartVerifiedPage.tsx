@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/comp
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, X } from 'lucide-react';
 import { UniversalAuthStateManager } from '@/lib/auth/universal-auth-state-manager';
+import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 
 export interface SmartVerifiedPageProps {
   autoCloseDelay?: number; // default: 3000ms
@@ -18,17 +19,16 @@ export default function SmartVerifiedPage({
   const [countdown, setCountdown] = useState(Math.ceil(autoCloseDelay / 1000));
   const [authStateSet, setAuthStateSet] = useState(false);
   const [authStateManager] = useState(() => UniversalAuthStateManager.getInstance());
+  const supabase = useSupabaseClient();
 
   // Set authentication state and notify other tabs
   const setAuthenticationState = useCallback(async () => {
-    if (authStateSet) return;
+    if (authStateSet || !supabase) return;
 
     try {
       console.log('[SmartVerifiedPage] Setting authentication state...');
 
       // Get current session to store proper auth state
-      const { createClient } = await import('@/lib/supabase/client');
-      const supabase = await createClient();
       const { data: { session } } = await supabase.auth.getSession();
 
       if (session?.user) {
@@ -59,7 +59,7 @@ export default function SmartVerifiedPage({
       console.error('[SmartVerifiedPage] Failed to set auth state:', error);
       onAuthStateSet?.(false);
     }
-  }, [authStateSet, authStateManager, onAuthStateSet]);
+  }, [authStateSet, authStateManager, onAuthStateSet, supabase]);
 
   // Set auth state immediately on mount
   useEffect(() => {

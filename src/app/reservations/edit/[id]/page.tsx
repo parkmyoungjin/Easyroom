@@ -2,6 +2,7 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 import MobileHeader from '@/components/ui/mobile-header';
 import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
@@ -51,6 +52,7 @@ export default function EditReservationPage() {
 
   // 사용자 정보 가져오기
   const { userProfile } = useAuth();
+  const supabase = useSupabaseClient();
 
   const [isLoading, setIsLoading] = useState(true);
   const [reservation, setReservation] = useState<ReservationWithDetails | null>(null);
@@ -223,16 +225,18 @@ export default function EditReservationPage() {
       });
       
       // 백그라운드에서 user_id 수정 (실패해도 페이지 로딩은 계속)
-      import('@/lib/utils/reservation-permissions').then(({ fixReservationUserId }) => {
-        fixReservationUserId(targetReservation.id, userProfile.dbId!).then(success => {
-          if (success) {
-            logger.debug('예약 user_id 자동 수정 완료', {
-              reservationId: targetReservation.id,
-              newUserId: userProfile.dbId
-            });
-          }
+      if (supabase) {
+        import('@/lib/utils/reservation-permissions').then(({ fixReservationUserId }) => {
+          fixReservationUserId(supabase, targetReservation.id, userProfile.dbId!).then(success => {
+            if (success) {
+              logger.debug('예약 user_id 자동 수정 완료', {
+                reservationId: targetReservation.id,
+                newUserId: userProfile.dbId
+              });
+            }
+          });
         });
-      });
+      }
     }
 
     if (!permissionResult.allowed) {

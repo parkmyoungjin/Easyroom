@@ -1,7 +1,7 @@
 'use server';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createRouteClient } from '@/lib/supabase/actions';
+import { createClient } from '@/lib/supabase/server';
 import { normalizeDateForQuery } from '@/lib/utils/date';
 import { logger } from '@/lib/utils/logger';
 import { ReservationErrorHandler } from '@/lib/utils/error-handler';
@@ -73,8 +73,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // authenticated 클라이언트 사용 - auth-helpers 방식으로 변경
-    const supabase = createRouteClient();
+    // authenticated 클라이언트 사용 - ssr 방식으로 변경
+    const supabase = await createClient();
 
     // 사용자 인증 상태 확인 with performance monitoring (getSession 사용으로 변경)
     const authResult = await performanceMonitor.measureAuthentication(
