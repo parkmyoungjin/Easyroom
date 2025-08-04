@@ -80,7 +80,8 @@ export default function ReservationForm({
     // Edit 모드를 위한 상태
     const [isLoading, setIsLoading] = useState(mode === 'edit');
     const [reservation, setReservation] = useState<ReservationWithDetails | null>(null);
-    const { data: myReservationsData } = useMyReservations();
+    // Phase 2: DI 패턴 적용 - userProfile에서 userId 추출하여 주입
+    const { data: myReservationsData } = useMyReservations(userProfile?.dbId);
     const myReservations: ReservationWithDetails[] = myReservationsData || [];
 
     const form = useForm<NewReservationFormValues>({

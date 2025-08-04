@@ -38,13 +38,14 @@ const ReservationListSkeleton = () => (
   </div>
 );
 
-// ✅ Props를 받지 않는 독립적인 컴포넌트로 변경
+// ✅ Phase 2: DI 패턴 적용 - 컴포넌트가 userId를 주입
 export function ReservationListView() {
   const router = useRouter();
   const [cancelingReservation, setCancelingReservation] = useState<ReservationWithDetails | null>(null);
   
-  // ✅ 1. 데이터를 자체적으로 가져옵니다.
-  const { data: reservations = [], isLoading, isError } = useMyReservations();
+  // ✅ Phase 2: 컴포넌트가 userProfile에서 userId를 추출하여 훅에 주입
+  const { userProfile } = useAuth();
+  const { data: reservations = [], isLoading, isError } = useMyReservations(userProfile?.dbId);
 
   if (isLoading) {
     return <ReservationListSkeleton />;

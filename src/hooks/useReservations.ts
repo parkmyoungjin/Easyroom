@@ -10,45 +10,22 @@ import { toast } from 'sonner';
 import type { ReservationInsert, ReservationUpdate, ReservationWithDetails, PublicReservation } from "@/types/database";
 import { logger } from '@/lib/utils/logger';
 import { 
-  createQueryKeyFactory, 
   buildQueryOptions, 
   createStandardFetch,
   optimizeForDateRange 
 } from '@/lib/utils/query-optimization';
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 import { useAuthContext } from '@/contexts/AuthContext';
+import { reservationKeys } from '@/lib/queryKeys'; // Phase 3: 중앙화된 쿼리 키 import
 
-// 쿼리 키를 생성하는 팩토리 함수
-const reservationKeyFactory = createQueryKeyFactory<{
-  startDate?: string;
-  endDate?: string;
-  isAuthenticated?: boolean;
-  userId?: string;
-}>('reservations');
-
-// ✅ [수정] 애플리케이션 전체에서 사용할 쿼리 키 정의
-export const reservationKeys = {
-  ...reservationKeyFactory, // 👈 [핵심] .all, .detail() 등을 포함한 기본 키들을 여기에 펼칩니다.
-  
-  // 커스텀 키 정의
-  public: (startDate: string, endDate: string, isAuthenticated?: boolean) =>
-    reservationKeyFactory.custom('public', startDate, endDate, 'auth', isAuthenticated),
-  
-  my: (userId?: string) => reservationKeyFactory.custom('my', userId),
-
-  withDetails: (startDate: string, endDate: string) =>
-    reservationKeyFactory.custom('withDetails', startDate, endDate),
-
-  statistics: (startDate: string, endDate: string) =>
-    reservationKeyFactory.custom('statistics', startDate, endDate),
-};
+// Phase 3: 중앙화된 쿼리 키 사용 - 로컬 정의 제거
 
 
-// 공개 예약을 가져오는 훅 (실시간 동기화 포함)
-export function usePublicReservations(startDate: string, endDate: string, isAuthenticated?: boolean) {
+// 공개 예약을 가져오는 훅 (실시간 동기화 포함) - Phase 2: DI 패턴 적용
+export function usePublicReservations(startDate: string, endDate: string, isAuthenticated?: boolean, currentUserId?: string) {
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
-  const { userProfile, authStatus } = useAuthContext();
+  const { authStatus } = useAuthContext();
   
   const queryKey = reservationKeys.public(startDate, endDate, isAuthenticated);
   const dateOptimization = optimizeForDateRange(startDate, endDate);
@@ -66,8 +43,8 @@ export function usePublicReservations(startDate: string, endDate: string, isAuth
       },
       { operation: 'fetch public reservations', params: { startDate, endDate, isAuthenticated } }
     ),
-    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
-    enabled: !!startDate && !!endDate && (authStatus === 'authenticated' || !!userProfile),
+    // ✅ [Phase 1] authStatus 기반 안정화
+    enabled: !!startDate && !!endDate && authStatus === 'authenticated',
     dataType: 'dynamic',
     cacheConfig: {
       customStaleTime: 0, // Realtime 연결 실패 시 안전장치
@@ -112,7 +89,7 @@ export function usePublicReservations(startDate: string, endDate: string, isAuth
                 // Database Row를 PublicReservation 형식으로 변환
                 const newReservation = await transformToPublicReservation(
                   payload.new, 
-                  userProfile?.dbId, 
+                  currentUserId, 
                   supabase
                 );
                 if (newReservation && isWithinDateRange(newReservation, startDate, endDate)) {
@@ -125,7 +102,7 @@ export function usePublicReservations(startDate: string, endDate: string, isAuth
               if (payload.new) {
                 const updatedReservation = await transformToPublicReservation(
                   payload.new, 
-                  userProfile?.dbId, 
+                  currentUserId, 
                   supabase
                 );
                 if (updatedReservation && isWithinDateRange(updatedReservation, startDate, endDate)) {
@@ -161,7 +138,7 @@ export function usePublicReservations(startDate: string, endDate: string, isAuth
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, queryClient, queryKey, startDate, endDate, userProfile?.dbId]);
+  }, [supabase, queryClient, queryKey, startDate, endDate, currentUserId]);
 
   return queryResult;
 }
@@ -191,7 +168,7 @@ function isWithinDateRange(reservation: PublicReservation, startDate: string, en
 // 상세 정보를 포함한 예약을 가져오는 훅
 export function useReservationsWithDetails(startDate: string, endDate: string) {
   const supabase = useSupabaseClient();
-  const { authStatus, userProfile } = useAuthContext();
+  const { authStatus } = useAuthContext();
   const dateOptimization = optimizeForDateRange(startDate, endDate);
   
   return useQuery(buildQueryOptions({
@@ -206,8 +183,8 @@ export function useReservationsWithDetails(startDate: string, endDate: string) {
       },
       { operation: 'fetch detailed reservations', params: { startDate, endDate } }
     ),
-    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
-    enabled: !!startDate && !!endDate && (authStatus === 'authenticated' || !!userProfile) && !!supabase,
+    // ✅ [Phase 1] authStatus 기반 안정화
+    enabled: !!startDate && !!endDate && authStatus === 'authenticated' && !!supabase,
     dataType: 'dynamic',
     cacheConfig: {
       customStaleTime: dateOptimization.staleTime,
@@ -216,16 +193,16 @@ export function useReservationsWithDetails(startDate: string, endDate: string) {
   }));
 }
 
-// 내 예약을 가져오는 훅 (최종 수정 버전)
-export function useMyReservations(): { data: ReservationWithDetails[] | undefined; isLoading: boolean; isError: boolean; error: any } {
-  const { userProfile, authStatus } = useAuthContext();
+// 내 예약을 가져오는 훅 (Phase 2: DI 패턴 적용)
+export function useMyReservations(userId: string | undefined): { data: ReservationWithDetails[] | undefined; isLoading: boolean; isError: boolean; error: any } {
+  const { authStatus } = useAuthContext();
   const supabase = useSupabaseClient();
 
   const queryOptions = buildQueryOptions({
-    queryKey: reservationKeys.my(userProfile?.dbId),
+    queryKey: reservationKeys.my(userId),
     queryFn: createStandardFetch(
       async () => {
-        if (authStatus !== 'authenticated' || !userProfile?.dbId || !supabase) {
+        if (authStatus !== 'authenticated' || !userId || !supabase) {
           return Promise.resolve([]);
         }
         
@@ -250,10 +227,10 @@ export function useMyReservations(): { data: ReservationWithDetails[] | undefine
 
         return myReservations as ReservationWithDetails[];
       },
-      { operation: 'fetch my reservations (unified RPC)', params: { userProfileId: userProfile?.dbId } }
+      { operation: 'fetch my reservations (unified RPC)', params: { userId } }
     ),
-    // ✅ [최종 강화] userProfile.dbId가 필수적인 훅의 경우
-    enabled: (authStatus === 'authenticated' || !!userProfile) && !!userProfile?.dbId && !!supabase,
+    // ✅ [Phase 2] DI 패턴 적용 - userId 인자 의존성
+    enabled: authStatus === 'authenticated' && !!userId && !!supabase,
     dataType: 'semi-static',
     cacheConfig: {
       customStaleTime: 0,
@@ -272,7 +249,7 @@ export function useMyReservations(): { data: ReservationWithDetails[] | undefine
 // ID로 예약을 가져오는 훅
 export function useReservation(id: string) {
   const supabase = useSupabaseClient();
-  const { authStatus, userProfile } = useAuthContext();
+  const { authStatus } = useAuthContext();
   
   return useQuery(buildQueryOptions({
     queryKey: reservationKeys.detail(id),
@@ -286,8 +263,8 @@ export function useReservation(id: string) {
       },
       { operation: 'fetch reservation by ID', params: { id } }
     ),
-    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
-    enabled: !!id && (authStatus === 'authenticated' || !!userProfile) && !!supabase,
+    // ✅ [Phase 1] authStatus 기반 안정화
+    enabled: !!id && authStatus === 'authenticated' && !!supabase,
     dataType: 'semi-static'
   }));
 }
@@ -295,7 +272,7 @@ export function useReservation(id: string) {
 // 모든 예약을 가져오는 훅 (관리자용)
 export function useAllReservations() {
   const supabase = useSupabaseClient();
-  const { authStatus, userProfile } = useAuthContext();
+  const { authStatus } = useAuthContext();
   
   return useQuery(buildQueryOptions({
     queryKey: reservationKeys.all, // .custom('admin', 'all') 대신 .all 사용
@@ -309,8 +286,8 @@ export function useAllReservations() {
       },
       { operation: 'fetch all reservations (admin)', params: {} }
     ),
-    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
-    enabled: (authStatus === 'authenticated' || !!userProfile) && !!supabase,
+    // ✅ [Phase 1] authStatus 기반 안정화
+    enabled: authStatus === 'authenticated' && !!supabase,
     dataType: 'dynamic',
   }));
 }
@@ -318,7 +295,7 @@ export function useAllReservations() {
 // 통계를 가져오는 훅
 export function useReservationStatistics(startDate: string, endDate: string) {
   const supabase = useSupabaseClient();
-  const { authStatus, userProfile } = useAuthContext();
+  const { authStatus } = useAuthContext();
 
   return useQuery(buildQueryOptions({
     queryKey: reservationKeys.statistics(startDate, endDate),
@@ -342,8 +319,8 @@ export function useReservationStatistics(startDate: string, endDate: string) {
       },
       { operation: 'fetch reservation statistics', params: { startDate, endDate } }
     ),
-    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
-    enabled: !!startDate && !!endDate && (authStatus === 'authenticated' || !!userProfile) && !!supabase,
+    // ✅ [Phase 1] authStatus 기반 안정화
+    enabled: !!startDate && !!endDate && authStatus === 'authenticated' && !!supabase,
   }));
 }
 
@@ -359,11 +336,8 @@ export function useCreateReservation() {
     },
     onSuccess: () => {
       toast.success('예약 완료', { description: '예약이 성공적으로 완료되었습니다.' });
-      // ✅ [핵심 수정] "reservations"라는 최상위 키를 사용하여,
-      // 관련된 모든 쿼리를 정밀하게 타겟팅하여 무효화한다.
-      // 이 한 줄은 react-query에게 "['reservations']로 시작하는 키를 가진
-      // 모든 활성 쿼리를 즉시 다시 가져오라"고 지시하는, 가장 강력하고 명확한 명령이다.
-      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+      // Phase 3: 표준화된 캐시 무효화 - 중앙화된 키 사용
+      queryClient.invalidateQueries({ queryKey: reservationKeys.all });
     },
     onError: (error: Error) => {
       logger.error('예약 생성 실패', error);
@@ -401,13 +375,8 @@ export function useUpdateReservation() {
       return reservationService.updateReservation(supabase, id, updateData);
     },
     onSuccess: (updatedReservation) => {
-      queryClient.invalidateQueries({ 
-        queryKey: reservationKeys.all,
-        exact: false
-      });
-      queryClient.invalidateQueries({
-        queryKey: reservationKeys.detail(updatedReservation.id)
-      });
+      // Phase 3: 표준화된 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: reservationKeys.all });
       toast.success('예약이 수정되었습니다.');
     },
     onError: (error) => {
@@ -433,8 +402,8 @@ export function useCancelReservation() {
     },
     onSuccess: () => {
       toast.success('예약이 취소되었습니다.');
-      // `exact: false` is often default, but being explicit can be clearer
-      queryClient.invalidateQueries({ queryKey: ['reservations'] });
+      // Phase 3: 표준화된 캐시 무효화 - 중앙화된 키 사용
+      queryClient.invalidateQueries({ queryKey: reservationKeys.all });
     },
     onError: (error: Error) => {
       // RPC 함수가 던지는 명확한 에러 메시지를 표시

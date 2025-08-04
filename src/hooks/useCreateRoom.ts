@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
-import { roomKeys } from '@/hooks/useRooms';
+import { roomKeys } from '@/lib/queryKeys';
 
 import { RoomFormData } from '@/lib/validations/schemas';
 

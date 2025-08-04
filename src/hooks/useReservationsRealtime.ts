@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSupabaseClient } from "@/contexts/SupabaseProvider";
 import { useAuth } from "@/hooks/useAuth";
-import { reservationKeys } from "@/hooks/useReservations";
+import { reservationKeys } from "@/lib/queryKeys";
 import type { PublicReservation } from "@/types/database";
 
 /**

@@ -7,7 +7,7 @@ const toast = {
   success: (title: string, options?: { description?: string }) => console.log(`✅ ${title}`, options?.description || ''),
   error: (title: string, options?: { description?: string }) => console.error(`❌ ${title}`, options?.description || '')
 };
-import { reservationKeys } from '@/hooks/useReservations';
+import { reservationKeys } from '@/lib/queryKeys';
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 import type { ReservationInsert } from '@/types/database';
 import { logger } from '@/lib/utils/logger';

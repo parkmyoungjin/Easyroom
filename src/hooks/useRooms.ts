@@ -10,39 +10,19 @@ import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
 import {
-  createQueryKeyFactory,
   buildQueryOptions,
   createStandardFetch
 } from '@/lib/utils/query-optimization';
-import { useAuth } from '@/contexts/AuthContext'; // 👈 [핵심] useAuth 훅을 import 합니다.
+// Phase 2: useAuth import 제거 (더 이상 직접 사용하지 않음)
 import { logger } from '@/lib/utils/logger';
+import { roomKeys } from '@/lib/queryKeys'; // Phase 3: 중앙화된 쿼리 키 import
 
-// Optimized query keys using factory pattern
-const roomKeyFactory = createQueryKeyFactory<{
-  query?: string;
-  minCapacity?: number;
-  roomId?: string;
-  startDate?: string;
-  endDate?: string;
-}>('rooms');
-
-export const roomKeys = {
-  ...roomKeyFactory,
-  active: () => roomKeyFactory.custom('active'),
-  inactive: () => roomKeyFactory.custom('inactive'),
-  search: (query: string) => roomKeyFactory.custom('search', query),
-  capacity: (minCapacity: number) => roomKeyFactory.custom('capacity', minCapacity),
-  availability: (roomId: string, startDate: string, endDate: string) =>
-    roomKeyFactory.custom('availability', roomId, startDate, endDate),
-  advancedSearch: (params: any) => roomKeyFactory.custom('advancedSearch', params),
-  availableSlots: (roomId: string, dateKey: string) =>
-    roomKeyFactory.custom('available-slots', roomId, dateKey),
-};
+// Phase 3: 중앙화된 쿼리 키 사용 - 로컬 정의 제거
 
 // Get all active rooms - Optimized
 export function useRooms() {
   const supabase = useSupabaseClient();
-  const { authStatus, userProfile } = useAuthContext();
+  const { authStatus } = useAuthContext();
 
   return useQuery(buildQueryOptions({
     queryKey: roomKeys.active(),
@@ -60,8 +40,8 @@ export function useRooms() {
         params: {}
       }
     ),
-    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
-    enabled: (authStatus === 'authenticated' || !!userProfile) && !!supabase,
+    // ✅ [Phase 1] authStatus 기반 안정화
+    enabled: authStatus === 'authenticated' && !!supabase,
     dataType: 'static'
   }));
 }
@@ -69,10 +49,10 @@ export function useRooms() {
 // Get all rooms including inactive (admin only) - Optimized
 export function useAllRooms() {
   const supabase = useSupabaseClient();
-  const { authStatus, userProfile } = useAuthContext();
+  const { authStatus } = useAuthContext();
 
   return useQuery(buildQueryOptions({
-    queryKey: roomKeyFactory.custom('admin', 'all'),
+    queryKey: [...roomKeys.all, 'admin', 'all'],
     queryFn: createStandardFetch(
       () => {
         // ✅ [2단계] queryFn 내부에서 최종 방어
@@ -86,8 +66,8 @@ export function useAllRooms() {
         params: {}
       }
     ),
-    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
-    enabled: (authStatus === 'authenticated' || !!userProfile) && !!supabase,
+    // ✅ [Phase 1] authStatus 기반 안정화
+    enabled: authStatus === 'authenticated' && !!supabase,
     dataType: 'static',
     cacheConfig: {
       customStaleTime: 10 * 60 * 1000,
@@ -99,7 +79,7 @@ export function useAllRooms() {
 // Get room by ID - Optimized
 export function useRoom(id: string) {
   const supabase = useSupabaseClient();
-  const { authStatus, userProfile } = useAuthContext();
+  const { authStatus } = useAuthContext();
 
   return useQuery(buildQueryOptions({
     queryKey: roomKeys.detail(id),
@@ -116,8 +96,8 @@ export function useRoom(id: string) {
         params: { id }
       }
     ),
-    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
-    enabled: !!id && (authStatus === 'authenticated' || !!userProfile) && !!supabase,
+    // ✅ [Phase 1] authStatus 기반 안정화
+    enabled: !!id && authStatus === 'authenticated' && !!supabase,
     dataType: 'static'
   }));
 }
@@ -125,7 +105,7 @@ export function useRoom(id: string) {
 // Search rooms - Optimized
 export function useSearchRooms(query: string) {
   const supabase = useSupabaseClient();
-  const { authStatus, userProfile } = useAuthContext();
+  const { authStatus } = useAuthContext();
 
   return useQuery(buildQueryOptions({
     queryKey: roomKeys.search(query),
@@ -142,8 +122,8 @@ export function useSearchRooms(query: string) {
         params: { query }
       }
     ),
-    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
-    enabled: !!query && query.length > 0 && (authStatus === 'authenticated' || !!userProfile) && !!supabase,
+    // ✅ [Phase 1] authStatus 기반 안정화
+    enabled: !!query && query.length > 0 && authStatus === 'authenticated' && !!supabase,
     dataType: 'static',
     cacheConfig: {
       customStaleTime: 5 * 60 * 1000,
@@ -155,7 +135,7 @@ export function useSearchRooms(query: string) {
 // Get rooms by capacity - Optimized
 export function useRoomsByCapacity(minCapacity: number) {
   const supabase = useSupabaseClient();
-  const { authStatus, userProfile } = useAuthContext();
+  const { authStatus } = useAuthContext();
 
   return useQuery(buildQueryOptions({
     queryKey: roomKeys.capacity(minCapacity),
@@ -172,8 +152,8 @@ export function useRoomsByCapacity(minCapacity: number) {
         params: { minCapacity }
       }
     ),
-    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
-    enabled: minCapacity > 0 && (authStatus === 'authenticated' || !!userProfile) && !!supabase,
+    // ✅ [Phase 1] authStatus 기반 안정화
+    enabled: minCapacity > 0 && authStatus === 'authenticated' && !!supabase,
     dataType: 'static',
     cacheConfig: {
       customStaleTime: 10 * 60 * 1000,
@@ -185,7 +165,7 @@ export function useRoomsByCapacity(minCapacity: number) {
 // Get room availability - Optimized with RPC function
 export function useRoomAvailability(roomId: string, startDate: string, endDate: string) {
   const supabase = useSupabaseClient();
-  const { authStatus, userProfile } = useAuthContext();
+  const { authStatus } = useAuthContext();
 
   return useQuery(buildQueryOptions({
     queryKey: roomKeys.availability(roomId, startDate, endDate),
@@ -216,8 +196,8 @@ export function useRoomAvailability(roomId: string, startDate: string, endDate: 
         params: { roomId, startDate, endDate }
       }
     ),
-    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
-    enabled: !!roomId && !!startDate && !!endDate && (authStatus === 'authenticated' || !!userProfile) && !!supabase,
+    // ✅ [Phase 1] authStatus 기반 안정화
+    enabled: !!roomId && !!startDate && !!endDate && authStatus === 'authenticated' && !!supabase,
     dataType: 'real-time',
     cacheConfig: {
       customStaleTime: 1 * 60 * 1000, // 1 minute
@@ -236,7 +216,7 @@ export function useAdvancedRoomSearch(params: {
 }) {
   const { query = '', minCapacity = 0, requiredAmenities = [], availableFrom, availableTo } = params;
   const supabase = useSupabaseClient();
-  const { authStatus, userProfile } = useAuthContext();
+  const { authStatus } = useAuthContext();
 
   return useQuery(buildQueryOptions({
     queryKey: roomKeys.advancedSearch(params),
@@ -267,8 +247,8 @@ export function useAdvancedRoomSearch(params: {
         params
       }
     ),
-    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
-    enabled: !!(query || minCapacity > 0 || requiredAmenities.length > 0 || (availableFrom && availableTo)) && (authStatus === 'authenticated' || !!userProfile) && !!supabase,
+    // ✅ [Phase 1] authStatus 기반 안정화
+    enabled: !!(query || minCapacity > 0 || requiredAmenities.length > 0 || (availableFrom && availableTo)) && authStatus === 'authenticated' && !!supabase,
     dataType: 'dynamic',
     cacheConfig: {
       customStaleTime: 2 * 60 * 1000, // 2 minutes
@@ -293,6 +273,7 @@ export function useCreateRoom() {
       setSubmitting(true);
     },
     onSuccess: () => {
+      // Phase 3: 표준화된 캐시 무효화
       queryClient.invalidateQueries({ queryKey: roomKeys.all });
       setRoomModalOpen(false);
       toast({
@@ -329,6 +310,7 @@ export function useUpdateRoom() {
       setSubmitting(true);
     },
     onSuccess: () => {
+      // Phase 3: 표준화된 캐시 무효화
       queryClient.invalidateQueries({ queryKey: roomKeys.all });
       toast({
         title: '회의실 수정 완료',
@@ -360,6 +342,7 @@ export function useDeactivateRoom() {
       return roomService.deactivateRoom(supabase, id);
     },
     onSuccess: () => {
+      // Phase 3: 표준화된 캐시 무효화
       queryClient.invalidateQueries({ queryKey: roomKeys.all });
       toast({
         title: '회의실 비활성화 완료',
@@ -388,6 +371,7 @@ export function useActivateRoom() {
       return roomService.activateRoom(supabase, id);
     },
     onSuccess: () => {
+      // Phase 3: 표준화된 캐시 무효화
       queryClient.invalidateQueries({ queryKey: roomKeys.all });
       toast({
         title: '회의실 활성화 완료',
@@ -416,6 +400,7 @@ export function useDeleteRoom() {
       return roomService.deleteRoom(supabase, id);
     },
     onSuccess: () => {
+      // Phase 3: 표준화된 캐시 무효화
       queryClient.invalidateQueries({ queryKey: roomKeys.all });
       toast({
         title: '회의실 삭제 완료',
@@ -444,6 +429,7 @@ export function useUpdateRoomAmenities() {
       return roomService.updateRoomAmenities(supabase, id, amenities);
     },
     onSuccess: () => {
+      // Phase 3: 표준화된 캐시 무효화
       queryClient.invalidateQueries({ queryKey: roomKeys.all });
       toast({
         title: '편의시설 수정 완료',
@@ -463,13 +449,13 @@ export function useUpdateRoomAmenities() {
 // 예약된 시간 슬롯을 가져오는 훅
 export function useBookedSlots(roomId: string | null, date: Date | null) { // 👈 roomId가 null일 수도 있음을 허용
   const supabase = useSupabaseClient();
-  const { authStatus, userProfile } = useAuthContext(); // 👈 [최종 강화] userProfile도 가져옵니다.
+  const { authStatus } = useAuthContext();
   const dateKey = date ? format(date, 'yyyy-MM-dd') : '';
 
   // buildQueryOptions 래퍼를 사용하지 않고, React Query의 표준 옵션 객체를 직접 사용합니다.
   // 이것이 구조를 더 명확하게 만듭니다.
   return useQuery({
-    queryKey: ['rooms', roomId, 'booked-slots', dateKey], // 👈 명확한 queryKey로 수정
+    queryKey: roomKeys.bookedSlots(roomId || '', dateKey), // Phase 3: 중앙화된 키 사용
     queryFn: async () => {
       // ✅ [2단계] queryFn 내부에서 최종 방어
       if (authStatus !== 'authenticated' || !roomId || !date || !supabase) {
@@ -514,8 +500,8 @@ export function useBookedSlots(roomId: string | null, date: Date | null) { // �
 
       return bookedSlots;
     },
-    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
-    enabled: !!roomId && !!date && !!supabase && (authStatus === 'authenticated' || !!userProfile),
+    // ✅ [Phase 1] authStatus 기반 안정화
+    enabled: !!roomId && !!date && !!supabase && authStatus === 'authenticated',
     staleTime: 1 * 60 * 1000, // 1분
     gcTime: 5 * 60 * 1000, // 5분
   });
@@ -524,7 +510,7 @@ export function useBookedSlots(roomId: string | null, date: Date | null) { // �
 // ✅ 작업 2-2: 예약 가능 시간 슬롯 조회 커스텀 훅
 export function useAvailableTimeSlots(roomId: string, date: Date | null) {
   const supabase = useSupabaseClient();
-  const { authStatus, userProfile } = useAuthContext();
+  const { authStatus } = useAuthContext();
 
   // Date 객체를 'yyyy-MM-dd' 형식으로 변환 (쿼리 키용)
   const dateKey = date ? format(date, 'yyyy-MM-dd') : '';
@@ -546,8 +532,8 @@ export function useAvailableTimeSlots(roomId: string, date: Date | null) {
         params: { roomId, dateKey }
       }
     ),
-    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
-    enabled: !!roomId && !!date && (authStatus === 'authenticated' || !!userProfile) && !!supabase,
+    // ✅ [Phase 1] authStatus 기반 안정화
+    enabled: !!roomId && !!date && authStatus === 'authenticated' && !!supabase,
     dataType: 'dynamic',
     cacheConfig: {
       customStaleTime: 1 * 60 * 1000, // 1분
