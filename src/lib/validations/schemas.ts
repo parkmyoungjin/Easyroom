@@ -261,20 +261,10 @@ export const newReservationFormSchema = z.object({
 }, {
   message: "종료 시간은 시작 시간보다 늦어야 합니다",
   path: ["endTime"],
-}).refine((data) => {
-  const startHour = parseInt(data.startTime.split(":")[0], 10);
-  const endHour = parseInt(data.endTime.split(":")[0], 10);
-  return startHour >= 8 && endHour <= 19;
-}, {
-  message: "예약은 오전 8시부터 오후 7시까지만 가능합니다",
-  path: ["startTime"],
-}).refine((data) => {
-  // ✅ 중앙화된 시간 검증 함수 사용
-  return isDateTimeInFutureKST(data.date, data.startTime);
-}, {
-  message: "현재 시간 이후로만 예약할 수 있습니다",
-  path: ["startTime"],
 });
+// ✅ 작업 3-2: 서버에서 처리하므로 클라이언트 검증 단순화
+// - 시간 범위 검증 제거 (서버의 get_available_time_slots에서 처리)
+// - 현재 시간 이후 검증 제거 (서버에서 처리)
 
 export type NewReservationFormValues = z.infer<typeof newReservationFormSchema>;
 

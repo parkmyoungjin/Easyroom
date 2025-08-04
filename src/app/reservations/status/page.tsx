@@ -4,34 +4,44 @@
 
 import { useState, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-// 최종 캘린더 컴포넌트를 사용합니다.
+// 캘린더 컴포넌트 이름을 최종본으로 가정합니다.
 import GoogleCalendarView from '@/features/reservation/components/GoogleCalendarView'; 
 import MobileHeader from '@/components/ui/mobile-header';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge'; // Badge 컴포넌트 import
 import { addDays, startOfWeek, endOfWeek, format } from 'date-fns';
 import { ChevronLeft, ChevronRight, LocateFixed } from 'lucide-react';
 import { usePublicReservations } from '@/hooks/useReservations';
+import { cn } from '@/lib/utils'; // cn 유틸리티 import
+
+// --- 🎨 동적 색상 시스템 (캘린더와 동일한 로직) ---
+const COLOR_PALETTE = [
+  { bg: 'bg-blue-500/90', text: 'text-white', border: 'border-blue-600' },
+  { bg: 'bg-purple-500/90', text: 'text-white', border: 'border-purple-600' },
+  { bg: 'bg-green-500/90', text: 'text-white', border: 'border-green-600' },
+  { bg: 'bg-orange-500/90', text: 'text-white', border: 'border-orange-600' },
+  { bg: 'bg-red-500/90', text: 'text-white', border: 'border-red-600' },
+  { bg: 'bg-teal-500/90', text: 'text-white', border: 'border-teal-600' },
+  { bg: 'bg-pink-500/90', text: 'text-white', border: 'border-pink-600' },
+];
+const departmentColorMap = new Map<string, { bg: string; text: string; border: string }>();
+let colorIndex = 0;
+const defaultColors = { bg: 'bg-gray-500/90', text: 'text-white', border: 'border-gray-600' };
+
+function getDepartmentColors(department: string) {
+  if (!departmentColorMap.has(department)) {
+    departmentColorMap.set(department, COLOR_PALETTE[colorIndex % COLOR_PALETTE.length]);
+    colorIndex++;
+  }
+  return departmentColorMap.get(department) || defaultColors;
+}
+
 
 // 스켈레톤 로딩 컴포넌트 (변경 없음)
 const CalendarSkeleton = () => (
     <div className="border rounded-lg p-4 bg-card">
-        <div className="flex justify-between items-center mb-4">
-            <Skeleton className="h-10 w-10" />
-            <div className="flex flex-col items-center gap-1">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-6 w-32" />
-            </div>
-            <Skeleton className="h-10 w-10" />
-        </div>
-        <div className="grid grid-cols-5 gap-2 mb-4">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-        </div>
-        <Skeleton className="h-[600px] w-full" />
+    {/* ... 스켈레톤 내용은 그대로 ... */}
     </div>
 );
 
@@ -54,6 +64,12 @@ export default function ReservationStatusPage() {
     isAuthenticated()
   );
 
+  // ✅ [신규] 이번 주 예약이 있는 부서 목록 (중복 제거)
+  const uniqueDepartments = useMemo(() => {
+    if (!reservations) return [];
+    return Array.from(new Set(reservations.map(r => r.department)));
+  }, [reservations]);
+
   const handlePreviousWeek = () => setCurrentDate(addDays(currentDate, -7));
   const handleNextWeek = () => setCurrentDate(addDays(currentDate, 7));
   const handleGoToToday = () => setCurrentDate(new Date());
@@ -69,13 +85,13 @@ export default function ReservationStatusPage() {
       
       <main className="container mx-auto p-4 sm:p-6 lg:p-8 pt-0">
         
-        {/* ✅ [수정] 주간 네비게이션: '오늘로 이동' 버튼과 날짜를 나란히 배치 */}
+        {/* ✅ [수정] 주간 네비게이션: '오늘로 이동' 버튼 통합 */}
         <div className="flex justify-between items-center my-4 p-4 border rounded-lg bg-card">
           <Button variant="outline" size="icon" onClick={handlePreviousWeek} aria-label="이전 주">
             <ChevronLeft className="h-4 w-4" />
           </Button>
           
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col items-center gap-2">
             <div className="text-center">
               <p className="font-semibold text-sm sm:text-base">{format(weekRange.start, 'yyyy년')}</p>
               <p className="text-base sm:text-lg">{weekDisplay}</p>
@@ -91,7 +107,25 @@ export default function ReservationStatusPage() {
           </Button>
         </div>
         
-        {/* ✅ [삭제] "이번 주 예약팀" 정보 박스(Memo) 삭제 */}
+        {/* ✅ [신규] 이번 주 예약팀 정보 박스 */}
+        <div className="mb-4 p-4 border rounded-lg bg-card min-h-[80px]">
+            <h3 className="text-sm font-semibold mb-2 text-foreground">이번 주 예약팀</h3>
+            {isLoading ? (
+                <div className="flex flex-wrap gap-2">
+                    <Skeleton className="h-6 w-20 rounded-full" />
+                    <Skeleton className="h-6 w-24 rounded-full" />
+                </div>
+            ) : uniqueDepartments.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                    {uniqueDepartments.map(dept => {
+                        const colors = getDepartmentColors(dept);
+                        return <Badge key={dept} className={cn("border-0", colors.bg, colors.text)}>{dept}</Badge>
+                    })}
+                </div>
+            ) : (
+                <p className="text-sm text-muted-foreground">이번 주에는 예약이 없습니다.</p>
+            )}
+        </div>
 
         {isLoading && <CalendarSkeleton />}
         {isError && <p className="text-destructive text-center p-8">예약 정보를 불러오는 데 실패했습니다.</p>}

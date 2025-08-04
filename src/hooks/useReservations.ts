@@ -3,14 +3,11 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { reservationService } from '@/lib/services/reservations';
 import { ReservationFormData } from '@/lib/validations/schemas';
-// Using console for now instead of sonner
-const toast = {
-  success: (title: string, options?: { description?: string }) => console.log(`✅ ${title}`, options?.description || ''),
-  error: (title: string, options?: { description?: string }) => console.error(`❌ ${title}`, options?.description || '')
-};
-import type { ReservationInsert, ReservationUpdate, ReservationWithDetails } from "@/types/database";
+import { toast } from 'sonner';
+import type { ReservationInsert, ReservationUpdate, ReservationWithDetails, PublicReservation } from "@/types/database";
 import { logger } from '@/lib/utils/logger';
 import { 
   createQueryKeyFactory, 
@@ -47,19 +44,33 @@ export const reservationKeys = {
 };
 
 
-// 공개 예약을 가져오는 훅 (API 사용, 수정 필요 없음)
+// 공개 예약을 가져오는 훅 (실시간 동기화 포함)
 export function usePublicReservations(startDate: string, endDate: string, isAuthenticated?: boolean) {
+  const supabase = useSupabaseClient();
+  const queryClient = useQueryClient();
+  const { userProfile, authStatus } = useAuthContext();
+  
+  const queryKey = reservationKeys.public(startDate, endDate, isAuthenticated);
   const dateOptimization = optimizeForDateRange(startDate, endDate);
-  return useQuery(buildQueryOptions({
-    queryKey: reservationKeys.public(startDate, endDate, isAuthenticated),
+  
+  // 기본 쿼리 설정 (staleTime을 0으로 설정하여 Realtime 실패 시 안전장치 제공)
+  const queryResult = useQuery(buildQueryOptions({
+    queryKey,
     queryFn: createStandardFetch(
-      () => reservationService.getPublicReservations(startDate, endDate, isAuthenticated),
+      () => {
+        // ✅ [2단계] queryFn 내부에서 최종 방어
+        if (authStatus !== 'authenticated') {
+          return Promise.resolve([]);
+        }
+        return reservationService.getPublicReservations(startDate, endDate, isAuthenticated);
+      },
       { operation: 'fetch public reservations', params: { startDate, endDate, isAuthenticated } }
     ),
-    enabled: !!startDate && !!endDate,
+    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
+    enabled: !!startDate && !!endDate && (authStatus === 'authenticated' || !!userProfile),
     dataType: 'dynamic',
     cacheConfig: {
-      customStaleTime: dateOptimization.staleTime,
+      customStaleTime: 0, // Realtime 연결 실패 시 안전장치
       customGcTime: dateOptimization.gcTime
     },
     retryConfig: {
@@ -67,25 +78,136 @@ export function usePublicReservations(startDate: string, endDate: string, isAuth
       baseDelay: 1000
     }
   }));
+
+  // 실시간 구독 설정
+  useEffect(() => {
+    if (!supabase || !startDate || !endDate) return;
+
+    // 동적 채널명으로 쿼리 키와 동기화
+    const channelName = `public-reservations-${startDate}-${endDate}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reservations',
+          // 서버사이드 필터: 현재 조회 중인 날짜 범위만 수신
+          filter: `start_time.gte.${startDate}T00:00:00Z,start_time.lt.${endDate}T23:59:59Z`
+        },
+        async (payload) => {
+          logger.info('Realtime event received', { event: payload.eventType, table: payload.table });
+          
+          // 현재 캐시 데이터 가져오기
+          const currentData = queryClient.getQueryData<PublicReservation[]>(queryKey);
+          if (!currentData) return;
+
+          // 이벤트 타입별 캐시 업데이트
+          let updatedData: PublicReservation[] = [...currentData];
+
+          switch (payload.eventType) {
+            case 'INSERT': {
+              if (payload.new) {
+                // Database Row를 PublicReservation 형식으로 변환
+                const newReservation = await transformToPublicReservation(
+                  payload.new, 
+                  userProfile?.dbId, 
+                  supabase
+                );
+                if (newReservation && isWithinDateRange(newReservation, startDate, endDate)) {
+                  updatedData.push(newReservation);
+                }
+              }
+              break;
+            }
+            case 'UPDATE': {
+              if (payload.new) {
+                const updatedReservation = await transformToPublicReservation(
+                  payload.new, 
+                  userProfile?.dbId, 
+                  supabase
+                );
+                if (updatedReservation && isWithinDateRange(updatedReservation, startDate, endDate)) {
+                  const index = updatedData.findIndex(item => item.id === updatedReservation.id);
+                  if (index !== -1) {
+                    updatedData[index] = updatedReservation;
+                  } else {
+                    // 업데이트로 인해 날짜 범위에 새로 포함된 경우
+                    updatedData.push(updatedReservation);
+                  }
+                } else {
+                  // 업데이트로 인해 날짜 범위를 벗어난 경우 제거
+                  updatedData = updatedData.filter(item => item.id !== payload.new.id);
+                }
+              }
+              break;
+            }
+            case 'DELETE': {
+              if (payload.old) {
+                updatedData = updatedData.filter(item => item.id !== payload.old.id);
+              }
+              break;
+            }
+          }
+
+          // 캐시 수동 업데이트
+          queryClient.setQueryData(queryKey, updatedData);
+        }
+      )
+      .subscribe();
+
+    // 클린업 함수: 구독 해제
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, queryClient, queryKey, startDate, endDate, userProfile?.dbId]);
+
+  return queryResult;
+}
+
+// Database Row를 PublicReservation으로 변환하는 헬퍼 함수
+// RPC 함수가 이미 가공된 데이터를 반환하므로 단순화
+async function transformToPublicReservation(
+  dbRow: any, 
+  currentUserId?: string, 
+  supabase?: any
+): Promise<PublicReservation | null> {
+  if (!dbRow || dbRow.status === 'cancelled') return null;
+
+  // RPC 함수가 이미 모든 데이터 가공을 완료했으므로 그대로 반환
+  return dbRow as PublicReservation;
+}
+
+// 예약이 지정된 날짜 범위 내에 있는지 확인하는 헬퍼 함수
+function isWithinDateRange(reservation: PublicReservation, startDate: string, endDate: string): boolean {
+  const reservationStart = new Date(reservation.start_time);
+  const rangeStart = new Date(startDate);
+  const rangeEnd = new Date(endDate + 'T23:59:59Z');
+  
+  return reservationStart >= rangeStart && reservationStart <= rangeEnd;
 }
 
 // 상세 정보를 포함한 예약을 가져오는 훅
 export function useReservationsWithDetails(startDate: string, endDate: string) {
   const supabase = useSupabaseClient();
+  const { authStatus, userProfile } = useAuthContext();
   const dateOptimization = optimizeForDateRange(startDate, endDate);
   
   return useQuery(buildQueryOptions({
     queryKey: reservationKeys.withDetails(startDate, endDate),
     queryFn: createStandardFetch(
       () => {
-        if (!supabase) {
-          throw new Error('Supabase client is not available');
+        // ✅ [2단계] queryFn 내부에서 최종 방어
+        if (authStatus !== 'authenticated' || !supabase) {
+          return Promise.resolve([]);
         }
         return reservationService.getReservationsWithDetails(supabase, startDate, endDate);
       },
       { operation: 'fetch detailed reservations', params: { startDate, endDate } }
     ),
-    enabled: !!startDate && !!endDate && !!supabase,
+    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
+    enabled: !!startDate && !!endDate && (authStatus === 'authenticated' || !!userProfile) && !!supabase,
     dataType: 'dynamic',
     cacheConfig: {
       customStaleTime: dateOptimization.staleTime,
@@ -94,61 +216,78 @@ export function useReservationsWithDetails(startDate: string, endDate: string) {
   }));
 }
 
-// 내 예약을 가져오는 훅
+// 내 예약을 가져오는 훅 (최종 수정 버전)
 export function useMyReservations(): { data: ReservationWithDetails[] | undefined; isLoading: boolean; isError: boolean; error: any } {
-  const { userProfile } = useAuthContext();
+  const { userProfile, authStatus } = useAuthContext();
   const supabase = useSupabaseClient();
 
-  // ✅ [핵심 수정] buildQueryOptions를 통해 기본 옵션을 생성한 후,
-  // 동적 데이터 동기화를 위한 refetch 정책을 명시적으로 추가합니다.
   const queryOptions = buildQueryOptions({
-    queryKey: reservationKeys.my(userProfile?.dbId), // authId 대신 dbId 사용
+    queryKey: reservationKeys.my(userProfile?.dbId),
     queryFn: createStandardFetch(
-      () => { // ✅ [핵심 수정] 로직이 매우 단순해짐
-        if (!userProfile?.dbId || !supabase) {
-          logger.warn('사용자 DB ID 또는 Supabase 클라이언트가 없어 내 예약을 조회할 수 없습니다');
-          // ✅ [핵심 수정] 빈 배열을 Promise로 감싸서 반환하여, 반환 타입의 일관성을 보장한다.
+      async () => {
+        if (authStatus !== 'authenticated' || !userProfile?.dbId || !supabase) {
           return Promise.resolve([]);
         }
+        
+        // ✅ [레거시 RPC 함수 대체] get_reservations_for_period 통합 함수 사용
+        const { data, error } = await supabase.rpc('get_reservations_for_period', {
+          start_date: null, // 전체 기간 조회
+          end_date: null
+        });
 
-        // 새로 만든 최적화된 서비스 함수를 호출하기만 하면 된다.
-        return reservationService.getMyReservationsOptimized(supabase, userProfile.dbId);
+        if (error) {
+          logger.error('get_reservations_for_period RPC failed', error);
+          throw new Error(`내 예약 조회 실패: ${error.message}`);
+        }
+
+        // ✅ [클라이언트 사이드 필터링] is_mine === true인 예약들만 필터링
+        const myReservations = (data || []).filter((reservation: any) => reservation.is_mine === true);
+        
+        logger.debug('내 예약 조회 완료', { 
+          totalReservations: data?.length || 0,
+          myReservations: myReservations.length 
+        });
+
+        return myReservations as ReservationWithDetails[];
       },
-      { operation: 'fetch my reservations (optimized)', params: { userProfileId: userProfile?.dbId } }
+      { operation: 'fetch my reservations (unified RPC)', params: { userProfileId: userProfile?.dbId } }
     ),
-    enabled: !!userProfile?.dbId && !!supabase,
+    // ✅ [최종 강화] userProfile.dbId가 필수적인 훅의 경우
+    enabled: (authStatus === 'authenticated' || !!userProfile) && !!userProfile?.dbId && !!supabase,
     dataType: 'semi-static',
     cacheConfig: {
-      customStaleTime: 0, // 데이터는 받자마자 '낡은 것'으로 간주
+      customStaleTime: 0,
       customGcTime: 5 * 60 * 1000,
     }
   });
 
   return useQuery({
     ...queryOptions,
-    // ✅ [핵심 강화] 이 데이터가 '언제' 다시 최신화되어야 하는지를 명확하게 선언합니다.
-    refetchOnMount: 'always',      // 컴포넌트가 마운트될 때마다 항상 데이터를 다시 가져옵니다.
-    refetchOnWindowFocus: true,    // 사용자가 다른 탭을 봤다가 돌아오면 데이터를 다시 가져옵니다.
-    refetchOnReconnect: true,      // 인터넷 연결이 끊겼다가 다시 연결되면 데이터를 다시 가져옵니다.
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 }
 
 // ID로 예약을 가져오는 훅
 export function useReservation(id: string) {
   const supabase = useSupabaseClient();
+  const { authStatus, userProfile } = useAuthContext();
   
   return useQuery(buildQueryOptions({
     queryKey: reservationKeys.detail(id),
     queryFn: createStandardFetch(
       () => {
-        if (!supabase) {
-          throw new Error('Supabase client is not available');
+        // ✅ [2단계] queryFn 내부에서 최종 방어
+        if (authStatus !== 'authenticated' || !supabase) {
+          return Promise.resolve(null);
         }
         return reservationService.getReservationById(supabase, id);
       },
       { operation: 'fetch reservation by ID', params: { id } }
     ),
-    enabled: !!id && !!supabase,
+    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
+    enabled: !!id && (authStatus === 'authenticated' || !!userProfile) && !!supabase,
     dataType: 'semi-static'
   }));
 }
@@ -156,19 +295,22 @@ export function useReservation(id: string) {
 // 모든 예약을 가져오는 훅 (관리자용)
 export function useAllReservations() {
   const supabase = useSupabaseClient();
+  const { authStatus, userProfile } = useAuthContext();
   
   return useQuery(buildQueryOptions({
     queryKey: reservationKeys.all, // .custom('admin', 'all') 대신 .all 사용
     queryFn: createStandardFetch(
       () => {
-        if (!supabase) {
-          throw new Error('Supabase client is not available');
+        // ✅ [2단계] queryFn 내부에서 최종 방어
+        if (authStatus !== 'authenticated' || !supabase) {
+          return Promise.resolve([]);
         }
         return reservationService.getAllReservations(supabase);
       },
       { operation: 'fetch all reservations (admin)', params: {} }
     ),
-    enabled: !!supabase,
+    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
+    enabled: (authStatus === 'authenticated' || !!userProfile) && !!supabase,
     dataType: 'dynamic',
   }));
 }
@@ -176,12 +318,17 @@ export function useAllReservations() {
 // 통계를 가져오는 훅
 export function useReservationStatistics(startDate: string, endDate: string) {
   const supabase = useSupabaseClient();
+  const { authStatus, userProfile } = useAuthContext();
 
   return useQuery(buildQueryOptions({
     queryKey: reservationKeys.statistics(startDate, endDate),
     queryFn: createStandardFetch(
       async () => {
-        if (!supabase) throw new Error('Supabase client is not available');
+        // ✅ [2단계] queryFn 내부에서 최종 방어
+        if (authStatus !== 'authenticated' || !supabase) {
+          return Promise.resolve(null);
+        }
+        
         const { data, error } = await supabase
           .rpc('get_reservation_statistics', {
             start_date: startDate,
@@ -195,7 +342,8 @@ export function useReservationStatistics(startDate: string, endDate: string) {
       },
       { operation: 'fetch reservation statistics', params: { startDate, endDate } }
     ),
-    enabled: !!startDate && !!endDate && !!supabase,
+    // ✅ [최종 강화] 상태 업데이트 지연을 고려한 enabled 조건
+    enabled: !!startDate && !!endDate && (authStatus === 'authenticated' || !!userProfile) && !!supabase,
   }));
 }
 
@@ -230,22 +378,45 @@ export function useUpdateReservation() {
   const supabase = useSupabaseClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<ReservationFormData> }) => {
-      if (!supabase) throw new Error("인증 컨텍스트를 사용할 수 없습니다.");
-      // Note: This mapping logic might need adjustment based on ReservationUpdate type
-      const updateData: ReservationUpdate = Object.fromEntries(
-        Object.entries(data).filter(([_, value]) => value !== undefined)
-      );
+    mutationFn: async ({ id, data }: { id: string; data: Partial<ReservationFormData> }) => {
+      if (!supabase) {
+        throw new Error('인증 컨텍스트를 사용할 수 없어 예약을 수정할 수 없습니다.');
+      }
+      
+      // Transform Date objects to ISO strings for database
+      const updateData: Partial<ReservationUpdate> = {};
+      if (data.title) {
+        updateData.title = data.title;
+      }
+      if (data.purpose) {
+        updateData.purpose = data.purpose;
+      }
+      if (data.start_time) {
+        updateData.start_time = data.start_time.toISOString();
+      }
+      if (data.end_time) {
+        updateData.end_time = data.end_time.toISOString();
+      }
+      
       return reservationService.updateReservation(supabase, id, updateData);
     },
     onSuccess: (updatedReservation) => {
-      toast.success('예약 변경 완료', { description: '예약 정보가 성공적으로 변경되었습니다.' });
-      queryClient.invalidateQueries({ queryKey: reservationKeys.all });
-      queryClient.invalidateQueries({ queryKey: reservationKeys.detail(updatedReservation.id) });
+      queryClient.invalidateQueries({ 
+        queryKey: reservationKeys.all,
+        exact: false
+      });
+      queryClient.invalidateQueries({
+        queryKey: reservationKeys.detail(updatedReservation.id)
+      });
+      toast.success('예약이 수정되었습니다.');
     },
-    onError: (error: Error) => {
-      logger.error('예약 수정 실패', error);
-      toast.error('변경 실패', { description: error.message });
+    onError: (error) => {
+      // RPC 함수가 던지는 명확한 에러 메시지를 표시
+      const errorMessage = error instanceof Error ? error.message : '예약 수정 중 오류가 발생했습니다.';
+      logger.error('예약 수정 실패', { error: errorMessage });
+      toast.error('예약 수정 실패', {
+        description: errorMessage,
+      });
     },
   });
 }
@@ -266,7 +437,10 @@ export function useCancelReservation() {
       queryClient.invalidateQueries({ queryKey: ['reservations'] });
     },
     onError: (error: Error) => {
-      toast.error('예약 취소 실패', { description: error.message });
+      // RPC 함수가 던지는 명확한 에러 메시지를 표시
+      const errorMessage = error.message || '예약 취소 중 오류가 발생했습니다.';
+      logger.error('예약 취소 실패', { error: errorMessage });
+      toast.error('예약 취소 실패', { description: errorMessage });
     },
   });
 }

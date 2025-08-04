@@ -1,4 +1,4 @@
-// src/features/reservation/components/GoogleCalendarView.tsx
+// FILE: src/features/reservation/components/GoogleCalendarView.tsx
 
 'use client';
 
@@ -8,8 +8,20 @@ import { format, addDays, getDay, getHours, getMinutes, isToday } from 'date-fns
 import { utcToKst } from "@/lib/utils/date";
 import type { PublicReservation } from "@/types/database";
 import { ReservationDetailDialog } from "@/features/reservation/components/ReservationDetailDialog";
-import { Badge } from "@/components/ui/badge";
+
 import { cn } from '@/lib/utils';
+import { useReservationsRealtime } from '@/hooks/useReservationsRealtime';
+import { useUpdateReservation } from '@/hooks/useReservations';
+
+import { toast } from 'sonner';
+import {
+  DndContext,
+  DragEndEvent,
+  useDraggable,
+  useDroppable,
+  DragOverlay,
+  closestCenter,
+} from '@dnd-kit/core';
 
 // --- ⚙️ 설정 상수 ---
 const DAYS = ['월', '화', '수', '목', '금'];
@@ -17,7 +29,7 @@ const START_HOUR = 8;
 const END_HOUR = 19;
 const SLOT_HEIGHT = 40; // 30분당 40px
 
-// --- 🎨 동적 색상 시스템 ---
+// --- 🎨 동적 색상 시스템 (변경 없음) ---
 const COLOR_PALETTE = [
   { bg: 'bg-blue-500/90', text: 'text-white', border: 'border-blue-600' },
   { bg: 'bg-purple-500/90', text: 'text-white', border: 'border-purple-600' },
@@ -40,6 +52,138 @@ function getDepartmentColors(department: string) {
 }
 
 // ============================================================================
+// 🎯 드래그 가능한 예약 블록 컴포넌트
+// ============================================================================
+interface DraggableReservationBlockProps {
+  reservation: PublicReservation;
+  top: number;
+  height: number;
+  colors: { bg: string; text: string; border: string };
+  onSelect: (reservation: PublicReservation) => void;
+  isAuthenticated: boolean;
+}
+
+function DraggableReservationBlock({
+  reservation,
+  top,
+  height,
+  colors,
+  onSelect,
+  isAuthenticated,
+}: DraggableReservationBlockProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging,
+  } = useDraggable({
+    id: reservation.id,
+    disabled: !isAuthenticated,
+  });
+
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+  } : undefined;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ top: `${top}px`, height: `${height - 2}px`, ...style }}
+      className={cn(
+        "absolute w-[calc(100%_-_4px)] ml-[2px] p-1 rounded-md border cursor-pointer shadow-sm hover:shadow-lg transition-all z-10",
+        colors.bg,
+        colors.text,
+        colors.border,
+        isDragging && "opacity-50 shadow-2xl",
+        !isAuthenticated && "cursor-default"
+      )}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(reservation);
+      }}
+      {...listeners}
+      {...attributes}
+    >
+      <div className="overflow-hidden text-xs font-semibold truncate">
+        {reservation.title}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// 🎯 드롭 가능한 요일 컬럼 컴포넌트
+// ============================================================================
+interface DroppableDayColumnProps {
+  dayIndex: number;
+  reservations: PublicReservation[];
+  weekStartDate: Date;
+  timeSlots: string[];
+  onEmptySlotClick: (dayIndex: number, time: string) => void;
+  onSelectReservation: (reservation: PublicReservation) => void;
+  isAuthenticated: boolean;
+}
+
+function DroppableDayColumn({
+  dayIndex,
+  reservations,
+  weekStartDate,
+  timeSlots,
+  onEmptySlotClick,
+  onSelectReservation,
+  isAuthenticated,
+}: DroppableDayColumnProps) {
+  const { isOver, setNodeRef } = useDroppable({
+    id: `day-${dayIndex}`,
+  });
+
+  const dayReservations = reservations.filter(
+    res => getDay(utcToKst(res.start_time)) - 1 === dayIndex
+  );
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "relative h-full transition-colors",
+        isOver && "bg-blue-50/50"
+      )}
+      onClick={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const clickY = e.clientY - rect.top;
+        const slotIndex = Math.floor(clickY / SLOT_HEIGHT);
+        if (timeSlots[slotIndex]) {
+          onEmptySlotClick(dayIndex, timeSlots[slotIndex]);
+        }
+      }}
+    >
+      {dayReservations.map(res => {
+        const start = utcToKst(res.start_time);
+        const end = utcToKst(res.end_time);
+        const startMinutes = (getHours(start) * 60 + getMinutes(start)) - (START_HOUR * 60);
+        const durationMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
+        const top = (startMinutes / 30) * SLOT_HEIGHT;
+        const height = (durationMinutes / 30) * SLOT_HEIGHT;
+        const colors = getDepartmentColors(res.department);
+
+        return (
+          <DraggableReservationBlock
+            key={res.id}
+            reservation={res}
+            top={top}
+            height={height}
+            colors={colors}
+            onSelect={onSelectReservation}
+            isAuthenticated={isAuthenticated}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+// ============================================================================
 // ✨ 최종 캘린더 컴포넌트 ✨
 // ============================================================================
 export default function GoogleCalendarView({
@@ -53,10 +197,23 @@ export default function GoogleCalendarView({
 }) {
   const router = useRouter();
   const [selectedReservation, setSelectedReservation] = useState<PublicReservation | null>(null);
-  
-  // ✅ [수정] 1시간 단위의 라벨만 생성
-  const timeLabels = useMemo(() => {
-    return Array.from({ length: END_HOUR - START_HOUR }, (_, i) => `${String(START_HOUR + i).padStart(2, '0')}:00`);
+  const [draggedReservation, setDraggedReservation] = useState<PublicReservation | null>(null);
+
+  // 🚀 실시간 동기화 활성화 - 주간 범위 계산
+  const startDate = format(weekStartDate, 'yyyy-MM-dd');
+  const endDate = format(addDays(weekStartDate, 6), 'yyyy-MM-dd'); // 주간 범위 (월~일)
+  useReservationsRealtime(startDate, endDate, isAuthenticated);
+
+  // 🔄 데이터 업데이트 훅
+  const updateReservation = useUpdateReservation();
+
+  const timeSlots = useMemo(() => {
+    const slots = [];
+    for (let h = START_HOUR; h < END_HOUR; h++) {
+      slots.push(`${String(h).padStart(2, '0')}:00`);
+      slots.push(`${String(h).padStart(2, '0')}:30`);
+    }
+    return slots;
   }, []);
 
   const handleEmptySlotClick = (dayIndex: number, time: string) => {
@@ -66,98 +223,177 @@ export default function GoogleCalendarView({
     router.push(`/reservations/new?date=${dateString}&startTime=${time}`);
   };
 
+  // 🎯 드래그 앤 드롭 핵심 로직
+  const handleDragStart = (event: any) => {
+    const reservation = reservations.find(r => r.id === event.active.id);
+    setDraggedReservation(reservation || null);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setDraggedReservation(null);
+
+    if (!over || !active) return;
+
+    const reservationId = active.id as string;
+    const reservation = reservations.find(r => r.id === reservationId);
+    if (!reservation) return;
+
+    // 드롭된 요일 추출
+    const dayMatch = over.id.toString().match(/^day-(\d+)$/);
+    if (!dayMatch) return;
+
+    const newDayIndex = parseInt(dayMatch[1]);
+    const newDate = addDays(weekStartDate, newDayIndex);
+
+    // 마우스 Y좌표를 통한 시간 계산
+    const activatorEvent = event.activatorEvent as MouseEvent;
+    const dropY = event.delta.y + (activatorEvent?.clientY || 0);
+    const containerRect = document.querySelector(`[data-rbd-droppable-id="day-${newDayIndex}"]`)?.getBoundingClientRect();
+
+    if (!containerRect) return;
+
+    const relativeY = dropY - containerRect.top;
+    const slotIndex = Math.max(0, Math.floor(relativeY / SLOT_HEIGHT));
+    const newStartHour = START_HOUR + Math.floor(slotIndex / 2);
+    const newStartMinute = (slotIndex % 2) * 30;
+
+    // 기존 예약 시간 계산
+    const originalStart = utcToKst(reservation.start_time);
+    const originalEnd = utcToKst(reservation.end_time);
+    const durationMs = originalEnd.getTime() - originalStart.getTime();
+
+    // 새로운 시작/종료 시간 계산
+    const newStartTime = new Date(newDate);
+    newStartTime.setHours(newStartHour, newStartMinute, 0, 0);
+    const newEndTime = new Date(newStartTime.getTime() + durationMs);
+
+    // 시간 범위 검증
+    if (newStartTime.getHours() < START_HOUR || newEndTime.getHours() >= END_HOUR) {
+      toast.error('운영 시간 내에서만 예약을 이동할 수 있습니다.');
+      return;
+    }
+
+    // 충돌 검사 - 같은 방의 다른 예약들과 비교
+    const conflictingReservation = reservations.find(r =>
+      r.id !== reservationId &&
+      r.room_id === reservation.room_id &&
+      ((newStartTime >= utcToKst(r.start_time) && newStartTime < utcToKst(r.end_time)) ||
+        (newEndTime > utcToKst(r.start_time) && newEndTime <= utcToKst(r.end_time)) ||
+        (newStartTime <= utcToKst(r.start_time) && newEndTime >= utcToKst(r.end_time)))
+    );
+
+    if (conflictingReservation) {
+      toast.error('해당 시간에는 다른 예약이 있어 이동할 수 없습니다.');
+      return;
+    }
+
+    // 데이터베이스 업데이트 - Promise 기반 동적 알림
+    const updatePromise = new Promise((resolve, reject) => {
+      updateReservation.mutate({
+        id: reservationId,
+        data: {
+          start_time: newStartTime,
+          end_time: newEndTime,
+        }
+      }, {
+        onSuccess: (data) => resolve(data),
+        onError: (error) => reject(error)
+      });
+    });
+
+    toast.promise(updatePromise, {
+      loading: '예약 시간을 변경하는 중...',
+      success: '예약이 성공적으로 변경되었습니다.',
+      error: '예약 변경에 실패했습니다.'
+    });
+  };
+
   const allDepartments = useMemo(() => Array.from(new Set(reservations.map(r => r.department))), [reservations]);
+  const totalSlots = (END_HOUR - START_HOUR) * 2;
 
   return (
     <>
-      <div className="flex flex-col">
-        {/* 요일 헤더 */}
-        <div className="grid grid-cols-[60px_repeat(5,1fr)] gap-2 flex-shrink-0">
-          <div />
-          {DAYS.map((day, i) => {
-            const date = addDays(weekStartDate, i);
-            return (
-              <div key={i} className={cn("text-center p-2 rounded-md", isToday(date) ? "bg-primary/10" : "bg-muted")}>
-                <div className="font-semibold">{day}</div>
-                <div className="text-xs text-muted-foreground">{format(date, 'd')}일</div>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* 메인 캘린더 영역 */}
-        <div className="mt-2 flex">
-          {/* ✅ [핵심 수정] 시간 라벨 컬럼: 요일 헤더처럼 독립된 박스로 구성 */}
-          <div className="w-[60px] flex-shrink-0 flex flex-col gap-2 pr-2">
-            {timeLabels.map(time => (
-              <div key={time} className="h-[80px] flex-grow-0 flex items-center justify-center text-xs text-muted-foreground bg-muted rounded-md">
-                {time}
-              </div>
-            ))}
+      <DndContext
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex flex-col bg-white rounded-lg p-4 border">
+          {/* 요일 헤더 */}
+          <div className="grid grid-cols-[60px_repeat(5,1fr)] gap-x-2 flex-shrink-0">
+            <div />
+            {DAYS.map((day, i) => {
+              const date = addDays(weekStartDate, i);
+              return (
+                <div key={i} className={cn("text-center p-2 rounded-md", isToday(date) ? "bg-primary/10" : "")}>
+                  <div className="font-semibold text-sm">{day}</div>
+                  <div className="text-xs text-muted-foreground">{format(date, 'M/d')}</div>
+                </div>
+              )
+            })}
           </div>
 
-          {/* 예약 그리드 */}
-          <div className="flex-grow grid grid-cols-5 relative border rounded-lg overflow-hidden">
-            {/* 배경 그리드 선 (가로/세로) */}
-            <div className="absolute inset-0 grid grid-cols-5 pointer-events-none">
-              {Array.from({ length: (END_HOUR - START_HOUR) * 2 }).map((_, i) => (
-                <div key={i} className="col-span-5 h-10 border-t border-dashed" />
-              ))}
-              {DAYS.map((_, i) => (
-                <div key={i} className="row-start-1 row-span-full h-full border-r border-dashed" />
-              ))}
-            </div>
-
-            {/* 실제 예약 블록과 빈 공간 클릭 영역 */}
-            <div className="absolute inset-0 grid grid-cols-5">
-              {DAYS.map((_, dayIndex) => (
-                <div key={dayIndex} className="relative" onClick={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const clickY = e.clientY - rect.top;
-                  const totalSlots = (END_HOUR - START_HOUR) * 2;
-                  const slotIndex = Math.floor((clickY / rect.height) * totalSlots);
-                  const hour = START_HOUR + Math.floor(slotIndex / 2);
-                  const minute = (slotIndex % 2) * 30;
-                  const timeString = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-                  handleEmptySlotClick(dayIndex, timeString);
-                }}>
-                  {reservations.filter(res => getDay(utcToKst(res.start_time)) - 1 === dayIndex).map(res => {
-                    const start = utcToKst(res.start_time);
-                    const end = utcToKst(res.end_time);
-                    const startMinutes = (getHours(start) * 60 + getMinutes(start)) - (START_HOUR * 60);
-                    const durationMinutes = (end.getTime() - start.getTime()) / (1000 * 60);
-                    const top = (startMinutes / 30) * SLOT_HEIGHT;
-                    const height = (durationMinutes / 30) * SLOT_HEIGHT;
-                    const colors = getDepartmentColors(res.department);
-
-                    return (
-                      <div
-                        key={res.id}
-                        className={cn("absolute w-[calc(100%_-_4px)] ml-[2px] p-1 rounded-md border cursor-pointer shadow-sm hover:shadow-lg transition-all z-10", colors.bg, colors.text, colors.border)}
-                        style={{ top: `${top}px`, height: `${height - 2}px` }}
-                        onClick={(e) => { e.stopPropagation(); setSelectedReservation(res); }}
-                      >
-                        <div className="overflow-hidden text-xs font-semibold truncate">{res.title}</div>
-                        {height >= SLOT_HEIGHT * 1.5 && <div className="text-xs opacity-90 truncate">{res.department}</div>}
-                      </div>
-                    );
-                  })}
+          {/* 메인 캘린더 영역 */}
+          <div className="mt-2 flex">
+            {/* 시간 라벨 컬럼 */}
+            <div className="w-[60px] flex-shrink-0">
+              {Array.from({ length: totalSlots }).map((_, i) => (
+                <div key={i} className="h-10 relative">
+                  {i % 2 === 0 && (
+                    <span className="absolute -top-2 right-1 text-xs text-muted-foreground">
+                      {`${String(START_HOUR + i / 2).padStart(2, '0')}:00`}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
+
+            {/* 드래그 앤 드롭 가능한 캘린더 그리드 */}
+            <div className="flex-grow relative">
+              {/* 배경 그리드 */}
+              <div className="absolute inset-0 grid grid-cols-5 pointer-events-none">
+                {Array.from({ length: DAYS.length * totalSlots }).map((_, i) => (
+                  <div key={i} className="h-10 border-b border-r border-gray-200" />
+                ))}
+              </div>
+
+              {/* 드롭 가능한 요일 컬럼들 */}
+              <div className="absolute inset-0 grid grid-cols-5">
+                {DAYS.map((_, dayIndex) => (
+                  <DroppableDayColumn
+                    key={dayIndex}
+                    dayIndex={dayIndex}
+                    reservations={reservations}
+                    weekStartDate={weekStartDate}
+                    timeSlots={timeSlots}
+                    onEmptySlotClick={handleEmptySlotClick}
+                    onSelectReservation={setSelectedReservation}
+                    isAuthenticated={isAuthenticated}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      
-      {/* 범례 */}
-      <div className="flex flex-wrap gap-2 mt-4">
-        {allDepartments.map(dept => {
-          const colors = getDepartmentColors(dept);
-          return <Badge key={dept} className={cn("border-0", colors.bg, colors.text)}>{dept}</Badge>
-        })}
-      </div>
 
-      {/* 상세 정보 모달 */}
+        {/* 드래그 오버레이 */}
+        <DragOverlay>
+          {draggedReservation ? (
+            <div className={cn(
+              "p-1 rounded-md border shadow-2xl opacity-90",
+              getDepartmentColors(draggedReservation.department).bg,
+              getDepartmentColors(draggedReservation.department).text,
+              getDepartmentColors(draggedReservation.department).border
+            )}>
+              <div className="text-xs font-semibold truncate">
+                {draggedReservation.title}
+              </div>
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+
       <ReservationDetailDialog
         reservation={selectedReservation}
         isOpen={!!selectedReservation}

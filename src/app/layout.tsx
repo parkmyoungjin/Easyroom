@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import '@/app/globals.css';
 import Providers from '@/app/providers';
-import { Toaster } from '@/components/ui/toaster';
+import { Toaster } from 'sonner';
 import { ClientPolyfillManager } from '@/lib/polyfills/ClientPolyfillManager';
 import { SupabaseProvider } from '@/contexts/SupabaseProvider';
 import { AuthProvider } from '@/contexts/AuthContext';

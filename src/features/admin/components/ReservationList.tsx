@@ -1,3 +1,5 @@
+// FILE: src/features/admin/components/ReservationList.tsx
+
 'use client';
 
 import { useState } from 'react';
@@ -22,21 +24,23 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { useReservationsWithDetails } from '@/hooks/useReservations';
+// ✅ [핵심 수정] 모든 예약 관련 훅을 단일 파일에서 import 합니다.
+import { 
+    useReservationsWithDetails,
+    useUpdateReservation,
+    useCancelReservation 
+} from '@/hooks/useReservations';
 import { useRooms } from '@/hooks/useRooms';
-import { useUpdateReservation } from '@/hooks/useUpdateReservation';
-import { useCancelReservation } from '@/hooks/useCancelReservation';
 import { ReservationErrorHandler } from '@/lib/utils/error-handler';
 import type { Reservation } from '@/types/database';
 
 export function ReservationList() {
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [selectedRoom, setSelectedRoom] = useState<string>('');  // 초기값을 빈 문자열로 변경
+  const [selectedRoom, setSelectedRoom] = useState<string>('');
   
-  // 선택된 날짜 기준으로 해당 일자의 예약만 조회
   const queryStartDate = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
-  const queryEndDate = queryStartDate; // 같은 날짜로 설정하여 하루치만 조회
+  const queryEndDate = queryStartDate;
   
   const { data: reservations, isLoading } = useReservationsWithDetails(
     queryStartDate,
@@ -46,7 +50,6 @@ export function ReservationList() {
   const { mutate: updateReservation } = useUpdateReservation();
   const { mutate: cancelReservation } = useCancelReservation();
 
-  // 선택된 방만 필터링 (날짜는 이미 쿼리에서 필터링됨)
   const filteredReservations = reservations?.filter((reservation) => {
     const isRoomMatch = selectedRoom
       ? reservation.room_id === selectedRoom
@@ -179,4 +182,4 @@ export function ReservationList() {
       </div>
     </div>
   );
-} 
+}

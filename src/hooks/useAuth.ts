@@ -128,13 +128,17 @@ export function useAuth() {
 
     // 2. Supabase Auth에 임시 비밀번호로 회원가입 (바로 확인됨)
     const tempPassword = Math.random().toString(36).slice(-12) + 'A1!'; // 복잡한 임시 비밀번호
-    const userMetadata: UserMetadata = { fullName, department, role: 'employee' };
     
     const { data, error } = await supabase.auth.signUp({
       email,
       password: tempPassword,
       options: {
-        data: userMetadata,
+        // ✅ [핵심 수정] user_metadata에 사용자 정보를 포함하여 전달
+        data: {
+          full_name: fullName,
+          department: department,
+          role: 'employee'
+        },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       }
     });

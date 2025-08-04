@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
 import { usePublicReservations } from '@/hooks/useReservations';
 import { useRooms } from '@/hooks/useRooms';
-import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
+import { useReservationsRealtime } from '@/hooks/useReservationsRealtime';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDate, formatTime, utcToKst } from '@/lib/utils/date';
 import type { PublicReservation, Room } from '@/types/database';
@@ -39,8 +39,10 @@ export default function ReservationDashboard({ readOnly = false }: ReservationDa
   const { data: reservations = [], isLoading: reservationsLoading, error: reservationsError } = usePublicReservations(startDate, endDate, !!user);
   const { data: rooms = [], isLoading: roomsLoading, error: roomsError } = useRooms();
 
-  // 실시간 구독
-  useRealtimeSubscription();
+  // 🚀 대시보드 전용 실시간 구독 활성화
+  useReservationsRealtime(today, today, !!user);
+
+
 
   // 예약 블록 색상 팔레트 (status 페이지와 동일)
   const colorPalette = [

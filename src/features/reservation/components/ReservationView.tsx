@@ -5,7 +5,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation'; // useRouter import
 import { useAuth } from '@/hooks/useAuth';
-import ReservationCalendarView from '@/features/reservation/components/ReservationCalendarView';
+import GoogleCalendarView from '@/features/reservation/components/GoogleCalendarView';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { addDays, startOfWeek, endOfWeek, format } from 'date-fns';
@@ -49,8 +49,8 @@ function PublicListView({ reservations }: { reservations: PublicReservation[] })
           <h3 className="font-bold text-lg mb-2 sticky top-14 bg-background py-2 border-b">{date}</h3>
           <div className="space-y-4">
             {dailyReservations.map(reservation => (
-              <Card 
-                key={reservation.id} 
+              <Card
+                key={reservation.id}
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => router.push(`/reservations/${reservation.id}`)}
               >
@@ -87,7 +87,7 @@ function PublicListView({ reservations }: { reservations: PublicReservation[] })
 
 // 스켈레톤 로딩 컴포넌트
 const CalendarSkeleton = () => (
-    // ... (이전 코드와 동일, 변경 없음) ...
+  // ... (이전 코드와 동일, 변경 없음) ...
   <div className="border rounded-lg p-4 bg-card">
     <div className="flex justify-between items-center mb-4">
       <Skeleton className="h-10 w-10" />
@@ -160,24 +160,23 @@ export function ReservationView() {
           </TabsList>
         </div>
       </div>
-      
+
       {isLoading && <CalendarSkeleton />}
       {isError && <p className="text-destructive text-center p-8">예약 정보를 불러오는 데 실패했습니다.</p>}
-      
+
       {!isLoading && !isError && (
         <>
           <TabsContent value="calendar">
-            <ReservationCalendarView 
+            <GoogleCalendarView
               reservations={reservations || []}
               weekStartDate={weekRange.start}
               isAuthenticated={isAuthenticated()}
-              currentUserId={user?.id}
             />
           </TabsContent>
           <TabsContent value="list">
             {/* ✅✅✅ 2. 새로 만든 PublicListView를 사용하고, prop을 전달합니다. ✅✅✅ */}
-            <PublicListView 
-              reservations={reservations || []} 
+            <PublicListView
+              reservations={reservations || []}
             />
           </TabsContent>
         </>
