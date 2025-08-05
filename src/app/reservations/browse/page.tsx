@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, Select, Text } from '@mantine/core';
 import { format, addDays, addWeeks, addMonths, startOfDay, endOfDay } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { useRouter } from 'next/navigation';
 import InfiniteReservationList from '@/components/reservations/InfiniteReservationList';
-import MobileHeader from '@/components/ui/mobile-header';
+import MobileAppLayout from '@/components/layout/MobileAppLayout';
 
 type DateRange = {
   from: Date;
@@ -73,7 +72,8 @@ export default function BrowseReservationsPage() {
     router.back();
   };
 
-  const handlePresetChange = (presetValue: string) => {
+  const handlePresetChange = (presetValue: string | null) => {
+    if (!presetValue) return;
     const preset = rangePresets.find(p => p.value === presetValue);
     if (preset) {
       setSelectedPreset(presetValue);
@@ -91,9 +91,7 @@ export default function BrowseReservationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <MobileHeader title="예약 둘러보기" onBack={handleBack} />
-      
+    <MobileAppLayout headerTitle="예약 둘러보기" onBack={handleBack}>
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -104,36 +102,30 @@ export default function BrowseReservationsPage() {
         </div>
 
         {/* Filters */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>필터 설정</CardTitle>
-            <CardDescription>
-              조회할 기간과 표시 옵션을 선택하세요.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+        <Card withBorder mb="xl">
+          <Card.Section withBorder inheritPadding py="xs">
+            <Text fw={600}>필터 설정</Text>
+            <Text size="sm" c="dimmed">조회할 기간과 표시 옵션을 선택하세요.</Text>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Date Range Preset */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">기간 선택</label>
-                <Select value={selectedPreset} onValueChange={handlePresetChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="기간을 선택하세요" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {rangePresets.map((preset) => (
-                      <SelectItem key={preset.value} value={preset.value}>
-                        {preset.label}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value="custom">직접 선택</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Text size="sm" fw={500}>기간 선택</Text>
+                <Select 
+                  value={selectedPreset} 
+                  onChange={handlePresetChange}
+                  placeholder="기간을 선택하세요"
+                  data={[
+                    ...rangePresets.map(preset => ({ value: preset.value, label: preset.label })),
+                    { value: 'custom', label: '직접 선택' }
+                  ]}
+                />
               </div>
 
               {/* Custom Date Range */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">사용자 정의 기간</label>
+                <Text size="sm" fw={500}>사용자 정의 기간</Text>
                 <div className="flex gap-2">
                   <input
                     type="date"
@@ -165,29 +157,28 @@ export default function BrowseReservationsPage() {
 
               {/* Page Size */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">페이지 크기</label>
-                <Select value={pageSize.toString()} onValueChange={(value) => setPageSize(parseInt(value))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10개씩</SelectItem>
-                    <SelectItem value="20">20개씩</SelectItem>
-                    <SelectItem value="50">50개씩</SelectItem>
-                    <SelectItem value="100">100개씩</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Text size="sm" fw={500}>페이지 크기</Text>
+                <Select 
+                  value={pageSize.toString()} 
+                  onChange={(value) => setPageSize(parseInt(value || '20'))}
+                  data={[
+                    { value: '10', label: '10개씩' },
+                    { value: '20', label: '20개씩' },
+                    { value: '50', label: '50개씩' },
+                    { value: '100', label: '100개씩' }
+                  ]}
+                />
               </div>
             </div>
 
             {/* Current selection display */}
             <div className="mt-4 p-3 bg-muted rounded-lg">
-              <p className="text-sm">
+              <Text size="sm">
                 <span className="font-medium">선택된 기간:</span> {formatDateRange(dateRange)}
                 <span className="ml-4 font-medium">페이지 크기:</span> {pageSize}개
-              </p>
+              </Text>
             </div>
-          </CardContent>
+          </Card.Section>
         </Card>
 
         {/* Infinite Reservation List */}
@@ -198,6 +189,6 @@ export default function BrowseReservationsPage() {
           className="mb-8"
         />
       </div>
-    </div>
+    </MobileAppLayout>
   );
 }

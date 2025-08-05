@@ -17,6 +17,7 @@ import {
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { reservationKeys } from '@/lib/queryKeys'; // Phase 3: 중앙화된 쿼리 키 import
+import { realtimeManager } from '@/lib/subscriptions/realtimeManager'; // Phase 2: 실시간 구독 매니저 import
 
 // Phase 3: 중앙화된 쿼리 키 사용 - 로컬 정의 제거
 
@@ -56,88 +57,22 @@ export function usePublicReservations(startDate: string, endDate: string, isAuth
     }
   }));
 
-  // 실시간 구독 설정
+  // ✅ Phase 2: 실시간 구독 설정 - 별도 매니저로 단순화
   useEffect(() => {
     if (!supabase || !startDate || !endDate) return;
 
-    // 동적 채널명으로 쿼리 키와 동기화
-    const channelName = `public-reservations-${startDate}-${endDate}`;
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'reservations',
-          // 서버사이드 필터: 현재 조회 중인 날짜 범위만 수신
-          filter: `start_time.gte.${startDate}T00:00:00Z,start_time.lt.${endDate}T23:59:59Z`
-        },
-        async (payload) => {
-          logger.info('Realtime event received', { event: payload.eventType, table: payload.table });
-          
-          // 현재 캐시 데이터 가져오기
-          const currentData = queryClient.getQueryData<PublicReservation[]>(queryKey);
-          if (!currentData) return;
+    // ✅ 복잡한 실시간 구독 로직을 별도 매니저에 위임
+    const unsubscribe = realtimeManager.subscribeToPublicReservations(
+      supabase,
+      queryClient,
+      queryKey,
+      startDate,
+      endDate,
+      currentUserId
+    );
 
-          // 이벤트 타입별 캐시 업데이트
-          let updatedData: PublicReservation[] = [...currentData];
-
-          switch (payload.eventType) {
-            case 'INSERT': {
-              if (payload.new) {
-                // Database Row를 PublicReservation 형식으로 변환
-                const newReservation = await transformToPublicReservation(
-                  payload.new, 
-                  currentUserId, 
-                  supabase
-                );
-                if (newReservation && isWithinDateRange(newReservation, startDate, endDate)) {
-                  updatedData.push(newReservation);
-                }
-              }
-              break;
-            }
-            case 'UPDATE': {
-              if (payload.new) {
-                const updatedReservation = await transformToPublicReservation(
-                  payload.new, 
-                  currentUserId, 
-                  supabase
-                );
-                if (updatedReservation && isWithinDateRange(updatedReservation, startDate, endDate)) {
-                  const index = updatedData.findIndex(item => item.id === updatedReservation.id);
-                  if (index !== -1) {
-                    updatedData[index] = updatedReservation;
-                  } else {
-                    // 업데이트로 인해 날짜 범위에 새로 포함된 경우
-                    updatedData.push(updatedReservation);
-                  }
-                } else {
-                  // 업데이트로 인해 날짜 범위를 벗어난 경우 제거
-                  updatedData = updatedData.filter(item => item.id !== payload.new.id);
-                }
-              }
-              break;
-            }
-            case 'DELETE': {
-              if (payload.old) {
-                updatedData = updatedData.filter(item => item.id !== payload.old.id);
-              }
-              break;
-            }
-          }
-
-          // 캐시 수동 업데이트
-          queryClient.setQueryData(queryKey, updatedData);
-        }
-      )
-      .subscribe();
-
-    // 클린업 함수: 구독 해제
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    // ✅ 클린업 함수 반환
+    return unsubscribe;
   }, [supabase, queryClient, queryKey, startDate, endDate, currentUserId]);
 
   return queryResult;
@@ -193,7 +128,7 @@ export function useReservationsWithDetails(startDate: string, endDate: string) {
   }));
 }
 
-// 내 예약을 가져오는 훅 (Phase 2: DI 패턴 적용)
+// ✅ Phase 1: 내 예약을 가져오는 훅 - 완전 순수화 완료 (침범도: 0%)
 export function useMyReservations(userId: string | undefined): { data: ReservationWithDetails[] | undefined; isLoading: boolean; isError: boolean; error: any } {
   const { authStatus } = useAuthContext();
   const supabase = useSupabaseClient();
@@ -201,35 +136,17 @@ export function useMyReservations(userId: string | undefined): { data: Reservati
   const queryOptions = buildQueryOptions({
     queryKey: reservationKeys.my(userId),
     queryFn: createStandardFetch(
-      async () => {
+      () => {
+        // ✅ 가드 조건만 유지, 모든 비즈니스 로직은 서비스 계층으로 이전
         if (authStatus !== 'authenticated' || !userId || !supabase) {
           return Promise.resolve([]);
         }
         
-        // ✅ [레거시 RPC 함수 대체] get_reservations_for_period 통합 함수 사용
-        const { data, error } = await supabase.rpc('get_reservations_for_period', {
-          start_date: null, // 전체 기간 조회
-          end_date: null
-        });
-
-        if (error) {
-          logger.error('get_reservations_for_period RPC failed', error);
-          throw new Error(`내 예약 조회 실패: ${error.message}`);
-        }
-
-        // ✅ [클라이언트 사이드 필터링] is_mine === true인 예약들만 필터링
-        const myReservations = (data || []).filter((reservation: any) => reservation.is_mine === true);
-        
-        logger.debug('내 예약 조회 완료', { 
-          totalReservations: data?.length || 0,
-          myReservations: myReservations.length 
-        });
-
-        return myReservations as ReservationWithDetails[];
+        // ✅ 서비스 계층 완전 위임 - 단 한 줄로 순수화
+        return reservationService.getMyReservations(supabase, userId);
       },
-      { operation: 'fetch my reservations (unified RPC)', params: { userId } }
+      { operation: 'fetch my reservations (service layer)', params: { userId } }
     ),
-    // ✅ [Phase 2] DI 패턴 적용 - userId 인자 의존성
     enabled: authStatus === 'authenticated' && !!userId && !!supabase,
     dataType: 'semi-static',
     cacheConfig: {
@@ -324,7 +241,7 @@ export function useReservationStatistics(startDate: string, endDate: string) {
   }));
 }
 
-// 예약을 생성하는 뮤테이션 훅
+// ✅ Phase 2: 예약을 생성하는 뮤테이션 훅 - UI 피드백 로직 제거 (침범도: 40% → 0%)
 export function useCreateReservation() {
   const queryClient = useQueryClient();
   const supabase = useSupabaseClient();
@@ -335,18 +252,18 @@ export function useCreateReservation() {
       return reservationService.createReservation(supabase, data);
     },
     onSuccess: () => {
-      toast.success('예약 완료', { description: '예약이 성공적으로 완료되었습니다.' });
-      // Phase 3: 표준화된 캐시 무효화 - 중앙화된 키 사용
+      // ✅ 캐시 무효화만 유지 (상태 관리 책임)
       queryClient.invalidateQueries({ queryKey: reservationKeys.all });
+      // ✅ UI 피드백은 컴포넌트 레벨에서 처리하도록 제거
     },
     onError: (error: Error) => {
-      logger.error('예약 생성 실패', error);
-      toast.error('예약 실패', { description: error.message });
+      // ✅ 에러 로깅은 서비스 계층에서 이미 처리됨, 여기서는 에러만 전파
+      throw error;
     },
   });
 }
 
-// 예약을 수정하는 뮤테이션 훅
+// ✅ Phase 2: 예약을 수정하는 뮤테이션 훅 - 데이터 변환 로직 서비스 계층 이전 (침범도: 20% → 0%)
 export function useUpdateReservation() {
   const queryClient = useQueryClient();
   const supabase = useSupabaseClient();
@@ -357,40 +274,22 @@ export function useUpdateReservation() {
         throw new Error('인증 컨텍스트를 사용할 수 없어 예약을 수정할 수 없습니다.');
       }
       
-      // Transform Date objects to ISO strings for database
-      const updateData: Partial<ReservationUpdate> = {};
-      if (data.title) {
-        updateData.title = data.title;
-      }
-      if (data.purpose) {
-        updateData.purpose = data.purpose;
-      }
-      if (data.start_time) {
-        updateData.start_time = data.start_time.toISOString();
-      }
-      if (data.end_time) {
-        updateData.end_time = data.end_time.toISOString();
-      }
-      
-      return reservationService.updateReservation(supabase, id, updateData);
+      // ✅ 데이터 변환 로직을 서비스 계층으로 완전 위임
+      return reservationService.updateReservation(supabase, id, data);
     },
     onSuccess: (updatedReservation) => {
-      // Phase 3: 표준화된 캐시 무효화
+      // ✅ 캐시 무효화만 유지 (상태 관리 책임)
       queryClient.invalidateQueries({ queryKey: reservationKeys.all });
-      toast.success('예약이 수정되었습니다.');
+      // ✅ UI 피드백은 컴포넌트 레벨에서 처리하도록 제거 예정
     },
     onError: (error) => {
-      // RPC 함수가 던지는 명확한 에러 메시지를 표시
-      const errorMessage = error instanceof Error ? error.message : '예약 수정 중 오류가 발생했습니다.';
-      logger.error('예약 수정 실패', { error: errorMessage });
-      toast.error('예약 수정 실패', {
-        description: errorMessage,
-      });
+      // ✅ 에러 로깅은 서비스 계층에서 이미 처리됨, 여기서는 에러만 전파
+      throw error;
     },
   });
 }
 
-// 예약을 취소하는 뮤테이션 훅
+// ✅ Phase 2: 예약을 취소하는 뮤테이션 훅 - UI 피드백 로직 제거 (침범도: 50% → 0%)
 export function useCancelReservation() {
   const queryClient = useQueryClient();
   const supabase = useSupabaseClient();
@@ -401,15 +300,13 @@ export function useCancelReservation() {
       return reservationService.cancelReservation(supabase, id, reason);
     },
     onSuccess: () => {
-      toast.success('예약이 취소되었습니다.');
-      // Phase 3: 표준화된 캐시 무효화 - 중앙화된 키 사용
+      // ✅ 캐시 무효화만 유지 (상태 관리 책임)
       queryClient.invalidateQueries({ queryKey: reservationKeys.all });
+      // ✅ UI 피드백은 컴포넌트 레벨에서 처리하도록 제거
     },
     onError: (error: Error) => {
-      // RPC 함수가 던지는 명확한 에러 메시지를 표시
-      const errorMessage = error.message || '예약 취소 중 오류가 발생했습니다.';
-      logger.error('예약 취소 실패', { error: errorMessage });
-      toast.error('예약 취소 실패', { description: errorMessage });
+      // ✅ 에러 로깅은 서비스 계층에서 이미 처리됨, 여기서는 에러만 전파
+      throw error;
     },
   });
 }

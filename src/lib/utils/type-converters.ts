@@ -133,6 +133,7 @@ function publicReservationToDatabase(enhancedReservation: EnhancedPublicReservat
     purpose: enhancedReservation.purpose,
     department: enhancedReservation.department,
     user_name: enhancedReservation.user_name,
+    room_name: 'Unknown Room', // ✅ room_name 추가 (기본값)
     start_time: enhancedReservation.start_time.toISOString(),
     end_time: enhancedReservation.end_time.toISOString(),
     is_mine: enhancedReservation.is_mine

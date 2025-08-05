@@ -2,6 +2,7 @@
 'use client';
 
 import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 import type { UserMetadata } from '@/types/auth';
@@ -69,6 +70,7 @@ export function useAuth() {
     authStatus
   } = useAuthContext();
   const supabase = useSupabaseClient(); // Use centralized client from SupabaseProvider
+  const router = useRouter();
 
   const isAdmin = useCallback(() => userProfile?.role === 'admin', [userProfile]);
   const isAuthenticated = useCallback(() => authStatus === 'authenticated' && !!userProfile, [authStatus, userProfile]);
@@ -185,11 +187,15 @@ export function useAuth() {
       // Simplified: Let onAuthStateChange handle all session cleanup
       // No manual cookie or storage clearing needed - auth-helpers handles this
       console.log('[useAuth] Logout completed, onAuthStateChange will handle cleanup');
+      
+      // 작전명: 위대한 도로 분리 - 로그아웃 후 명시적 리디렉션
+      console.log('[useAuth] Redirecting to welcome page after logout');
+      router.push('/welcome');
     } catch (error) {
       console.error('[useAuth] Logout failed:', error);
       throw error;
     }
-  }, [supabase]);
+  }, [supabase, router]);
 
   /**
    * Magic Link를 재전송합니다

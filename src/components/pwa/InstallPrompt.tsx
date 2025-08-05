@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@mantine/core';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -110,7 +110,7 @@ export default function InstallPrompt() {
             <Button
               size="sm"
               onClick={handleInstallClick}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
+              style={{ backgroundColor: '#3b82f6', color: 'white' }}
             >
               설치
             </Button>

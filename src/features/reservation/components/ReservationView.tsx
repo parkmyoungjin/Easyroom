@@ -3,114 +3,95 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation'; // useRouter import
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import GoogleCalendarView from '@/features/reservation/components/GoogleCalendarView';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Button, Skeleton, Tabs, Card, Text, Group } from '@mantine/core';
 import { addDays, startOfWeek, endOfWeek, format } from 'date-fns';
-import { ko } from 'date-fns/locale'; // ko locale import
+import { ko } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight, LocateFixed, Calendar, Clock, User, Building } from 'lucide-react';
 import { usePublicReservations } from '@/hooks/useReservations';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'; // Card 관련 컴포넌트 import
-import type { PublicReservation } from '@/types/database'; // PublicReservation 타입 import
+import type { PublicReservation } from '@/types/database';
 
-// ✅✅✅ 1. "전체 공개 예약"을 위한 간단한 목록 뷰 컴포넌트를 새로 만듭니다. ✅✅✅
+// 간단한 목록 뷰 컴포넌트
 function PublicListView({ reservations }: { reservations: PublicReservation[] }) {
   const router = useRouter();
 
   if (reservations.length === 0) {
     return (
-      <Card>
-        <CardContent className="text-center py-8">
-          <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold">예약 없음</h3>
-          <p className="text-muted-foreground">선택된 주에는 예약이 없습니다.</p>
-        </CardContent>
+      <Card withBorder p="xl" style={{ textAlign: 'center' }}>
+        <Calendar size={48} className="mx-auto mb-4 text-gray-400" />
+        <Text size="lg" fw={500}>예약 없음</Text>
+        <Text size="sm" c="dimmed">선택된 주에는 예약이 없습니다.</Text>
       </Card>
     );
   }
 
-  // 날짜별로 예약 그룹화
-  const groupedByDate = reservations.reduce((acc, res) => {
-    const dateKey = format(new Date(res.start_time), 'yyyy-MM-dd (EEE)', { locale: ko });
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
-    }
-    acc[dateKey].push(res);
-    return acc;
-  }, {} as Record<string, PublicReservation[]>);
-
   return (
-    <div className="space-y-6">
-      {Object.entries(groupedByDate).map(([date, dailyReservations]) => (
-        <div key={date}>
-          <h3 className="font-bold text-lg mb-2 sticky top-14 bg-background py-2 border-b">{date}</h3>
-          <div className="space-y-4">
-            {dailyReservations.map(reservation => (
-              <Card
-                key={reservation.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => router.push(`/reservations/${reservation.id}`)}
-              >
-                <CardHeader>
-                  <CardTitle className="text-base">{reservation.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Building className="h-4 w-4" />
-                    <span>{reservation.department}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <User className="h-4 w-4" />
-                    <span>{reservation.user_name}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    <span>
-                      {format(new Date(reservation.start_time), 'HH:mm')}
-                      {' ~ '}
-                      {format(new Date(reservation.end_time), 'HH:mm')}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      ))}
+    <div className="space-y-4">
+      {reservations.map((reservation) => {
+        const startTime = new Date(reservation.start_time);
+        const endTime = new Date(reservation.end_time);
+        const duration = Math.round((endTime.getTime() - startTime.getTime()) / (1000 * 60));
+
+        return (
+          <Card key={reservation.id} withBorder p="md" className="hover:shadow-md transition-shadow">
+            <Group justify="space-between" align="flex-start">
+              <div className="flex-1">
+                <Text fw={600} size="md" mb="xs">{reservation.title}</Text>
+                
+                <div className="space-y-2">
+                  <Group gap="xs">
+                    <User size={14} className="text-gray-500" />
+                    <Text size="sm" c="dimmed">{reservation.user_name}</Text>
+                    <Text size="sm" c="dimmed">({reservation.department})</Text>
+                  </Group>
+                  
+                  <Group gap="xs">
+                    <Building size={14} className="text-gray-500" />
+                    <Text size="sm" c="dimmed">{reservation.room_id}</Text>
+                  </Group>
+                  
+                  <Group gap="xs">
+                    <Clock size={14} className="text-gray-500" />
+                    <Text size="sm" c="dimmed">
+                      {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')} ({duration}분)
+                    </Text>
+                  </Group>
+                </div>
+
+                {reservation.purpose && (
+                  <Text size="sm" c="dimmed" mt="xs" className="italic">
+                    {reservation.purpose}
+                  </Text>
+                )}
+              </div>
+            </Group>
+          </Card>
+        );
+      })}
     </div>
   );
 }
 
-
 // 스켈레톤 로딩 컴포넌트
 const CalendarSkeleton = () => (
-  // ... (이전 코드와 동일, 변경 없음) ...
-  <div className="border rounded-lg p-4 bg-card">
-    <div className="flex justify-between items-center mb-4">
-      <Skeleton className="h-10 w-10" />
-      <div className="flex flex-col items-center gap-1">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-6 w-32" />
+  <Card withBorder p="md">
+    <div className="space-y-4">
+      <Skeleton height={40} />
+      <div className="grid grid-cols-7 gap-2">
+        {Array.from({ length: 35 }).map((_, i) => (
+          <Skeleton key={i} height={80} />
+        ))}
       </div>
-      <Skeleton className="h-10 w-10" />
     </div>
-    <div className="grid grid-cols-5 gap-2 mb-4">
-      <Skeleton className="h-12 w-full" />
-      <Skeleton className="h-12 w-full" />
-      <Skeleton className="h-12 w-full" />
-      <Skeleton className="h-12 w-full" />
-      <Skeleton className="h-12 w-full" />
-    </div>
-    <Skeleton className="h-[600px] w-full" />
-  </div>
+  </Card>
 );
 
-export function ReservationView() {
-  const { isAuthenticated, user } = useAuth();
+export default function ReservationView() {
+  const { isAuthenticated } = useAuth();
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [activeTab, setActiveTab] = useState('calendar');
 
   const weekRange = useMemo(() => {
     const start = startOfWeek(currentDate, { weekStartsOn: 1 });
@@ -134,53 +115,59 @@ export function ReservationView() {
   const weekDisplay = `${format(weekRange.start, 'M월 d일')} ~ ${format(addDays(weekRange.start, 4), 'd일')}`;
 
   return (
-    <Tabs defaultValue="calendar" className="w-full">
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
-        <div className="flex justify-between items-center p-2 border rounded-lg bg-card w-full sm:w-auto">
-          <Button variant="ghost" size="icon" onClick={handlePreviousWeek} aria-label="이전 주">
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="text-center mx-4">
-            <p className="font-semibold text-sm">{format(weekRange.start, 'yyyy년')}</p>
-            <p className="text-base">{weekDisplay}</p>
+    <div className="space-y-6">
+      {/* 주간 네비게이션 */}
+      <div className="flex justify-between items-center p-4 border rounded-lg bg-card">
+        <Button variant="outline" size="compact-sm" onClick={handlePreviousWeek}>
+          <ChevronLeft size={16} />
+        </Button>
+        
+        <div className="flex flex-col items-center gap-2">
+          <div className="text-center">
+            <Text fw={600} size="sm">{format(weekRange.start, 'yyyy년')}</Text>
+            <Text size="lg">{weekDisplay}</Text>
           </div>
-          <Button variant="ghost" size="icon" onClick={handleNextWeek} aria-label="다음 주">
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={handleGoToToday}>
-            <LocateFixed className="mr-2 h-4 w-4" />
+          <Button variant="subtle" size="compact-sm" onClick={handleGoToToday}>
+            <LocateFixed size={16} style={{ marginRight: '8px' }} />
             오늘
           </Button>
-          <TabsList>
-            <TabsTrigger value="calendar">캘린더</TabsTrigger>
-            <TabsTrigger value="list">목록</TabsTrigger>
-          </TabsList>
         </div>
+
+        <Button variant="outline" size="compact-sm" onClick={handleNextWeek}>
+          <ChevronRight size={16} />
+        </Button>
       </div>
 
-      {isLoading && <CalendarSkeleton />}
-      {isError && <p className="text-destructive text-center p-8">예약 정보를 불러오는 데 실패했습니다.</p>}
+      {/* 탭 네비게이션 */}
+      <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'calendar')}>
+        <Tabs.List>
+          <Tabs.Tab value="calendar">캘린더</Tabs.Tab>
+          <Tabs.Tab value="list">목록</Tabs.Tab>
+        </Tabs.List>
 
-      {!isLoading && !isError && (
-        <>
-          <TabsContent value="calendar">
-            <GoogleCalendarView
-              reservations={reservations || []}
-              weekStartDate={weekRange.start}
-              isAuthenticated={isAuthenticated()}
-            />
-          </TabsContent>
-          <TabsContent value="list">
-            {/* ✅✅✅ 2. 새로 만든 PublicListView를 사용하고, prop을 전달합니다. ✅✅✅ */}
-            <PublicListView
-              reservations={reservations || []}
-            />
-          </TabsContent>
-        </>
-      )}
-    </Tabs>
+        {isLoading && <CalendarSkeleton />}
+        {isError && (
+          <Text c="red" ta="center" p="xl">
+            예약 정보를 불러오는 데 실패했습니다.
+          </Text>
+        )}
+
+        {!isLoading && !isError && (
+          <>
+            <Tabs.Panel value="calendar" pt="md">
+              <GoogleCalendarView
+                reservations={reservations || []}
+                weekStartDate={weekRange.start}
+                isAuthenticated={isAuthenticated()}
+              />
+            </Tabs.Panel>
+
+            <Tabs.Panel value="list" pt="md">
+              <PublicListView reservations={reservations || []} />
+            </Tabs.Panel>
+          </>
+        )}
+      </Tabs>
+    </div>
   );
 }

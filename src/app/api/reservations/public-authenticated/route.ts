@@ -48,10 +48,12 @@ export async function GET(request: NextRequest) {
     const normalizedStartDate = normalizeDateForQuery(startDate, false);
     const normalizedEndDate = normalizeDateForQuery(endDate, true);
 
-    // RPC 함수 호출로 변경 - 모든 데이터 가공이 서버에서 처리됨
-    const { data, error } = await supabase.rpc('get_reservations_for_period', {
+    // ✅ 개선된 RPC 함수 호출 - room 정보 포함
+    const { data, error } = await supabase.rpc('get_public_reservations_with_room', {
       start_date: normalizedStartDate,
-      end_date: normalizedEndDate
+      end_date: normalizedEndDate,
+      page_limit: limit,
+      page_offset: offset
     });
 
     if (error) {

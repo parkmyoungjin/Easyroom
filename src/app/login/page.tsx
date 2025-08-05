@@ -6,9 +6,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { LoginForm } from '@/features/auth/components/LoginForm';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert } from '@mantine/core';
 import { MailCheck, AlertCircle, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 
 // --- 개선된 로딩 스피너 컴포넌트 ---
@@ -34,8 +33,8 @@ function LoginContent() {
   useEffect(() => {
     // 인증 완료시 즉시 리다이렉트 (PWA 환경 고려)
     if (authStatus === 'authenticated' && userProfile) {
-      console.log('[LoginPage] Authentication detected, redirecting to main page');
-      router.replace('/');
+      console.log('[LoginPage] Authentication detected, redirecting to dashboard');
+      router.replace('/dashboard');
     }
   }, [authStatus, userProfile, router]);
 
@@ -45,7 +44,7 @@ function LoginContent() {
   }
   
   if (authStatus === 'authenticated' && userProfile) {
-    return <LoadingSpinner message="메인 페이지로 이동 중..." />;
+    return <LoadingSpinner message="대시보드로 이동 중..." />;
   }
   
   return (
@@ -54,19 +53,24 @@ function LoginContent() {
       {/* 회원가입 직후에만 보이는 환영 메시지 - OTP 전환 안내 */}
       {fromSignup && (
         <div className="w-full max-w-md mb-6">
-          <Alert variant="default" className="border-green-500 bg-green-50 dark:bg-green-900/20">
-            <MailCheck className="h-5 w-5 text-green-600" />
-            <AlertTitle className="font-bold text-green-700">회원가입 완료!</AlertTitle>
-            <AlertDescription className="text-green-600">
-              {signupEmail ? (
-                <>
-                  <strong>{signupEmail}</strong>로 회원가입이 완료되었습니다.<br />
-                  이제 OTP 코드로 로그인할 수 있습니다. 아래에서 이메일을 입력하고 OTP 코드를 받아보세요.
-                </>
-              ) : (
-                '가입이 완료되었습니다. 이제 OTP 코드로 로그인할 수 있습니다.'
-              )}
-            </AlertDescription>
+          <Alert 
+            color="green" 
+            title="회원가입 완료!"
+            icon={<MailCheck size={16} />}
+            styles={{
+              root: { borderColor: '#10b981', backgroundColor: '#f0fdf4' },
+              title: { color: '#059669', fontWeight: 'bold' },
+              body: { color: '#059669' }
+            }}
+          >
+            {signupEmail ? (
+              <>
+                <strong>{signupEmail}</strong>로 회원가입이 완료되었습니다.<br />
+                이제 OTP 코드로 로그인할 수 있습니다. 아래에서 이메일을 입력하고 OTP 코드를 받아보세요.
+              </>
+            ) : (
+              '가입이 완료되었습니다. 이제 OTP 코드로 로그인할 수 있습니다.'
+            )}
           </Alert>
         </div>
       )}

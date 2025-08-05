@@ -9,7 +9,7 @@ import { utcToKst } from "@/lib/utils/date";
 import type { PublicReservation } from "@/types/database";
 import { ReservationDetailDialog } from "@/features/reservation/components/ReservationDetailDialog";
 
-import { cn } from '@/lib/utils';
+// cn 함수 제거 - Mantine 스타일링 사용
 import { useReservationsRealtime } from '@/hooks/useReservationsRealtime';
 import { useUpdateReservation } from '@/hooks/useReservations';
 
@@ -90,14 +90,7 @@ function DraggableReservationBlock({
     <div
       ref={setNodeRef}
       style={{ top: `${top}px`, height: `${height - 2}px`, ...style }}
-      className={cn(
-        "absolute w-[calc(100%_-_4px)] ml-[2px] p-1 rounded-md border cursor-pointer shadow-sm hover:shadow-lg transition-all z-10",
-        colors.bg,
-        colors.text,
-        colors.border,
-        isDragging && "opacity-50 shadow-2xl",
-        !isAuthenticated && "cursor-default"
-      )}
+      className={`absolute w-[calc(100%_-_4px)] ml-[2px] p-1 rounded-md border cursor-pointer shadow-sm hover:shadow-lg transition-all z-10 ${colors.bg} ${colors.text} ${colors.border} ${isDragging ? 'opacity-50 shadow-2xl' : ''} ${!isAuthenticated ? 'cursor-default' : ''}`}
       onClick={(e) => {
         e.stopPropagation();
         onSelect(reservation);
@@ -145,10 +138,7 @@ function DroppableDayColumn({
   return (
     <div
       ref={setNodeRef}
-      className={cn(
-        "relative h-full transition-colors",
-        isOver && "bg-blue-50/50"
-      )}
+      className={`relative h-full transition-colors ${isOver ? 'bg-blue-50/50' : ''}`}
       onClick={(e) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const clickY = e.clientY - rect.top;
@@ -326,7 +316,7 @@ export default function GoogleCalendarView({
             {DAYS.map((day, i) => {
               const date = addDays(weekStartDate, i);
               return (
-                <div key={i} className={cn("text-center p-2 rounded-md", isToday(date) ? "bg-primary/10" : "")}>
+                <div key={i} className={`text-center p-2 rounded-md ${isToday(date) ? 'bg-primary/10' : ''}`}>
                   <div className="font-semibold text-sm">{day}</div>
                   <div className="text-xs text-muted-foreground">{format(date, 'M/d')}</div>
                 </div>
@@ -380,12 +370,7 @@ export default function GoogleCalendarView({
         {/* 드래그 오버레이 */}
         <DragOverlay>
           {draggedReservation ? (
-            <div className={cn(
-              "p-1 rounded-md border shadow-2xl opacity-90",
-              getDepartmentColors(draggedReservation.department).bg,
-              getDepartmentColors(draggedReservation.department).text,
-              getDepartmentColors(draggedReservation.department).border
-            )}>
+            <div className={`p-1 rounded-md border shadow-2xl opacity-90 ${getDepartmentColors(draggedReservation.department).bg} ${getDepartmentColors(draggedReservation.department).text} ${getDepartmentColors(draggedReservation.department).border}`}>
               <div className="text-xs font-semibold truncate">
                 {draggedReservation.title}
               </div>

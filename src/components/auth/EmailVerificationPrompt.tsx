@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
+import { Button, Card } from '@mantine/core'
+import { toast } from 'sonner'
 import { useAuth } from '@/hooks/useAuth'
 import { Mail, RefreshCw } from 'lucide-react'
 
@@ -14,7 +13,7 @@ interface EmailVerificationPromptProps {
 
 export function EmailVerificationPrompt({ email, onClose }: EmailVerificationPromptProps) {
   const [isResending, setIsResending] = useState(false)
-  const { toast } = useToast()
+
   const { resendMagicLink } = useAuth()
 
   const handleResendEmail = async () => {
@@ -23,17 +22,14 @@ export function EmailVerificationPrompt({ email, onClose }: EmailVerificationPro
     try {
       await resendMagicLink(email)
       
-      toast({
-        title: 'Magic Link 재발송 완료',
+      toast.success('Magic Link 재발송 완료', {
         description: 'Magic Link가 다시 발송되었습니다. 이메일을 확인해주세요.',
       })
     } catch (error) {
       console.error('Email resend error:', error)
       
-      toast({
-        title: 'Magic Link 재발송 실패',
+      toast.error('Magic Link 재발송 실패', {
         description: error instanceof Error ? error.message : 'Magic Link 재발송 중 오류가 발생했습니다.',
-        variant: 'destructive',
       })
     } finally {
       setIsResending(false)
@@ -41,20 +37,20 @@ export function EmailVerificationPrompt({ email, onClose }: EmailVerificationPro
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-center">
+    <Card withBorder className="w-full max-w-md mx-auto">
+      <Card.Section withBorder inheritPadding py="xs" className="text-center">
         <div className="flex justify-center mb-4">
           <div className="p-3 bg-blue-100 rounded-full">
             <Mail className="h-6 w-6 text-blue-600" />
           </div>
         </div>
-        <CardTitle className="text-xl">이메일 인증이 필요합니다</CardTitle>
-        <CardDescription>
+        <h3 className="text-xl font-semibold">이메일 인증이 필요합니다</h3>
+        <p className="text-sm text-gray-600">
           회원가입이 완료되었습니다. 이메일 인증을 완료해주세요.
-        </CardDescription>
-      </CardHeader>
+        </p>
+      </Card.Section>
       
-      <CardContent className="space-y-4">
+      <Card.Section inheritPadding py="md" className="space-y-4">
         <div className="p-4 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-800">
             <strong>{email}</strong>로 인증 이메일이 발송되었습니다.
@@ -100,7 +96,7 @@ export function EmailVerificationPrompt({ email, onClose }: EmailVerificationPro
             이메일이 도착하지 않았나요? 스팸 폴더도 확인해보세요.
           </p>
         </div>
-      </CardContent>
+      </Card.Section>
     </Card>
   )
 }

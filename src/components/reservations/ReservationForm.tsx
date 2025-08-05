@@ -3,19 +3,15 @@
 'use client';
 
 import { useMemo, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button, Stack, Card, Text } from '@mantine/core';
+import { ControlledDateInput } from '@/components/forms/ControlledDateInput';
+import { ControlledTextInput } from '@/components/forms/ControlledTextInput';
+import { ControlledSelect } from '@/components/forms/ControlledSelect';
+import { ControlledTextarea } from '@/components/forms/ControlledTextarea';
 
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useRooms, useBookedSlots } from '@/hooks/useRooms';
 import type { BookedSlot } from '@/lib/services/rooms';
 
@@ -27,20 +23,16 @@ interface BookedInterval {
 }
 import { useCreateReservation, useUpdateReservation, useMyReservations } from '@/hooks/useReservations';
 import { format } from "date-fns";
-import { ko } from "date-fns/locale";
 import { useAuth } from '@/hooks/useAuth';
 import { useTime } from '@/hooks/useTime';
 import { newReservationFormSchema, type NewReservationFormValues } from "@/lib/validations/schemas";
 import { formatDateTimeForDatabase2 } from "@/lib/utils/date";
 import { handleAuthError } from '@/lib/utils/auth-error-handler';
-import { CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import type { ReservationInsert, ReservationWithDetails } from '@/types/database';
-import { logger } from '@/lib/utils/logger';
-import { debugUserIdMapping, debugPermissionCheck } from '@/lib/utils/debug';
 import { canEditReservation, getPermissionErrorMessage } from '@/lib/utils/reservation-permissions';
 import { ReservationErrorHandler } from '@/lib/utils/error-handler';
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
+import { useNotificationStore } from '@/store/notificationStore';
 
 // 시간 슬롯 상수 정의 (컴포넌트 외부)
 const START_TIME_SLOTS = Array.from({ length: (18.5 - 8) * 2 + 1 }, (_, i) => {
@@ -71,11 +63,12 @@ export default function ReservationForm({
 }: ReservationFormProps) {
     const { userProfile } = useAuth();
     const { isDateInPast, isDateWeekend } = useTime();
-    const { toast } = useToast();
+
     const { data: rooms, isLoading: isLoadingRooms } = useRooms();
     const { mutate: createReservation, isPending: isCreating } = useCreateReservation();
     const { mutate: updateReservation, isPending: isUpdating } = useUpdateReservation();
     const supabase = useSupabaseClient();
+    const showNotification = useNotificationStore((state) => state.showNotification);
 
     // Edit 모드를 위한 상태
     const [isLoading, setIsLoading] = useState(mode === 'edit');
@@ -107,9 +100,7 @@ export default function ReservationForm({
                 const targetReservation = myReservations.find((r: ReservationWithDetails) => r.id === reservationId);
 
                 if (!targetReservation) {
-                    toast({
-                        variant: "destructive",
-                        title: "예약을 찾을 수 없습니다",
+                    toast.error("예약을 찾을 수 없습니다", {
                         description: "해당 예약이 존재하지 않습니다.",
                     });
                     onCancel?.();
@@ -121,9 +112,7 @@ export default function ReservationForm({
 
                 if (!permissionResult.allowed) {
                     const errorMessage = getPermissionErrorMessage('edit', permissionResult.reason || 'unknown');
-                    toast({
-                        variant: "destructive",
-                        title: errorMessage.title,
+                    toast.error(errorMessage.title, {
                         description: errorMessage.description,
                     });
                     onCancel?.();
@@ -171,14 +160,23 @@ export default function ReservationForm({
     const selectedRoomId = form.watch('roomId');
     const selectedStartTime = form.watch('startTime');
 
+    // ✅ [핵심 수정] Date 객체 안정화 - 무한 로딩 방지
+    const stableSelectedDate = useMemo(() => {
+        if (!selectedDate) return null;
+        // Date 객체의 시간 부분을 정규화하여 참조 안정성 확보
+        const normalized = new Date(selectedDate);
+        normalized.setHours(0, 0, 0, 0);
+        return normalized;
+    }, [selectedDate?.getTime()]); // getTime()을 사용하여 실제 날짜 값 기준으로 메모화
+
     const { data: bookedSlots = [], isLoading: isLoadingSlots } = useBookedSlots(
         selectedRoomId,
-        selectedDate
+        stableSelectedDate
     );
 
     // 시간 충돌 계산 (Edit 모드에서는 현재 예약 제외)
     const timeSlotStatus = useMemo(() => {
-        if (!selectedDate || isLoadingSlots) return {};
+        if (!stableSelectedDate || isLoadingSlots) return {};
         const statusMap: { [time: string]: { isBooked: boolean; title: string } } = {};
 
         // Edit 모드에서는 현재 수정 중인 예약을 제외한 예약 슬롯만 고려
@@ -193,7 +191,7 @@ export default function ReservationForm({
         }));
 
         START_TIME_SLOTS.forEach(slotTime => {
-            const slotStart = new Date(`${format(selectedDate, 'yyyy-MM-dd')}T${slotTime}:00.000+09:00`).getTime();
+            const slotStart = new Date(`${format(stableSelectedDate, 'yyyy-MM-dd')}T${slotTime}:00.000+09:00`).getTime();
             const slotEnd = slotStart + 30 * 60 * 1000;
 
             const conflictingReservation = bookedIntervals.find((interval: BookedInterval) =>
@@ -206,7 +204,7 @@ export default function ReservationForm({
             };
         });
         return statusMap;
-    }, [selectedDate, bookedSlots, isLoadingSlots, mode, reservation]);
+    }, [stableSelectedDate, bookedSlots, isLoadingSlots, mode, reservation]);
 
     // 종료 시간 옵션 계산
     const endTimeOptions = useMemo(() => {
@@ -229,22 +227,18 @@ export default function ReservationForm({
     // 로딩 중일 때 (Edit 모드)
     if (isLoading) {
         return (
-            <Card>
-                <CardContent className="flex items-center justify-center py-8">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                        <p className="mt-2 text-gray-600">로딩 중...</p>
-                    </div>
-                </CardContent>
+            <Card withBorder shadow="sm" radius="md" p="lg">
+                <Stack align="center" gap="md">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <Text c="dimmed">로딩 중...</Text>
+                </Stack>
             </Card>
         );
     }
 
     async function onSubmit(data: NewReservationFormValues) {
         if (!userProfile?.dbId) {
-            toast({
-                variant: "destructive",
-                title: "사용자 정보 오류",
+            toast.error("사용자 정보 오류", {
                 description: "다시 로그인해주세요."
             });
             return;
@@ -252,18 +246,14 @@ export default function ReservationForm({
 
         // 공통 검증 로직
         if (!data.title?.trim()) {
-            toast({
-                variant: "destructive",
-                title: "입력 오류",
+            toast.error("입력 오류", {
                 description: "부서명을 입력해주세요.",
             });
             return;
         }
 
         if (!data.roomId) {
-            toast({
-                variant: "destructive",
-                title: "입력 오류",
+            toast.error("입력 오류", {
                 description: "회의실을 선택해주세요.",
             });
             return;
@@ -279,9 +269,7 @@ export default function ReservationForm({
         endDateTime.setHours(endHour, endMinute, 0, 0);
 
         if (endDateTime <= startDateTime) {
-            toast({
-                variant: "destructive",
-                title: "입력 오류",
+            toast.error("입력 오류", {
                 description: "종료 시간은 시작 시간보다 늦어야 합니다.",
             });
             return;
@@ -290,9 +278,7 @@ export default function ReservationForm({
         // 과거 시간 예약 방지
         const now = new Date();
         if (startDateTime <= now) {
-            toast({
-                variant: "destructive",
-                title: "입력 오류",
+            toast.error("입력 오류", {
                 description: "과거 시간으로는 예약할 수 없습니다.",
             });
             return;
@@ -314,17 +300,25 @@ export default function ReservationForm({
 
             createReservation(reservationData, {
                 onSuccess: () => {
-                    toast({
-                        title: "예약 완료",
-                        description: "회의실 예약이 성공적으로 완료되었습니다."
-                    });
+                    // 이전에 예약이 없었는지 확인 (첫 예약인지 체크)
+                    const isFirstReservation = myReservations?.length === 0;
+                    
+                    if (isFirstReservation) {
+                        showNotification(
+                            '첫 예약을 축하합니다!',
+                            '이제 "내 예약" 페이지에서 예약 내역을 확인하고 관리할 수 있습니다.',
+                            'success'
+                        );
+                    } else {
+                        toast.success("예약 완료", {
+                            description: "회의실 예약이 성공적으로 완료되었습니다."
+                        });
+                    }
                     onSuccess?.();
                 },
                 onError: (error) => {
                     const friendlyError = handleAuthError(error);
-                    toast({
-                        variant: "destructive",
-                        title: friendlyError.title,
+                    toast.error(friendlyError.title, {
                         description: friendlyError.message
                     });
                 },
@@ -344,8 +338,7 @@ export default function ReservationForm({
                 data: updateData
             }, {
                 onSuccess: () => {
-                    toast({
-                        title: "예약이 수정되었습니다",
+                    toast.success("예약이 수정되었습니다", {
                         description: "예약 정보가 성공적으로 업데이트되었습니다."
                     });
                     onSuccess?.();
@@ -361,9 +354,7 @@ export default function ReservationForm({
 
                     const userMessage = ReservationErrorHandler.getUserFriendlyMessage(reservationError, 'edit');
 
-                    toast({
-                        variant: "destructive",
-                        title: userMessage.title,
+                    toast.error(userMessage.title, {
                         description: userMessage.description,
                     });
                 }
@@ -374,233 +365,157 @@ export default function ReservationForm({
     const isPending = isCreating || isUpdating;
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>{mode === 'create' ? '예약 정보 입력' : '예약 수정'}</CardTitle>
-                <CardDescription>
-                    {mode === 'create'
-                        ? '회의실 예약은 평일 오전 8시부터 오후 7시까지 가능합니다.'
-                        : '예약 정보를 수정하세요'
-                    }
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField
+        <Card withBorder shadow="sm" radius="md" p="lg">
+            <Stack gap="lg">
+                <div>
+                    <Text size="xl" fw={600}>
+                        {mode === 'create' ? '예약 정보 입력' : '예약 수정'}
+                    </Text>
+                    <Text size="sm" c="dimmed" mt="xs">
+                        {mode === 'create'
+                            ? '회의실 예약은 평일 오전 8시부터 오후 7시까지 가능합니다.'
+                            : '예약 정보를 수정하세요'
+                        }
+                    </Text>
+                </div>
+                
+                <form onSubmit={form.handleSubmit(onSubmit)}>
+                    <Stack gap="md">
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <ControlledTextInput
                                 control={form.control}
                                 name="title"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>부서명</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder={userProfile?.department ? '' : "부서명을 입력하세요"}
-                                                {...field}
-                                                disabled={!!userProfile?.department}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                                label="부서명"
+                                placeholder={userProfile?.department ? '' : "부서명을 입력하세요"}
+                                disabled={!!userProfile?.department}
+                                required
+                                withAsterisk
                             />
 
-                            <FormField
+                            <ControlledTextInput
                                 control={form.control}
                                 name="booker"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>예약자</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder={userProfile?.name ? '' : "예약자를 입력하세요"}
-                                                {...field}
-                                                disabled={!!userProfile?.name}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                                label="예약자"
+                                placeholder={userProfile?.name ? '' : "예약자를 입력하세요"}
+                                disabled={!!userProfile?.name}
+                                required
+                                withAsterisk
                             />
                         </div>
 
-                        <FormField
+                        <ControlledSelect
                             control={form.control}
                             name="roomId"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>회의실</FormLabel>
-                                    <Select
-                                        onValueChange={(value) => {
-                                            field.onChange(value);
-                                            form.setValue('startTime', '');
-                                            form.setValue('endTime', '');
-                                        }}
-                                        value={field.value}
-                                        disabled={isLoadingRooms}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder={isLoadingRooms ? "회의실 목록 로딩 중..." : "회의실을 선택하세요"} />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {rooms?.map((room) => (
-                                                <SelectItem key={room.id} value={room.id}>
-                                                    {room.name} ({room.capacity}인실)
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="회의실"
+                            placeholder={isLoadingRooms ? "회의실 목록 로딩 중..." : "회의실을 선택하세요"}
+                            data={rooms?.map((room) => ({
+                                value: room.id,
+                                label: `${room.name} (${room.capacity}인실)`
+                            })) || []}
+                            disabled={isLoadingRooms}
+                            required
+                            withAsterisk
+                            onSelectionChange={(value) => {
+                                form.setValue('startTime', '');
+                                form.setValue('endTime', '');
+                            }}
                         />
-                        <FormField
+                        <ControlledDateInput
                             control={form.control}
                             name="date"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                    <FormLabel>날짜</FormLabel>
-            {/* ✅ [핵심 수정] 조건부 렌더링을 제거하고, 항상 펼쳐진 캘린더만 사용하도록 통일합니다. */}
-            <Calendar
-                mode="single"
-                selected={field.value}
-                onSelect={(date) => {
-                    // 캘린더 자동 닫기 로직은 더 이상 필요 없으므로 제거합니다.
-                    if (date) field.onChange(date);
-                    form.setValue('startTime', '');
-                    form.setValue('endTime', '');
-                }}
-                disabled={(date) => isDateInPast(date) || isDateWeekend(date)}
-                className="rounded-md border" // 모든 모드에서 테두리 스타일 적용
-            />
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="예약 날짜"
+                            placeholder="날짜를 선택하세요"
+                            minDate={new Date()}
+                            excludeDate={(dateString) => {
+                                // ✅ 문자열로 받은 날짜를 Date 객체로 변환하여 주말 체크
+                                const dateObj = new Date(dateString);
+                                return dateObj.getDay() === 0 || dateObj.getDay() === 6;
+                            }}
+                            required
+                            withAsterisk
+                            onDateChange={() => {
+                                // 날짜 변경 시 시간 필드 초기화
+                                form.setValue('startTime', '');
+                                form.setValue('endTime', '');
+                            }}
                         />
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <ControlledSelect
                                 control={form.control}
                                 name="startTime"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>시작 시간</FormLabel>
-                                        <Select
-                                            onValueChange={(value) => {
-                                                field.onChange(value);
-                                                form.setValue('endTime', '');
-                                            }}
-                                            value={field.value}
-                                            disabled={!selectedRoomId || !selectedDate || isLoadingSlots}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder={
-                                                        isLoadingSlots ? "예약 현황 조회 중..."
-                                                            : !selectedRoomId || !selectedDate ? "회의실과 날짜를 선택하세요"
-                                                                : "시작 시간을 선택하세요"
-                                                    } />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {START_TIME_SLOTS.map(time => {
-                                                    const status = timeSlotStatus[time];
-                                                    const isDisabled = status?.isBooked || false;
-                                                    return (
-                                                        <SelectItem
-                                                            key={time}
-                                                            value={time}
-                                                            disabled={isDisabled}
-                                                            className={isDisabled ? 'text-gray-400 cursor-not-allowed' : ''}
-                                                        >
-                                                            {time} {isDisabled && '(예약됨)'}
-                                                        </SelectItem>
-                                                    );
-                                                })}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                                label="시작 시간"
+                                placeholder={
+                                    isLoadingSlots ? "예약 현황 조회 중..."
+                                        : !selectedRoomId || !selectedDate ? "회의실과 날짜를 선택하세요"
+                                            : "시작 시간을 선택하세요"
+                                }
+                                data={START_TIME_SLOTS.map(time => {
+                                    const status = timeSlotStatus[time];
+                                    const isDisabled = status?.isBooked || false;
+                                    return {
+                                        value: time,
+                                        label: `${time}${isDisabled ? ' (예약됨)' : ''}`,
+                                        disabled: isDisabled
+                                    };
+                                })}
+                                disabled={!selectedRoomId || !selectedDate || isLoadingSlots}
+                                required
+                                withAsterisk
+                                onSelectionChange={() => {
+                                    form.setValue('endTime', '');
+                                }}
                             />
 
-                            <FormField
+                            <ControlledSelect
                                 control={form.control}
                                 name="endTime"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>종료 시간</FormLabel>
-                                        <Select
-                                            onValueChange={field.onChange}
-                                            value={field.value}
-                                            disabled={!selectedStartTime || endTimeOptions.length === 0}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder={
-                                                        !selectedStartTime ? "시작 시간을 먼저 선택하세요"
-                                                            : endTimeOptions.length === 0 ? "선택 가능한 시간이 없습니다"
-                                                                : "종료 시간을 선택하세요"
-                                                    } />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {endTimeOptions.map(time => (
-                                                    <SelectItem key={time} value={time}>
-                                                        {time}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                                label="종료 시간"
+                                placeholder={
+                                    !selectedStartTime ? "시작 시간을 먼저 선택하세요"
+                                        : endTimeOptions.length === 0 ? "선택 가능한 시간이 없습니다"
+                                            : "종료 시간을 선택하세요"
+                                }
+                                data={endTimeOptions.map(time => ({
+                                    value: time,
+                                    label: time
+                                }))}
+                                disabled={!selectedStartTime || endTimeOptions.length === 0}
+                                required
+                                withAsterisk
                             />
                         </div>
 
-                        <FormField
+                        <ControlledTextarea
                             control={form.control}
                             name="purpose"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>목적 (선택)</FormLabel>
-                                    <FormControl>
-                                        <Textarea
-                                            placeholder="회의 목적을 입력하세요"
-                                            className="resize-none"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="목적 (선택)"
+                            placeholder="회의 목적을 입력하세요"
+                            resize="none"
+                            rows={4}
                         />
 
-                        <div className="flex gap-4">
+                        <div style={{ display: 'flex', gap: '1rem' }}>
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={onCancel}
-                                className="flex-1"
+                                style={{ flex: 1 }}
                             >
                                 취소
                             </Button>
-                            <Button type="submit" disabled={isPending} className="flex-1">
-                                {isPending && (
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                )}
-                                {isPending
-                                    ? (mode === 'create' ? '예약 중...' : '수정 중...')
-                                    : (mode === 'create' ? '예약하기' : '수정 완료')
-                                }
+                            <Button 
+                                type="submit" 
+                                disabled={isPending} 
+                                loading={isPending}
+                                style={{ flex: 1 }}
+                            >
+                                {mode === 'create' ? '예약하기' : '수정 완료'}
                             </Button>
                         </div>
-                    </form>
-                </Form>
-            </CardContent>
+                    </Stack>
+                </form>
+            </Stack>
         </Card>
     );
 }

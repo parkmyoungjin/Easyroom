@@ -31,6 +31,61 @@ export class RoomService {
     return RoomService.instance;
   }
 
+  /**
+   * ✅ Phase 1: 예약된 시간 슬롯 조회 - 서비스 계층으로 완전 이전
+   * 모든 RPC 호출, 필터링, 데이터 변환을 서비스 계층에서 담당
+   */
+  async getBookedSlots(supabase: TypedSupabaseClient, roomId: string, date: Date): Promise<BookedSlot[]> {
+    if (!roomId || !date) {
+      logger.warn('회의실 ID 또는 날짜가 없어 예약된 시간 슬롯을 조회할 수 없습니다');
+      return [];
+    }
+
+    try {
+      // ✅ 날짜 범위 계산
+      const startDate = format(date, 'yyyy-MM-dd') + 'T00:00:00Z';
+      const endDate = format(date, 'yyyy-MM-dd') + 'T23:59:59Z';
+
+      // ✅ RPC 함수 호출
+      const { data, error } = await supabase.rpc('get_reservations_for_period', {
+        start_date: startDate,
+        end_date: endDate
+      });
+
+      if (error) {
+        logger.error('get_reservations_for_period RPC failed for booked slots', error);
+        throw new Error(`예약된 시간 슬롯 조회 실패: ${error.message}`);
+      }
+
+      // ✅ 특정 회의실의 예약들만 필터링
+      const roomReservations = (data || []).filter((reservation: any) =>
+        reservation.room_id === roomId && reservation.status !== 'cancelled'
+      );
+
+      // ✅ BookedSlot 형식으로 데이터 변환
+      const bookedSlots = roomReservations.map((reservation: any) => ({
+        id: reservation.id,
+        start_time: reservation.start_time,
+        end_time: reservation.end_time,
+        title: reservation.title,
+        user_name: reservation.user_name || '알 수 없음',
+        is_mine: reservation.is_mine || false
+      }));
+
+      logger.debug('예약된 시간 슬롯 조회 완료', {
+        roomId,
+        date: format(date, 'yyyy-MM-dd'),
+        totalReservations: data?.length || 0,
+        roomReservations: bookedSlots.length
+      });
+
+      return bookedSlots;
+    } catch (error) {
+      logger.error('예약된 시간 슬롯 조회 실패', { error, roomId, date });
+      throw new Error('예약된 시간 슬롯을 불러오는데 실패했습니다.');
+    }
+  }
+
   async getActiveRooms(supabase: TypedSupabaseClient): Promise<Room[]> {
     const { data, error } = await supabase
       .from("rooms")
@@ -172,33 +227,66 @@ export class RoomService {
     }
   }
 
+  /**
+   * ✅ Phase 2: 회의실 가용성 조회 - RPC 호출과 폴백 로직을 서비스 계층으로 완전 이전
+   * 훅에서 수행하던 직접 RPC 호출과 폴백 처리를 서비스 계층에서 담당
+   */
   async getRoomAvailability(
     supabase: TypedSupabaseClient,
     roomId: string,
     startDate: string,
     endDate: string
-  ): Promise<{ available: boolean; conflictingReservations: any[] }> {
+  ): Promise<any[]> {
     try {
-      // RPC 함수를 통해 예약 데이터 조회
-      const { data, error } = await supabase.rpc('get_reservations_for_period', {
+      // ✅ 최적화된 RPC 함수 우선 시도
+      const { data: optimizedData, error: optimizedError } = await supabase
+        .rpc('get_room_availability_detailed', {
+          room_id: roomId,
+          start_time: new Date(startDate).toISOString(),
+          end_time: new Date(endDate).toISOString()
+        });
+
+      // ✅ 최적화된 RPC 함수가 성공하면 결과 반환
+      if (!optimizedError && optimizedData) {
+        logger.debug('최적화된 RPC 함수로 회의실 가용성 조회 성공', {
+          roomId,
+          startDate,
+          endDate,
+          resultCount: optimizedData.length
+        });
+        return optimizedData;
+      }
+
+      // ✅ 폴백: 기본 RPC 함수 사용
+      logger.warn('최적화된 RPC 함수 실패, 기본 함수로 폴백', { 
+        optimizedError: optimizedError?.message 
+      });
+
+      const { data: fallbackData, error: fallbackError } = await supabase.rpc('get_reservations_for_period', {
         start_date: new Date(startDate).toISOString(),
         end_date: new Date(endDate).toISOString()
       });
 
-      if (error) {
-        throw new Error(`회의실 가용성 확인 실패: ${error.message}`);
+      if (fallbackError) {
+        throw new Error(`회의실 가용성 확인 실패: ${fallbackError.message}`);
       }
 
-      // 특정 방의 예약만 필터링
-      const conflictingReservations = (data || []).filter((reservation: any) => 
+      // ✅ 특정 방의 예약만 필터링하여 반환
+      const roomReservations = (fallbackData || []).filter((reservation: any) => 
         reservation.room_id === roomId
       );
 
-      return {
-        available: conflictingReservations.length === 0,
-        conflictingReservations,
-      };
+      logger.debug('폴백 RPC 함수로 회의실 가용성 조회 완료', {
+        roomId,
+        startDate,
+        endDate,
+        totalReservations: fallbackData?.length || 0,
+        roomReservations: roomReservations.length
+      });
+
+      return roomReservations;
     } catch (error) {
+      logger.error('회의실 가용성 조회 실패', { error, roomId, startDate, endDate });
       throw new Error(`회의실 가용성 확인 실패: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }

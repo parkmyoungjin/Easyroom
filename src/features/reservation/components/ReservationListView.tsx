@@ -4,127 +4,130 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, MapPin, Edit2, Trash2 } from 'lucide-react';
-import { useMyReservations } from '@/hooks/useReservations'; // ✅ useMyReservations를 직접 사용
-import { useAuth } from '@/hooks/useAuth';
+import { Accordion, Badge, Group, Text, ActionIcon, Stack, Button, Tooltip } from '@mantine/core';
+import { IconPencil, IconTrash, IconCalendar, IconClock, IconMapPin } from '@tabler/icons-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { ReservationCancelDialog } from '@/features/reservation/components/ReservationCancelDialog';
+import { ReservationActionDrawer } from '@/features/reservation/components/ReservationActionDrawer';
 import type { ReservationWithDetails } from '@/types/database';
-import { logger } from '@/lib/utils/logger';
-import { Skeleton } from '@/components/ui/skeleton'; // ✅ Skeleton import
 
-// ✅ 로딩 스켈레톤 UI
-const ReservationListSkeleton = () => (
-  <div className="space-y-4">
-    {[...Array(3)].map((_, i) => (
-      <div key={i} className="p-4 border rounded-lg bg-card">
-        <div className="flex justify-between items-start">
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-48" />
-            <Skeleton className="h-4 w-32" />
-          </div>
-          <Skeleton className="h-6 w-20" />
-        </div>
-        <div className="space-y-3 mt-4">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-3/4" />
-        </div>
-      </div>
-    ))}
-  </div>
-);
+// ✅ Props 인터페이스 정의
+interface ReservationListViewProps {
+  reservations?: ReservationWithDetails[];
+  isError: boolean;
+}
 
-// ✅ Phase 2: DI 패턴 적용 - 컴포넌트가 userId를 주입
-export function ReservationListView() {
+// ✅ props로 데이터를 직접 받습니다.
+export function ReservationListView({ reservations = [], isError }: ReservationListViewProps) {
   const router = useRouter();
-  const [cancelingReservation, setCancelingReservation] = useState<ReservationWithDetails | null>(null);
-  
-  // ✅ Phase 2: 컴포넌트가 userProfile에서 userId를 추출하여 훅에 주입
-  const { userProfile } = useAuth();
-  const { data: reservations = [], isLoading, isError } = useMyReservations(userProfile?.dbId);
-
-  if (isLoading) {
-    return <ReservationListSkeleton />;
-  }
+  const [selectedReservation, setSelectedReservation] = useState<ReservationWithDetails | null>(null);
 
   if (isError) {
     return (
-      <Card><CardContent className="text-center py-6 text-destructive">예약 목록을 불러오는데 실패했습니다.</CardContent></Card>
+      <Stack align="center" py="xl">
+        <Text c="red" ta="center">예약 목록을 불러오는데 실패했습니다.</Text>
+      </Stack>
     );
   }
 
   if (reservations.length === 0) {
     return (
-      <Card>
-        <CardContent className="text-center py-8">
-          <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold">예약이 없습니다</h3>
-          <p className="text-muted-foreground">새로운 회의실을 예약해보세요.</p>
-          <Button className="mt-4" onClick={() => router.push('/reservations/new')}>새 예약하기</Button>
-        </CardContent>
-      </Card>
+      <Stack align="center" py="xl" gap="md">
+        <IconCalendar size={48} color="gray" />
+        <Text size="lg" fw={600}>예약이 없습니다</Text>
+        <Text c="dimmed" ta="center">새로운 회의실을 예약해보세요.</Text>
+        <Button onClick={() => router.push('/reservations/new')}>새 예약하기</Button>
+      </Stack>
     );
   }
 
+  const handleEdit = (reservation: ReservationWithDetails) => {
+    setSelectedReservation(reservation);
+  };
+
+  const handleCancel = (reservation: ReservationWithDetails) => {
+    setSelectedReservation(reservation);
+  };
+
   return (
-    <div className="space-y-4">
-      {/* ✅ 2. ReservationWithDetails 타입에 맞는 UI를 렌더링합니다. */}
-      {reservations.map((reservation) => (
-        <Card key={reservation.id}>
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <CardTitle className="text-lg">{reservation.title}</CardTitle>
-                <CardDescription className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  {/* ✅ room 객체를 사용합니다. */}
-                  {reservation.room?.name || '알 수 없는 회의실'}
-                </CardDescription>
-              </div>
-              <Badge variant={reservation.status === 'confirmed' ? 'default' : 'secondary'}>
-                {reservation.status === 'confirmed' ? '확정됨' : '취소됨'}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span>
-                  {format(new Date(reservation.start_time), 'yyyy년 MM월 dd일 (EEE) HH:mm', { locale: ko })}
-                  {' ~ '}
-                  {format(new Date(reservation.end_time), 'HH:mm', { locale: ko })}
-                </span>
-              </div>
-              
-              {reservation.purpose && ( <p className="text-sm p-2 bg-muted rounded">{reservation.purpose}</p> )}
+    <>
+      <Accordion variant="separated">
+        {reservations.map((reservation) => (
+          <Accordion.Item key={reservation.id} value={reservation.id}>
+            <Accordion.Control>
+              <Group justify="space-between" wrap="nowrap">
+                <Stack gap={4} style={{ flex: 1 }}>
+                  <Text fw={500} size="sm" lineClamp={1}>
+                    {reservation.title}
+                  </Text>
+                  <Group gap="xs" wrap="nowrap">
+                    <IconClock size={14} color="gray" />
+                    <Text size="xs" c="dimmed">
+                      {format(new Date(reservation.start_time), 'M월 d일 (E) HH:mm', { locale: ko })}
+                      {' - '}
+                      {format(new Date(reservation.end_time), 'HH:mm', { locale: ko })}
+                    </Text>
+                  </Group>
+                </Stack>
+                <Badge 
+                  color={reservation.status === 'confirmed' ? 'blue' : 'gray'}
+                  size="sm"
+                  style={{ flexShrink: 0 }}
+                >
+                  {reservation.status === 'confirmed' ? '확정됨' : '취소됨'}
+                </Badge>
+              </Group>
+            </Accordion.Control>
+            
+            <Accordion.Panel>
+              <Stack gap="md">
+                <Group gap="xs">
+                  <IconMapPin size={16} color="gray" />
+                  <Text size="sm">
+                    <Text component="span" fw={500}>회의실:</Text> {reservation.room?.name || '알 수 없는 회의실'}
+                  </Text>
+                </Group>
+                
+                {reservation.purpose && (
+                  <Text size="sm">
+                    <Text component="span" fw={500}>목적:</Text> {reservation.purpose}
+                  </Text>
+                )}
+                
+                {reservation.status === 'confirmed' && (
+                  <Group justify="flex-end" mt="sm">
+                    <Tooltip label="예약 수정" withArrow position="top">
+                      <ActionIcon 
+                        variant="default" 
+                        size="lg"
+                        onClick={() => handleEdit(reservation)}
+                      >
+                        <IconPencil size={16} />
+                      </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label="예약 취소" withArrow position="top">
+                      <ActionIcon 
+                        variant="default" 
+                        color="red" 
+                        size="lg"
+                        onClick={() => handleCancel(reservation)}
+                      >
+                        <IconTrash size={16} />
+                      </ActionIcon>
+                    </Tooltip>
+                  </Group>
+                )}
+              </Stack>
+            </Accordion.Panel>
+          </Accordion.Item>
+        ))}
+      </Accordion>
 
-              {reservation.status === 'confirmed' && (
-                <div className="flex gap-2 pt-2 border-t">
-                  <Button variant="outline" size="sm" onClick={() => router.push(`/reservations/edit/${reservation.id}`)}>
-                    <Edit2 className="mr-2 h-4 w-4" /> 수정
-                  </Button>
-                  <Button variant="destructive" size="sm" onClick={() => setCancelingReservation(reservation)}>
-                    <Trash2 className="mr-2 h-4 w-4" /> 취소
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-
-      {cancelingReservation && (
-        <ReservationCancelDialog
-          reservation={cancelingReservation}
-          open={true}
-          onOpenChange={(open) => !open && setCancelingReservation(null)}
-        />
-      )}
-    </div>
+      <ReservationActionDrawer
+        opened={!!selectedReservation}
+        onClose={() => setSelectedReservation(null)}
+        reservation={selectedReservation}
+      />
+    </>
   );
 }

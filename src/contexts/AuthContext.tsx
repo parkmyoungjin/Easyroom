@@ -54,40 +54,42 @@ export const AuthProvider = ({
 }: AuthProviderProps) => {
   const supabase = useSupabaseClient();
 
+  // [1단계 결과물] '신뢰 기반 초기화' - 서버의 판단을 절대적으로 신뢰
   const [user, setUser] = useState<User | null>(initialSession?.user ?? null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(initialProfile ?? null);
-
   const [authStatus, setAuthStatus] = useState<AuthStatus>(
-    initialSession ? 'authenticated' : 'loading'
+    initialSession ? 'authenticated' : 'unauthenticated'
   );
 
   useEffect(() => {
     // Supabase 클라이언트가 준비되지 않으면 아무것도 하지 않습니다.
     if (!supabase) return;
 
-    // onAuthStateChange 리스너는 이제 '정보 수집 및 보고' 역할만 합니다.
+    // [2단계 결과물] '단순화된 useEffect' - 오직 상태 '변화'만을 처리
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: SupabaseSession | null) => {
-        console.log(`[AuthProvider] Event received: ${event}`);
+        console.log(`[AuthProvider] State change detected: ${event}, hasSession: ${!!session}`);
 
         if (session) {
-          // 세션이 존재하면 (SIGNED_IN, TOKEN_REFRESHED, INITIAL_SESSION 등)
+          // 세션이 존재하면 -> authenticated 상태로 전환
           const profile = await getOrCreateProfile(supabase);
-
+          
           if (profile) {
             setUser(session.user);
             setUserProfile(profile);
             setAuthStatus('authenticated');
+            console.log("[AuthProvider] Successfully authenticated with profile");
           } else {
-            // 프로필 조회/생성 실패는 심각한 문제이므로 로그아웃 처리합니다.
-            console.error("[AuthProvider] Profile fetch failed. Transitioning to unauthenticated.");
-            await supabase.auth.signOut(); // 세션을 명확하게 종료
+            // 프로필 조회/생성 실패는 심각한 문제이므로 로그아웃 처리
+            console.error("[AuthProvider] Profile fetch failed. Signing out.");
+            await supabase.auth.signOut();
             setUser(null);
             setUserProfile(null);
             setAuthStatus('unauthenticated');
           }
         } else {
-          // 세션이 없으면 (SIGNED_OUT)
+          // 세션이 없다면 -> unauthenticated 상태로 전환
+          console.log("[AuthProvider] No session - setting unauthenticated");
           setUser(null);
           setUserProfile(null);
           setAuthStatus('unauthenticated');

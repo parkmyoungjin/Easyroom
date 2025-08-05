@@ -23,7 +23,7 @@ export function useNavigationController() {
     if (!userProfile) {
       console.warn('[NavCtrl] Redirect aborted: User profile not available.');
       // 기본 페이지로 보내는 것이 안전할 수 있습니다.
-      router.replace('/'); 
+      router.replace('/dashboard'); 
       return;
     }
 
@@ -31,7 +31,7 @@ export function useNavigationController() {
     const urlRedirectPath = searchParams.get('redirect');
 
     // 2. 사용자의 역할(role)에 따라 기본 리디렉션 경로를 정합니다.
-    const roleBasedPath = userProfile.role === 'admin' ? '/admin/dashboard' : '/';
+    const roleBasedPath = userProfile.role === 'admin' ? '/admin/dashboard' : '/dashboard';
 
     // 3. 최종 경로 결정: URL 파라미터가 있으면 그곳으로, 없으면 역할 기반 경로로.
     const finalRedirectPath = urlRedirectPath || roleBasedPath;
@@ -60,11 +60,11 @@ export function useNavigationController() {
 
 
   /**
-   * 로그아웃 후 메인 페이지로 이동시키는 함수.
+   * 로그아웃 후 환영 페이지로 이동시키는 함수.
    */
   const handlePostLogout = useCallback(() => {
     if (typeof window === 'undefined') return;
-    router.push('/');
+    router.push('/welcome');
   }, [router]);
 
   return {

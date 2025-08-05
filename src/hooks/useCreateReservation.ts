@@ -2,11 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { reservationService } from '@/lib/services/reservations';
-// Using console for now instead of sonner
-const toast = {
-  success: (title: string, options?: { description?: string }) => console.log(`✅ ${title}`, options?.description || ''),
-  error: (title: string, options?: { description?: string }) => console.error(`❌ ${title}`, options?.description || '')
-};
+import { toast } from 'sonner';
 import { reservationKeys } from '@/lib/queryKeys';
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 import type { ReservationInsert } from '@/types/database';

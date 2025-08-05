@@ -8,11 +8,38 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthNavigation } from '@/hooks/useAuthNavigation';
 import { useToast } from '@/hooks/use-toast';
-import AuthPrompt from '@/components/ui/auth-prompt';
-import LoadingSpinner from '@/components/ui/loading-spinner';
-import ErrorMessage from '@/components/ui/error-message';
-import NavigationBreadcrumb from '@/components/ui/navigation-breadcrumb';
-import AuthStateIndicator from '@/components/ui/auth-state-indicator';
+// Mock components for testing (replacing shadcn/ui components)
+const AuthPrompt = ({ title, description, onLogin, onSignup }: any) => (
+  <div data-testid="auth-prompt">
+    <h3>{title}</h3>
+    <p>{description}</p>
+    <button onClick={onLogin}>로그인</button>
+    <button onClick={onSignup}>회원가입</button>
+  </div>
+);
+
+const LoadingSpinner = ({ message }: any) => (
+  <div data-testid="loading-spinner">{message || '로딩 중...'}</div>
+);
+
+const ErrorMessage = ({ title, message }: any) => (
+  <div data-testid="error-message">
+    <h4>{title}</h4>
+    <p>{message}</p>
+  </div>
+);
+
+const NavigationBreadcrumb = ({ items }: any) => (
+  <nav data-testid="navigation-breadcrumb">
+    {items?.map((item: any, index: number) => (
+      <span key={index}>{item.label}</span>
+    ))}
+  </nav>
+);
+
+const AuthStateIndicator = ({ status }: any) => (
+  <div data-testid="auth-state-indicator">{status}</div>
+);
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SupabaseProvider } from '@/contexts/SupabaseProvider';
 

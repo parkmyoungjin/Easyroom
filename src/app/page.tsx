@@ -1,41 +1,20 @@
 // src/app/page.tsx
+'use client';
 
-import { Suspense } from 'react';
-import PageContent from '@/app/page-content';
-import { Skeleton } from '@/components/ui/skeleton'; // ✅ Skeleton 로딩 컴포넌트 사용
+import { Center, Loader, Text } from '@mantine/core';
 
-// ✅ 스켈레톤 UI를 사용한 정교한 로딩 화면
-const MainPageSkeleton = () => (
-  <div className="min-h-screen bg-background">
-    <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-      {/* Header Skeleton */}
-      <div className="flex justify-between items-center mb-8">
-        <div className="space-y-2">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-4 w-48" />
-        </div>
-        <Skeleton className="h-10 w-24" />
-      </div>
-
-      {/* Quick Actions Skeleton */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Skeleton className="h-32 rounded-lg" />
-        <Skeleton className="h-32 rounded-lg" />
-        <Skeleton className="h-32 rounded-lg" />
-        <Skeleton className="h-32 rounded-lg" />
-      </div>
-
-      {/* Info Section Skeleton */}
-      <Skeleton className="h-48 rounded-lg" />
-    </div>
-  </div>
-);
-
+/**
+ * 루트 페이지 - 라우팅 허브
+ * 실제 콘텐츠는 middleware에서 적절한 경로로 리디렉션됩니다.
+ */
 export default function HomePage() {
   return (
-    // ✅ Suspense의 fallback으로 스켈레톤 UI를 보여줍니다.
-    <Suspense fallback={<MainPageSkeleton />}>
-      <PageContent />
-    </Suspense>
+    <Center mih="100vh">
+      <div className="text-center">
+        <Loader size="lg" />
+        <Text size="lg" fw={600} mt="md">EasyRoom</Text>
+        <Text size="sm" c="dimmed" mt="xs">페이지를 준비하고 있습니다...</Text>
+      </div>
+    </Center>
   );
 }

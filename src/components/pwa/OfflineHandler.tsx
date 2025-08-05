@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@mantine/core';
 
 interface OfflineState {
   isOnline: boolean;
@@ -127,17 +127,17 @@ export default function OfflineHandler() {
             {!state.isOnline && (
               <div className="flex space-x-2 mt-3">
                 <Button
-                  size="sm"
+                  size="compact-sm"
                   onClick={handleRetry}
-                  className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                  style={{ backgroundColor: '#eab308', color: 'white' }}
                 >
                   다시 시도
                 </Button>
                 <Button
-                  size="sm"
+                  size="compact-sm"
                   variant="outline"
                   onClick={handleDismiss}
-                  className="border-yellow-300 text-yellow-700 hover:bg-yellow-100 dark:border-yellow-600 dark:text-yellow-300 dark:hover:bg-yellow-800"
+                  style={{ borderColor: '#fde047', color: '#a16207' }}
                 >
                   확인
                 </Button>

@@ -239,6 +239,7 @@ function transformToPublicReservation(dbRow: any, currentUserId?: string): Publi
     purpose: isOwner ? dbRow.purpose : null,
     department: dbRow.department || '미지정',
     user_name: dbRow.user_name || '알 수 없음',
+    room_name: dbRow.room_name || 'Unknown Room', // ✅ room_name 추가
     start_time: dbRow.start_time,
     end_time: dbRow.end_time,
     is_mine: isOwner

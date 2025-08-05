@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, Button } from '@mantine/core';
 import { CheckCircle2, X } from 'lucide-react';
 import { UniversalAuthStateManager } from '@/lib/auth/universal-auth-state-manager';
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
@@ -89,22 +88,22 @@ export default function SmartVerifiedPage({
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md text-center">
-        <CardHeader>
+      <Card withBorder className="w-full max-w-md text-center">
+        <Card.Section inheritPadding py="md">
           <CheckCircle2 className="mx-auto h-12 w-12 text-green-500" />
-          <CardTitle className="mt-4 text-2xl font-bold tracking-tight">
+          <h3 className="mt-4 text-2xl font-bold tracking-tight">
             인증 완료!
-          </CardTitle>
-          <CardDescription className="mt-2">
+          </h3>
+          <p className="mt-2 text-sm text-gray-600">
             {authStateSet ? (
               <>인증이 성공적으로 완료되었습니다. {countdown}초 후 자동으로 창이 닫힙니다.</>
             ) : (
               <>인증 상태를 설정하는 중입니다...</>
             )}
-          </CardDescription>
-        </CardHeader>
+          </p>
+        </Card.Section>
 
-        <CardFooter className="flex justify-center">
+        <Card.Section inheritPadding py="xs" className="flex justify-center">
           <Button
             onClick={handleClose}
             variant="outline"
@@ -114,7 +113,7 @@ export default function SmartVerifiedPage({
             <X className="h-4 w-4" />
             창 닫기
           </Button>
-        </CardFooter>
+        </Card.Section>
       </Card>
     </div>
   );

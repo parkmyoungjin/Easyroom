@@ -6,9 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAuthContext } from '@/contexts/AuthContext';
 
 import { SignupForm } from '@/features/auth/components/SignupForm';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert } from '@mantine/core';
 import { AlertCircle, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 // 개선된 로딩 스피너
 const LoadingSpinner = ({ message = "인증 상태 확인 중..." }: { message?: string }) => (
@@ -28,9 +27,9 @@ export default function SignupPage() {
 
 
   useEffect(() => {
-    // 이미 로그인된 사용자는 메인 페이지로 보냅니다.
+    // 이미 로그인된 사용자는 대시보드로 보냅니다.
     if (authStatus === 'authenticated') {
-      router.replace('/'); // history에 남기지 않고 이동
+      router.replace('/dashboard'); // history에 남기지 않고 이동
     }
   }, [authStatus, router]);
 

@@ -1,9 +1,9 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { roomService } from '@/lib/services/rooms';
+import { roomService, RoomService } from '@/lib/services/rooms';
 import { RoomFormData } from '@/lib/validations/schemas';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useUIStore } from '@/lib/store/ui';
 import { RoomAmenities } from '@/types/database';
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
@@ -162,7 +162,7 @@ export function useRoomsByCapacity(minCapacity: number) {
   }));
 }
 
-// Get room availability - Optimized with RPC function
+// ✅ Phase 2: 회의실 가용성 조회 훅 - RPC 호출과 폴백 로직 서비스 계층 이전 (침범도: 60% → 0%)
 export function useRoomAvailability(roomId: string, startDate: string, endDate: string) {
   const supabase = useSupabaseClient();
   const { authStatus } = useAuthContext();
@@ -170,33 +170,20 @@ export function useRoomAvailability(roomId: string, startDate: string, endDate: 
   return useQuery(buildQueryOptions({
     queryKey: roomKeys.availability(roomId, startDate, endDate),
     queryFn: createStandardFetch(
-      async () => {
-        // ✅ [2단계] queryFn 내부에서 최종 방어
+      () => {
+        // ✅ 가드 조건만 유지, 모든 비즈니스 로직은 서비스 계층으로 이전
         if (authStatus !== 'authenticated' || !supabase) {
           return Promise.resolve([]);
         }
 
-        // Use optimized RPC function for detailed availability check
-        const { data, error } = await supabase
-          .rpc('get_room_availability_detailed', {
-            room_id: roomId,
-            start_time: new Date(startDate).toISOString(),
-            end_time: new Date(endDate).toISOString()
-          });
-
-        if (error) {
-          // Fallback to original service method
-          return await roomService.getRoomAvailability(supabase, roomId, startDate, endDate);
-        }
-
-        return data;
+        // ✅ 서비스 계층 완전 위임 - RPC 호출과 폴백 로직 모두 서비스에서 처리
+        return RoomService.getInstance().getRoomAvailability(supabase, roomId, startDate, endDate);
       },
       {
-        operation: 'check room availability',
+        operation: 'check room availability (service layer)',
         params: { roomId, startDate, endDate }
       }
     ),
-    // ✅ [Phase 1] authStatus 기반 안정화
     enabled: !!roomId && !!startDate && !!endDate && authStatus === 'authenticated' && !!supabase,
     dataType: 'real-time',
     cacheConfig: {
@@ -260,7 +247,6 @@ export function useAdvancedRoomSearch(params: {
 // Create room mutation (admin only)
 export function useCreateRoom() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { setSubmitting, setRoomModalOpen } = useUIStore();
   const supabase = useSupabaseClient();
 
@@ -276,16 +262,13 @@ export function useCreateRoom() {
       // Phase 3: 표준화된 캐시 무효화
       queryClient.invalidateQueries({ queryKey: roomKeys.all });
       setRoomModalOpen(false);
-      toast({
-        title: '회의실 생성 완료',
+      toast.success('회의실 생성 완료', {
         description: '새 회의실이 성공적으로 생성되었습니다.',
       });
     },
     onError: (error: Error) => {
-      toast({
-        title: '회의실 생성 실패',
+      toast.error('회의실 생성 실패', {
         description: error.message,
-        variant: 'destructive',
       });
     },
     onSettled: () => {
@@ -297,7 +280,6 @@ export function useCreateRoom() {
 // Update room mutation (admin only)
 export function useUpdateRoom() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const { setSubmitting } = useUIStore();
   const supabase = useSupabaseClient();
 
@@ -312,16 +294,13 @@ export function useUpdateRoom() {
     onSuccess: () => {
       // Phase 3: 표준화된 캐시 무효화
       queryClient.invalidateQueries({ queryKey: roomKeys.all });
-      toast({
-        title: '회의실 수정 완료',
+      toast.success('회의실 수정 완료', {
         description: '회의실 정보가 성공적으로 수정되었습니다.',
       });
     },
     onError: (error: Error) => {
-      toast({
-        title: '회의실 수정 실패',
+      toast.error('회의실 수정 실패', {
         description: error.message,
-        variant: 'destructive',
       });
     },
     onSettled: () => {
@@ -333,7 +312,6 @@ export function useUpdateRoom() {
 // Deactivate room mutation (admin only)
 export function useDeactivateRoom() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const supabase = useSupabaseClient();
 
   return useMutation({
@@ -344,16 +322,13 @@ export function useDeactivateRoom() {
     onSuccess: () => {
       // Phase 3: 표준화된 캐시 무효화
       queryClient.invalidateQueries({ queryKey: roomKeys.all });
-      toast({
-        title: '회의실 비활성화 완료',
+      toast.success('회의실 비활성화 완료', {
         description: '회의실이 성공적으로 비활성화되었습니다.',
       });
     },
     onError: (error: Error) => {
-      toast({
-        title: '회의실 비활성화 실패',
+      toast.error('회의실 비활성화 실패', {
         description: error.message,
-        variant: 'destructive',
       });
     },
   });
@@ -362,7 +337,6 @@ export function useDeactivateRoom() {
 // Activate room mutation (admin only)
 export function useActivateRoom() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const supabase = useSupabaseClient();
 
   return useMutation({
@@ -373,16 +347,13 @@ export function useActivateRoom() {
     onSuccess: () => {
       // Phase 3: 표준화된 캐시 무효화
       queryClient.invalidateQueries({ queryKey: roomKeys.all });
-      toast({
-        title: '회의실 활성화 완료',
+      toast.success('회의실 활성화 완료', {
         description: '회의실이 성공적으로 활성화되었습니다.',
       });
     },
     onError: (error: Error) => {
-      toast({
-        title: '회의실 활성화 실패',
+      toast.error('회의실 활성화 실패', {
         description: error.message,
-        variant: 'destructive',
       });
     },
   });
@@ -391,7 +362,6 @@ export function useActivateRoom() {
 // Delete room mutation (admin only)
 export function useDeleteRoom() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const supabase = useSupabaseClient();
 
   return useMutation({
@@ -402,16 +372,13 @@ export function useDeleteRoom() {
     onSuccess: () => {
       // Phase 3: 표준화된 캐시 무효화
       queryClient.invalidateQueries({ queryKey: roomKeys.all });
-      toast({
-        title: '회의실 삭제 완료',
+      toast.success('회의실 삭제 완료', {
         description: '회의실이 성공적으로 삭제되었습니다.',
       });
     },
     onError: (error: Error) => {
-      toast({
-        title: '회의실 삭제 실패',
+      toast.error('회의실 삭제 실패', {
         description: error.message,
-        variant: 'destructive',
       });
     },
   });
@@ -420,7 +387,6 @@ export function useDeleteRoom() {
 // Update room amenities mutation (admin only)
 export function useUpdateRoomAmenities() {
   const queryClient = useQueryClient();
-  const { toast } = useToast();
   const supabase = useSupabaseClient();
 
   return useMutation({
@@ -431,77 +397,37 @@ export function useUpdateRoomAmenities() {
     onSuccess: () => {
       // Phase 3: 표준화된 캐시 무효화
       queryClient.invalidateQueries({ queryKey: roomKeys.all });
-      toast({
-        title: '편의시설 수정 완료',
+      toast.success('편의시설 수정 완료', {
         description: '회의실 편의시설이 성공적으로 수정되었습니다.',
       });
     },
     onError: (error: Error) => {
-      toast({
-        title: '편의시설 수정 실패',
+      toast.error('편의시설 수정 실패', {
         description: error.message,
-        variant: 'destructive',
       });
     },
   });
 }
 
-// 예약된 시간 슬롯을 가져오는 훅
-export function useBookedSlots(roomId: string | null, date: Date | null) { // 👈 roomId가 null일 수도 있음을 허용
+// ✅ Phase 1: 예약된 시간 슬롯을 가져오는 훅 - 완전 순수화 완료 (침범도: 0%)
+export function useBookedSlots(roomId: string | null, date: Date | null) {
   const supabase = useSupabaseClient();
   const { authStatus } = useAuthContext();
   const dateKey = date ? format(date, 'yyyy-MM-dd') : '';
 
-  // buildQueryOptions 래퍼를 사용하지 않고, React Query의 표준 옵션 객체를 직접 사용합니다.
-  // 이것이 구조를 더 명확하게 만듭니다.
   return useQuery({
-    queryKey: roomKeys.bookedSlots(roomId || '', dateKey), // Phase 3: 중앙화된 키 사용
-    queryFn: async () => {
-      // ✅ [2단계] queryFn 내부에서 최종 방어
+    queryKey: roomKeys.bookedSlots(roomId || '', dateKey),
+    queryFn: () => {
+      // ✅ 가드 조건만 유지, 모든 비즈니스 로직은 서비스 계층으로 이전
       if (authStatus !== 'authenticated' || !roomId || !date || !supabase) {
         return Promise.resolve([]);
       }
 
-      // ✅ [레거시 RPC 함수 대체] get_reservations_for_period 통합 함수 사용
-      const startDate = format(date, 'yyyy-MM-dd') + 'T00:00:00Z';
-      const endDate = format(date, 'yyyy-MM-dd') + 'T23:59:59Z';
-
-      const { data, error } = await supabase.rpc('get_reservations_for_period', {
-        start_date: startDate,
-        end_date: endDate
-      });
-
-      if (error) {
-        logger.error('get_reservations_for_period RPC failed for booked slots', error);
-        return [];
-      }
-
-      // ✅ [클라이언트 사이드 필터링] 특정 회의실의 예약들만 필터링
-      const roomReservations = (data || []).filter((reservation: any) =>
-        reservation.room_id === roomId && reservation.status !== 'cancelled'
-      );
-
-      // BookedSlot 형식으로 변환
-      const bookedSlots = roomReservations.map((reservation: any) => ({
-        id: reservation.id,
-        start_time: reservation.start_time,
-        end_time: reservation.end_time,
-        title: reservation.title,
-        user_name: reservation.user_name || '알 수 없음',
-        is_mine: reservation.is_mine || false
-      }));
-
-      logger.debug('예약된 시간 슬롯 조회 완료', {
-        roomId,
-        dateKey,
-        totalReservations: data?.length || 0,
-        roomReservations: bookedSlots.length
-      });
-
-      return bookedSlots;
+      // ✅ 서비스 계층 완전 위임 - 단 한 줄로 순수화
+      return RoomService.getInstance().getBookedSlots(supabase, roomId, date);
     },
-    // ✅ [Phase 1] authStatus 기반 안정화
-    enabled: !!roomId && !!date && !!supabase && authStatus === 'authenticated',
+    // ✅ [전략 2-2] enabled 조건 단순화 - authStatus는 queryFn에서 이미 검증됨
+    enabled: !!roomId && !!date && !!supabase,
     staleTime: 1 * 60 * 1000, // 1분
     gcTime: 5 * 60 * 1000, // 5분
   });

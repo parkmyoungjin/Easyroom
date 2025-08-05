@@ -87,10 +87,29 @@ ALTER TABLE "public"."users" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."rooms" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."reservations" ENABLE ROW LEVEL SECURITY;
 
+-- Users policies
 CREATE POLICY "Allow authenticated users to read all users" ON "public"."users" FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Allow users to update their own profile" ON "public"."users" FOR UPDATE TO authenticated USING (auth.uid() = auth_id);
+
+-- Rooms policies
 CREATE POLICY "Allow authenticated users to read active rooms" ON "public"."rooms" FOR SELECT TO authenticated USING (is_active = true);
-CREATE POLICY "Allow authenticated users to read confirmed reservations" ON "public"."reservations" FOR SELECT TO authenticated USING (status = 'confirmed');
+
+-- Reservations policies (완전한 CRUD 정책 세트)
+CREATE POLICY "reservations_select_public_or_own" ON "public"."reservations" FOR SELECT USING ((("status" = 'confirmed'::"public"."reservation_status") OR ("user_id" IN ( SELECT "users"."id"
+   FROM "public"."users"
+  WHERE ("users"."auth_id" = "auth"."uid"())))));
+
+CREATE POLICY "reservations_insert_own" ON "public"."reservations" FOR INSERT WITH CHECK ((("user_id" IN ( SELECT "users"."id"
+   FROM "public"."users"
+  WHERE ("users"."auth_id" = "auth"."uid"()))) AND ("status" = 'confirmed'::"public"."reservation_status")));
+
+CREATE POLICY "reservations_update_own" ON "public"."reservations" FOR UPDATE USING (("user_id" IN ( SELECT "users"."id"
+   FROM "public"."users"
+  WHERE ("users"."auth_id" = "auth"."uid"()))));
+
+CREATE POLICY "reservations_delete_own" ON "public"."reservations" FOR DELETE USING (("user_id" IN ( SELECT "users"."id"
+   FROM "public"."users"
+  WHERE ("users"."auth_id" = "auth"."uid"()))));
 
 -- RPC Functions
 -- ✅ [핵심 수정] get_or_create_user_profile (SECURITY INVOKER로 변경)

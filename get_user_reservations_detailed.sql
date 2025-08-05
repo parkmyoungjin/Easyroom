@@ -1,56 +1,24 @@
 -- get_user_reservations_detailed 함수 생성
 -- useMyReservations 훅에서 사용하는 RPC 함수
 
+-- Updated function based on drag-and-drop reservation analysis
 CREATE OR REPLACE FUNCTION get_user_reservations_detailed(
-    user_id UUID,
-    limit_count INTEGER DEFAULT 50,
-    offset_count INTEGER DEFAULT 0
+    p_user_id UUID
 )
-RETURNS TABLE (
-    data JSONB
-)
+RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $function$
 DECLARE
-    current_user_db_id UUID;
-    reservation_data JSONB;
+    reservation_data jsonb;
 BEGIN
-    -- 입력 검증
-    IF user_id IS NULL THEN
-        RAISE EXCEPTION 'user_id cannot be null';
+    -- 권한 검사는 그대로 유지
+    IF NOT ((SELECT id FROM users WHERE auth_id = auth.uid()) = p_user_id OR 
+            EXISTS (SELECT 1 FROM users WHERE auth_id = auth.uid() AND role = 'admin')) THEN
+        RAISE EXCEPTION 'Access Denied';
     END IF;
-    
-    IF limit_count IS NULL OR limit_count <= 0 THEN
-        limit_count := 50;
-    END IF;
-    
-    IF offset_count IS NULL OR offset_count < 0 THEN
-        offset_count := 0;
-    END IF;
-    
-    -- 현재 인증된 사용자의 DB ID 확인
-    SELECT u.id INTO current_user_db_id
-    FROM public.users u
-    WHERE u.auth_id = auth.uid();
-    
-    -- 권한 확인: 자신의 예약만 조회 가능 (또는 관리자)
-    IF current_user_db_id IS NULL THEN
-        RAISE EXCEPTION 'User not authenticated';
-    END IF;
-    
-    IF current_user_db_id != user_id THEN
-        -- 관리자 권한 확인
-        IF NOT EXISTS (
-            SELECT 1 FROM public.users 
-            WHERE id = current_user_db_id AND role = 'admin'
-        ) THEN
-            RAISE EXCEPTION 'Access denied: can only view own reservations';
-        END IF;
-    END IF;
-    
-    -- 예약 데이터 조회 (ReservationWithDetails 구조에 맞게)
-    -- cancellation_reason 컬럼이 없으므로 제거하고 기본 스키마에 맞게 수정
+
+    -- 예약 데이터를 JSON 배열로 만듭니다.
     SELECT jsonb_agg(
         jsonb_build_object(
             'id', r.id,
@@ -63,50 +31,25 @@ BEGIN
             'status', r.status,
             'created_at', r.created_at,
             'updated_at', r.updated_at,
-            'room', jsonb_build_object(
-                'id', rm.id,
-                'name', rm.name,
-                'description', rm.description,
-                'capacity', rm.capacity,
-                'location', rm.location,
-                'equipment', rm.equipment,
-                'is_active', rm.is_active,
-                'created_at', rm.created_at,
-                'updated_at', rm.updated_at
-            ),
-            'user', jsonb_build_object(
-                'id', u.id,
-                'auth_id', u.auth_id,
-                'employee_id', u.employee_id,
-                'name', u.name,
-                'email', u.email,
-                'department', u.department,
-                'role', u.role,
-                'created_at', u.created_at,
-                'updated_at', u.updated_at
-            )
+            'room', to_jsonb(rm),
+            'user', to_jsonb(u)
         )
+        -- ✅ [핵심 수정] DESC (내림차순)를 ASC (오름차순)으로 변경합니다.
         ORDER BY r.start_time ASC
-    ) INTO reservation_data
-    FROM public.reservations r
-    INNER JOIN public.rooms rm ON r.room_id = rm.id
-    INNER JOIN public.users u ON r.user_id = u.id
-    WHERE r.user_id = get_user_reservations_detailed.user_id
-    LIMIT limit_count
-    OFFSET offset_count;
-    
-    -- 결과가 없으면 빈 배열 반환
-    IF reservation_data IS NULL THEN
-        reservation_data := '[]'::jsonb;
-    END IF;
-    
-    -- 결과 반환
-    RETURN QUERY SELECT reservation_data;
+    )
+    INTO reservation_data
+    FROM reservations r
+    JOIN rooms rm ON r.room_id = rm.id
+    JOIN users u ON r.user_id = u.id
+    WHERE r.user_id = p_user_id;
+
+    -- 결과가 없으면 빈 JSON 배열을 반환합니다.
+    RETURN COALESCE(reservation_data, '[]'::jsonb);
 END;
 $function$;
 
 -- 함수 실행 권한 부여
-GRANT EXECUTE ON FUNCTION get_user_reservations_detailed(UUID, INTEGER, INTEGER) TO authenticated;
+GRANT EXECUTE ON FUNCTION get_user_reservations_detailed(UUID) TO authenticated;
 
--- 함수 설명 추가
-COMMENT ON FUNCTION get_user_reservations_detailed IS '사용자의 예약 목록을 상세 정보와 함께 조회하는 함수 - 페이지네이션 지원';
+-- 함수 설명 업데이트
+COMMENT ON FUNCTION get_user_reservations_detailed IS '사용자의 예약 목록을 상세 정보와 함께 조회하는 함수 - 시간순 정렬 수정 (ASC)';

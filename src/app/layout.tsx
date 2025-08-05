@@ -7,7 +7,8 @@ import { ClientPolyfillManager } from '@/lib/polyfills/ClientPolyfillManager';
 import { SupabaseProvider } from '@/contexts/SupabaseProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AuthToastManager } from '@/components/auth/AuthErrorToast';
-import AuthGatekeeper from '@/components/layout/AuthGatekeeper';
+
+import { GlobalNotification } from '@/components/layout/GlobalNotification';
 // ✅ [1단계] 서버용 클라이언트와 타입을 import
 import { createClient } from '@/lib/supabase/server';
 import { UserProfile } from '@/types/auth';
@@ -89,11 +90,10 @@ export default async function RootLayout({
               {/* ✅ [4. 최종 단계] 가져온 초기 데이터를 AuthProvider에 props로 주입 */}
               <AuthProvider initialSession={session} initialProfile={initialProfile}>
                 {/* 2계층: 상태 소비 및 분기 계층 - 인증 상태에 따른 UI 분기만 담당 */}
-                <AuthGatekeeper>
                   {children}
-                </AuthGatekeeper>
                 <AuthToastManager />
                 <Toaster />
+                <GlobalNotification />
               </AuthProvider>
             </SupabaseProvider>
           </Providers>

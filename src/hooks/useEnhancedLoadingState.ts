@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { LoadingStep } from '@/components/ui/enhanced-loading-state';
+// LoadingStep type definition (previously from shadcn/ui)
+export type LoadingStep = 'initializing' | 'authenticating' | 'loading-profile' | 'redirecting' | 'finalizing';
 import { 
   createTimeoutHandler, 
   DEFAULT_TIMEOUT_CONFIG,

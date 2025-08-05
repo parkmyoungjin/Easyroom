@@ -5,7 +5,7 @@
 'use client';
 
 import { AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert } from '@mantine/core';
 import { 
   getMigrationMessage, 
   type MigrationMessageType 
@@ -29,20 +29,21 @@ export function MigrationMessage({ type, className, onDismiss }: MigrationMessag
   const Icon = iconMap[message.type];
   
   return (
-    <Alert className={className} variant={message.type === 'warning' ? 'destructive' : 'default'}>
-      <Icon className="h-4 w-4" />
-      <AlertTitle>{message.title}</AlertTitle>
-      <AlertDescription className="mt-2">
-        {message.description}
-        {onDismiss && (
-          <button
-            onClick={onDismiss}
-            className="ml-4 text-sm underline hover:no-underline"
-          >
-            닫기
-          </button>
-        )}
-      </AlertDescription>
+    <Alert 
+      color={message.type === 'warning' ? 'red' : message.type === 'success' ? 'green' : 'blue'}
+      title={message.title}
+      icon={<Icon size={16} />}
+      className={className}
+    >
+      {message.description}
+      {onDismiss && (
+        <button
+          onClick={onDismiss}
+          className="ml-4 text-sm underline hover:no-underline"
+        >
+          닫기
+        </button>
+      )}
     </Alert>
   );
 }

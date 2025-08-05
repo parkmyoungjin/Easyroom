@@ -3,10 +3,8 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+import { Button, Card, Tabs } from '@mantine/core';
+import { toast } from 'sonner';
 import { RoomManagement } from '@/features/admin/components/RoomManagement';
 import { ReservationList } from '@/features/admin/components/ReservationList';
 import { StatisticsDownload } from '@/features/admin/components/StatisticsDownload';
@@ -14,7 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 export function AdminDashboard() {
   const { user } = useAuth();
-  const { toast } = useToast();
+
   const [activeTab, setActiveTab] = useState('rooms');
 
   return (
@@ -26,46 +24,46 @@ export function AdminDashboard() {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="rooms">회의실 관리</TabsTrigger>
-          <TabsTrigger value="reservations">예약 내역</TabsTrigger>
-          <TabsTrigger value="statistics">통계</TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'rooms')}>
+        <Tabs.List grow>
+          <Tabs.Tab value="rooms">회의실 관리</Tabs.Tab>
+          <Tabs.Tab value="reservations">예약 내역</Tabs.Tab>
+          <Tabs.Tab value="statistics">통계</Tabs.Tab>
+        </Tabs.List>
 
         <div className="mt-6">
-          <TabsContent value="rooms">
-            <Card>
-              <CardHeader>
-                <CardTitle>회의실 관리</CardTitle>
-              </CardHeader>
-              <CardContent>
+          <Tabs.Panel value="rooms">
+            <Card withBorder>
+              <Card.Section withBorder inheritPadding py="xs">
+                <h3 className="text-lg font-semibold">회의실 관리</h3>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
                 <RoomManagement />
-              </CardContent>
+              </Card.Section>
             </Card>
-          </TabsContent>
+          </Tabs.Panel>
 
-          <TabsContent value="reservations">
-            <Card>
-              <CardHeader>
-                <CardTitle>전체 예약 내역</CardTitle>
-              </CardHeader>
-              <CardContent>
+          <Tabs.Panel value="reservations">
+            <Card withBorder>
+              <Card.Section withBorder inheritPadding py="xs">
+                <h3 className="text-lg font-semibold">전체 예약 내역</h3>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
                 <ReservationList />
-              </CardContent>
+              </Card.Section>
             </Card>
-          </TabsContent>
+          </Tabs.Panel>
 
-          <TabsContent value="statistics">
-            <Card>
-              <CardHeader>
-                <CardTitle>통계 다운로드</CardTitle>
-              </CardHeader>
-              <CardContent>
+          <Tabs.Panel value="statistics">
+            <Card withBorder>
+              <Card.Section withBorder inheritPadding py="xs">
+                <h3 className="text-lg font-semibold">통계 다운로드</h3>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
                 <StatisticsDownload />
-              </CardContent>
+              </Card.Section>
             </Card>
-          </TabsContent>
+          </Tabs.Panel>
         </div>
       </Tabs>
     </div>

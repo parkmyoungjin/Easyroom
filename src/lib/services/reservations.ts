@@ -14,6 +14,42 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 
 export const reservationService = {
+  /**
+   * ✅ Phase 1: 내 예약 조회 - 서비스 계층으로 완전 이전
+   * 모든 RPC 호출, 데이터 변환, 에러 처리를 서비스 계층에서 담당
+   */
+  async getMyReservations(supabase: SupabaseClient<Database>, userId: string): Promise<ReservationWithDetails[]> {
+    if (!userId) {
+      logger.warn('사용자 ID가 없어 내 예약을 조회할 수 없습니다');
+      return [];
+    }
+
+    try {
+      // ✅ get_user_reservations_detailed RPC 함수 사용 (제공된 최신 버전)
+      const { data, error } = await supabase.rpc('get_user_reservations_detailed', {
+        p_user_id: userId
+      });
+
+      if (error) {
+        logger.error('get_user_reservations_detailed RPC failed', error);
+        throw new Error(`내 예약 조회 실패: ${error.message}`);
+      }
+
+      // ✅ JSONB 응답을 ReservationWithDetails[] 배열로 파싱
+      const reservations = Array.isArray(data) ? data : [];
+      
+      logger.debug('내 예약 조회 완료', { 
+        userId,
+        reservationCount: reservations.length 
+      });
+
+      return reservations as ReservationWithDetails[];
+    } catch (error) {
+      logger.error('내 예약 목록 조회 실패', { error, userId });
+      throw new Error('내 예약 목록을 불러오는데 실패했습니다.');
+    }
+  },
+
   async createReservation(supabase: SupabaseClient<Database>, data: ReservationInsert): Promise<Reservation> {
     try {
       // RPC 함수 호출로 변경
@@ -90,13 +126,39 @@ export const reservationService = {
     }
   },
 
-  async updateReservation(supabase: SupabaseClient<Database>, id: string, data: ReservationUpdate): Promise<Reservation> {
+  /**
+   * ✅ Phase 2: 예약 수정 - Date 객체 변환 로직을 서비스 계층으로 이전
+   * 훅에서 수행하던 데이터 변환 책임을 서비스 계층에서 담당
+   */
+  async updateReservation(supabase: SupabaseClient<Database>, id: string, data: any): Promise<Reservation> {
     try {
+      // ✅ Date 객체를 ISO 문자열로 변환하는 로직을 서비스 계층에서 처리
+      const updateData: Partial<ReservationUpdate> = {};
+      
+      if (data.title) {
+        updateData.title = data.title;
+      }
+      if (data.purpose) {
+        updateData.purpose = data.purpose;
+      }
+      if (data.start_time) {
+        // ✅ Date 객체인 경우 ISO 문자열로 변환
+        updateData.start_time = data.start_time instanceof Date 
+          ? data.start_time.toISOString() 
+          : data.start_time;
+      }
+      if (data.end_time) {
+        // ✅ Date 객체인 경우 ISO 문자열로 변환
+        updateData.end_time = data.end_time instanceof Date 
+          ? data.end_time.toISOString() 
+          : data.end_time;
+      }
+
       // RPC 함수 호출로 변경 - 시간 변경만 지원하는 함수 사용
       const { data: result, error } = await supabase.rpc('update_reservation', {
         p_reservation_id: id,
-        p_new_start_time: data.start_time || null,
-        p_new_end_time: data.end_time || null
+        p_new_start_time: updateData.start_time || null,
+        p_new_end_time: updateData.end_time || null
       });
 
       if (error) throw error;
@@ -267,13 +329,5 @@ export const reservationService = {
     }
   },
 
-  async getMyReservations(supabase: SupabaseClient<Database>, userId?: string): Promise<ReservationWithDetails[]> {
-    if (!userId) {
-      logger.warn('사용자 ID가 없어 내 예약을 조회할 수 없습니다');
-      return [];
-    }
-    
-    // ✅ [레거시 RPC 함수 대체] 최적화된 함수로 리다이렉트
-    return this.getMyReservationsOptimized(supabase, userId);
-  }
+
 };

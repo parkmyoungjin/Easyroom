@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card, Text, Group, Stack, Button, Badge } from '@mantine/core';
 import { Calendar, Clock, MapPin, User, Loader2, AlertCircle } from 'lucide-react';
 import { useInfinitePublicReservations, useFlattenedReservations } from '@/hooks/useInfinitePublicReservations';
 import { format } from 'date-fns';
@@ -108,17 +106,15 @@ export function InfiniteReservationList({
     return (
       <div className="space-y-4">
         {[...Array(skeletonCount)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardHeader>
+          <Card key={i} shadow="sm" padding="lg" radius="md" withBorder style={{ animation: 'pulse 2s infinite' }}>
+            <Stack gap="sm">
               <div className="h-4 bg-muted rounded w-1/3"></div>
               <div className="h-3 bg-muted rounded w-1/2"></div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="h-3 bg-muted rounded w-full"></div>
-                <div className="h-3 bg-muted rounded w-3/4"></div>
-              </div>
-            </CardContent>
+            </Stack>
+            <Stack gap="xs" mt="md">
+              <div className="h-3 bg-muted rounded w-full"></div>
+              <div className="h-3 bg-muted rounded w-3/4"></div>
+            </Stack>
           </Card>
         ))}
       </div>
@@ -142,11 +138,11 @@ export function InfiniteReservationList({
       error.message.includes('HTTP 5');
     
     return (
-      <Card className={className}>
-        <CardContent className="text-center py-8">
+      <Card shadow="sm" padding="lg" radius="md" withBorder style={{ textAlign: 'center', paddingTop: '2rem', paddingBottom: '2rem' }}>
+        <Stack align="center" gap="md">
           <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
-          <h3 className="text-lg font-semibold mb-2">예약 목록을 불러올 수 없습니다</h3>
-          <p className="text-muted-foreground mb-4">
+          <Text size="lg" fw={500}>예약 목록을 불러올 수 없습니다</Text>
+          <Text size="sm" c="dimmed">
             {isNetworkError 
               ? '네트워크 연결을 확인해주세요' 
               : isServerError 
@@ -155,22 +151,22 @@ export function InfiniteReservationList({
                   ? error.message 
                   : '알 수 없는 오류가 발생했습니다'
             }
-          </p>
-          <div className="space-x-2">
+          </Text>
+          <Group gap="sm">
             <Button onClick={() => refetch()} variant="outline">
               다시 시도
             </Button>
             {reservations.length > 0 && (
               <Button 
                 onClick={() => window.location.reload()} 
-                variant="ghost"
+                variant="subtle"
                 size="sm"
               >
                 페이지 새로고침
               </Button>
             )}
-          </div>
-        </CardContent>
+          </Group>
+        </Stack>
       </Card>
     );
   }
@@ -187,14 +183,14 @@ export function InfiniteReservationList({
   // Empty state
   if (reservations.length === 0) {
     return (
-      <Card className={className}>
-        <CardContent className="text-center py-8">
+      <Card shadow="sm" padding="lg" radius="md" withBorder style={{ textAlign: 'center', paddingTop: '2rem', paddingBottom: '2rem' }}>
+        <Stack align="center" gap="md">
           <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">예약이 없습니다</h3>
-          <p className="text-muted-foreground">
+          <Text size="lg" fw={500}>예약이 없습니다</Text>
+          <Text size="sm" c="dimmed">
             선택한 기간에 예약된 회의실이 없습니다.
-          </p>
-        </CardContent>
+          </Text>
+        </Stack>
       </Card>
     );
   }
@@ -266,64 +262,73 @@ function ReservationCard({
   const isMyReservation = reservation.is_mine;
 
   return (
-    <Card className={`transition-all duration-200 hover:shadow-md ${
-      isMyReservation ? 'ring-2 ring-primary/20 bg-primary/5' : ''
-    }`}>
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1 flex-1">
-            <CardTitle className="text-lg flex items-center gap-2">
-              {reservation.title}
+    <Card 
+      shadow="sm" 
+      padding="lg" 
+      radius="md" 
+      withBorder
+      style={{ 
+        transition: 'all 0.2s ease',
+        backgroundColor: isMyReservation ? 'var(--mantine-color-blue-0)' : undefined,
+        borderColor: isMyReservation ? 'var(--mantine-color-blue-3)' : undefined
+      }}
+    >
+      <Stack gap="md">
+        <Group justify="space-between" align="flex-start">
+          <Stack gap="xs" style={{ flex: 1 }}>
+            <Group gap="sm">
+              <Text size="lg" fw={500}>{reservation.title}</Text>
               {isMyReservation && (
-                <Badge variant="default" className="text-xs">
+                <Badge variant="filled" size="xs">
                   내 예약
                 </Badge>
               )}
-            </CardTitle>
-            <CardDescription className="flex items-center gap-2">
+            </Group>
+            <Group gap="xs">
               <MapPin className="h-4 w-4" />
-              {'room_name' in reservation ? reservation.room_name : '회의실'}
-            </CardDescription>
-          </div>
-          <Badge variant="secondary">
+              <Text size="sm" c="dimmed">
+                {'room_name' in reservation ? reservation.room_name : '회의실'}
+              </Text>
+            </Group>
+          </Stack>
+          <Badge variant="light">
             확정됨
           </Badge>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
+        </Group>
+        
+        <Stack gap="sm">
           {/* Time information */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Group gap="xs">
             <Clock className="h-4 w-4" />
-            <span>
+            <Text size="sm" c="dimmed">
               {format(new Date(reservation.start_time), 'yyyy년 MM월 dd일 (EEE) HH:mm', { locale: ko })}
               {' ~ '}
               {format(new Date(reservation.end_time), 'HH:mm', { locale: ko })}
-            </span>
-          </div>
+            </Text>
+          </Group>
 
           {/* Purpose (only for authenticated users and their own reservations) */}
           {isAuthenticated && 'purpose' in reservation && reservation.purpose && isMyReservation && (
-            <div className="text-sm">
-              <span className="font-medium">목적: </span>
-              <span className="text-muted-foreground">{reservation.purpose}</span>
-            </div>
+            <Text size="sm">
+              <Text component="span" fw={500}>목적: </Text>
+              <Text component="span" c="dimmed">{reservation.purpose}</Text>
+            </Text>
           )}
 
           {/* User information (only for authenticated users) */}
           {isAuthenticated && 'user_name' in reservation && (
-            <div className="flex items-center gap-2 text-sm">
+            <Group gap="xs">
               <User className="h-4 w-4" />
-              <span className="text-muted-foreground">
+              <Text size="sm" c="dimmed">
                 {'department' in reservation && reservation.department && (
-                  <span>{reservation.department} / </span>
+                  <Text component="span">{reservation.department} / </Text>
                 )}
                 {isMyReservation ? '나' : reservation.user_name}
-              </span>
-            </div>
+              </Text>
+            </Group>
           )}
-        </div>
-      </CardContent>
+        </Stack>
+      </Stack>
     </Card>
   );
 }

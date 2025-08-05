@@ -198,17 +198,18 @@ export type RoomUpdate = Database['public']['Tables']['rooms']['Update']
 export type ReservationInsert = Database['public']['Tables']['reservations']['Insert']
 export type ReservationUpdate = Database['public']['Tables']['reservations']['Update']
 
-// ✅ PublicReservation 타입 명확한 정의 (get_public_reservations 함수 반환값과 일치)
+// ✅ PublicReservation 타입 명확한 정의 (get_public_reservations_with_room 함수 반환값과 일치)
 export type PublicReservation = {
   id: string
   room_id: string
   user_id: string
   title: string
   purpose: string | null
-  department: string
-  user_name: string // 예약자 이름 추가
   start_time: string
   end_time: string
+  department: string
+  user_name: string // 예약자 이름
+  room_name: string // 회의실 이름 추가
   is_mine: boolean
 }
 

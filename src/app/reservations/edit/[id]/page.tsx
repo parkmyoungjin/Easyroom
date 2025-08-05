@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
-import MobileHeader from '@/components/ui/mobile-header';
+import MobileAppLayout from '@/components/layout/MobileAppLayout';
 import ReservationForm from '@/components/reservations/ReservationForm';
 
 export default function EditReservationPage() {
@@ -10,8 +10,7 @@ export default function EditReservationPage() {
   const reservationId = params.id as string;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <MobileHeader title="예약 수정" showBackButton />
+    <MobileAppLayout headerTitle="예약 수정" showBackButton>
       <div className="max-w-2xl mx-auto px-4 py-8">
         <ReservationForm 
           mode="edit" 
@@ -20,6 +19,6 @@ export default function EditReservationPage() {
           onCancel={() => router.push('/reservations/my')}
         />
       </div>
-    </div>
+    </MobileAppLayout>
   );
 } 
