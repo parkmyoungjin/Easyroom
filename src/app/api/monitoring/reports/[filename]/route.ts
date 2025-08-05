@@ -60,8 +60,9 @@ export async function GET(
       contentType = 'application/json';
     }
 
-    // ✅ Buffer를 Blob으로 변환하여 타입 호환성을 보장합니다.
-    const blob = new Blob([fileContent], { type: contentType });
+    // ✅ Buffer를 Uint8Array로 변환한 후 Blob으로 변환하여 타입 호환성을 보장합니다.
+    const uint8Array = new Uint8Array(fileContent);
+    const blob = new Blob([uint8Array], { type: contentType });
 
     // Set appropriate headers
     const headers = new Headers({
