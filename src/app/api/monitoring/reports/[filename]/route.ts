@@ -60,6 +60,9 @@ export async function GET(
       contentType = 'application/json';
     }
 
+    // ✅ Buffer를 Blob으로 변환하여 타입 호환성을 보장합니다.
+    const blob = new Blob([fileContent], { type: contentType });
+
     // Set appropriate headers
     const headers = new Headers({
       'Content-Type': contentType,
@@ -69,7 +72,8 @@ export async function GET(
       'Content-Disposition': `inline; filename="${filename}"`
     });
 
-    return new NextResponse(fileContent, {
+    // ✅ 이제 blob을 전달하여 타입 에러를 해결합니다.
+    return new NextResponse(blob, {
       status: 200,
       headers
     });
