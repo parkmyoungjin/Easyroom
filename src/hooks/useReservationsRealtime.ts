@@ -219,7 +219,7 @@ export function useReservationsRealtime(startDate: string, endDate: string, isAu
       
       isConnectedRef.current = false;
     };
-  }, [queryClient, supabase, startDate, endDate, isAuthenticated, user]);
+  }, [queryClient, supabase, startDate, endDate, isAuthenticated, user?.id]);
 }
 
 /**

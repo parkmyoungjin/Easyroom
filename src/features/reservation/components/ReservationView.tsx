@@ -13,6 +13,20 @@ import { ChevronLeft, ChevronRight, LocateFixed, Calendar, Clock, User, Building
 import { usePublicReservations } from '@/hooks/useReservations';
 import type { PublicReservation } from '@/types/database';
 
+// 🎯 중앙화된 색상 시스템
+const MANTINE_COLORS = ['blue', 'grape', 'green', 'orange', 'red', 'teal', 'pink'];
+
+const departmentColorMap = new Map<string, string>();
+let colorIndex = 0;
+
+function getDepartmentColor(department: string): string {
+  if (!departmentColorMap.has(department)) {
+    departmentColorMap.set(department, MANTINE_COLORS[colorIndex % MANTINE_COLORS.length]);
+    colorIndex++;
+  }
+  return departmentColorMap.get(department)!;
+}
+
 // 간단한 목록 뷰 컴포넌트
 function PublicListView({ reservations }: { reservations: PublicReservation[] }) {
   const router = useRouter();
@@ -39,19 +53,19 @@ function PublicListView({ reservations }: { reservations: PublicReservation[] })
             <Group justify="space-between" align="flex-start">
               <div className="flex-1">
                 <Text fw={600} size="md" mb="xs">{reservation.title}</Text>
-                
+
                 <div className="space-y-2">
                   <Group gap="xs">
                     <User size={14} className="text-gray-500" />
                     <Text size="sm" c="dimmed">{reservation.user_name}</Text>
                     <Text size="sm" c="dimmed">({reservation.department})</Text>
                   </Group>
-                  
+
                   <Group gap="xs">
                     <Building size={14} className="text-gray-500" />
                     <Text size="sm" c="dimmed">{reservation.room_id}</Text>
                   </Group>
-                  
+
                   <Group gap="xs">
                     <Clock size={14} className="text-gray-500" />
                     <Text size="sm" c="dimmed">
@@ -108,6 +122,20 @@ export default function ReservationView() {
     isAuthenticated()
   );
 
+  // 부서별 색상 맵 생성
+  const { departmentColors, allDepartments } = useMemo(() => {
+    if (!reservations) return { departmentColors: new Map<string, string>(), allDepartments: [] };
+
+    const departments = Array.from(new Set(reservations.map(r => r.department)));
+    const colorMap = new Map<string, string>();
+
+    departments.forEach(dept => {
+      colorMap.set(dept, getDepartmentColor(dept));
+    });
+
+    return { departmentColors: colorMap, allDepartments: departments };
+  }, [reservations]);
+
   const handlePreviousWeek = () => setCurrentDate(addDays(currentDate, -7));
   const handleNextWeek = () => setCurrentDate(addDays(currentDate, 7));
   const handleGoToToday = () => setCurrentDate(new Date());
@@ -121,7 +149,7 @@ export default function ReservationView() {
         <Button variant="outline" size="compact-sm" onClick={handlePreviousWeek}>
           <ChevronLeft size={16} />
         </Button>
-        
+
         <div className="flex flex-col items-center gap-2">
           <div className="text-center">
             <Text fw={600} size="sm">{format(weekRange.start, 'yyyy년')}</Text>
@@ -159,6 +187,7 @@ export default function ReservationView() {
                 reservations={reservations || []}
                 weekStartDate={weekRange.start}
                 isAuthenticated={isAuthenticated()}
+                departmentColors={departmentColors}
               />
             </Tabs.Panel>
 

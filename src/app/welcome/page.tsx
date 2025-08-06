@@ -9,25 +9,24 @@ import {
 import { 
   Clock, LogIn, UserPlus, ArrowRight
 } from 'lucide-react';
+import AppLayout from '@/components/layout/AppLayout';
 
 /**
  * 비로그인 사용자를 위한 환영 페이지
  */
 export default function WelcomePage() {
   return (
-    <Center mih="100vh">
-      <Container size="sm" p="md">
-        <Stack gap="xl" align="center" maw={400} mx="auto">
-          {/* 브랜드 섹션 */}
-          <Stack gap="lg" align="center">
-            <Stack gap="xs" align="center">
-              <Title order={1} size="3rem" fw={700} ta="center">
-                EasyRoom
-              </Title>
-              <Text size="lg" c="dimmed" ta="center">
-                간편한 회의실 예약, 이제 스트레스 받지 마세요.
-              </Text>
-            </Stack>
+    <AppLayout variant="minimal">
+      <Center mih="calc(100vh - 60px)">
+        <Container size="sm" p="md">
+          <Stack gap="xl" align="center" maw={400} mx="auto">
+            {/* 브랜드 섹션 */}
+            <Stack gap="lg" align="center">
+              <Stack gap="xs" align="center">
+                <Text size="lg" c="dimmed" ta="center">
+                  간편한 회의실 예약, 이제 스트레스 받지 마세요.
+                </Text>
+              </Stack>
             
             {/* 기능 소개 */}
             <Stack gap="xs" align="center">
@@ -68,7 +67,7 @@ export default function WelcomePage() {
             </Text>
             <Anchor 
               component={Link} 
-              href="/kiosk/room-display" 
+              href="/reservations/status" 
               c="blue" 
               size="sm"
               fw={500}
@@ -83,5 +82,6 @@ export default function WelcomePage() {
         </Stack>
       </Container>
     </Center>
+    </AppLayout>
   );
 }

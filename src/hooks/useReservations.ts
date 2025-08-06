@@ -9,11 +9,7 @@ import { ReservationFormData } from '@/lib/validations/schemas';
 import { toast } from 'sonner';
 import type { ReservationInsert, ReservationUpdate, ReservationWithDetails, PublicReservation } from "@/types/database";
 import { logger } from '@/lib/utils/logger';
-import { 
-  buildQueryOptions, 
-  createStandardFetch,
-  optimizeForDateRange 
-} from '@/lib/utils/query-optimization';
+import { optimizeForDateRange } from '@/lib/utils/query-optimization';
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { reservationKeys } from '@/lib/queryKeys'; // Phase 3: 중앙화된 쿼리 키 import
@@ -31,31 +27,17 @@ export function usePublicReservations(startDate: string, endDate: string, isAuth
   const queryKey = reservationKeys.public(startDate, endDate, isAuthenticated);
   const dateOptimization = optimizeForDateRange(startDate, endDate);
   
-  // 기본 쿼리 설정 (staleTime을 0으로 설정하여 Realtime 실패 시 안전장치 제공)
-  const queryResult = useQuery(buildQueryOptions({
+  const queryResult = useQuery({
     queryKey,
-    queryFn: createStandardFetch(
-      () => {
-        // ✅ [2단계] queryFn 내부에서 최종 방어
-        if (authStatus !== 'authenticated') {
-          return Promise.resolve([]);
-        }
-        return reservationService.getPublicReservations(startDate, endDate, isAuthenticated);
-      },
-      { operation: 'fetch public reservations', params: { startDate, endDate, isAuthenticated } }
-    ),
-    // ✅ [Phase 1] authStatus 기반 안정화
-    enabled: !!startDate && !!endDate && authStatus === 'authenticated',
-    dataType: 'dynamic',
-    cacheConfig: {
-      customStaleTime: 0, // Realtime 연결 실패 시 안전장치
-      customGcTime: dateOptimization.gcTime
+    queryFn: () => {
+      return reservationService.getPublicReservations(startDate, endDate, isAuthenticated);
     },
-    retryConfig: {
-      maxRetries: 2,
-      baseDelay: 1000
-    }
-  }));
+    enabled: !!startDate && !!endDate,
+    staleTime: 0,
+    gcTime: dateOptimization.gcTime,
+    retry: 2,
+    retryDelay: 1000
+  });
 
   // ✅ Phase 2: 실시간 구독 설정 - 별도 매니저로 단순화
   useEffect(() => {
@@ -106,26 +88,18 @@ export function useReservationsWithDetails(startDate: string, endDate: string) {
   const { authStatus } = useAuthContext();
   const dateOptimization = optimizeForDateRange(startDate, endDate);
   
-  return useQuery(buildQueryOptions({
+  return useQuery({
     queryKey: reservationKeys.withDetails(startDate, endDate),
-    queryFn: createStandardFetch(
-      () => {
-        // ✅ [2단계] queryFn 내부에서 최종 방어
-        if (authStatus !== 'authenticated' || !supabase) {
-          return Promise.resolve([]);
-        }
-        return reservationService.getReservationsWithDetails(supabase, startDate, endDate);
-      },
-      { operation: 'fetch detailed reservations', params: { startDate, endDate } }
-    ),
-    // ✅ [Phase 1] authStatus 기반 안정화
+    queryFn: () => {
+      if (authStatus !== 'authenticated' || !supabase) {
+        return Promise.resolve([]);
+      }
+      return reservationService.getReservationsWithDetails(supabase, startDate, endDate);
+    },
     enabled: !!startDate && !!endDate && authStatus === 'authenticated' && !!supabase,
-    dataType: 'dynamic',
-    cacheConfig: {
-      customStaleTime: dateOptimization.staleTime,
-      customGcTime: dateOptimization.gcTime
-    }
-  }));
+    staleTime: dateOptimization.staleTime,
+    gcTime: dateOptimization.gcTime
+  });
 }
 
 // ✅ Phase 1: 내 예약을 가져오는 훅 - 완전 순수화 완료 (침범도: 0%)
@@ -133,30 +107,17 @@ export function useMyReservations(userId: string | undefined): { data: Reservati
   const { authStatus } = useAuthContext();
   const supabase = useSupabaseClient();
 
-  const queryOptions = buildQueryOptions({
-    queryKey: reservationKeys.my(userId),
-    queryFn: createStandardFetch(
-      () => {
-        // ✅ 가드 조건만 유지, 모든 비즈니스 로직은 서비스 계층으로 이전
-        if (authStatus !== 'authenticated' || !userId || !supabase) {
-          return Promise.resolve([]);
-        }
-        
-        // ✅ 서비스 계층 완전 위임 - 단 한 줄로 순수화
-        return reservationService.getMyReservations(supabase, userId);
-      },
-      { operation: 'fetch my reservations (service layer)', params: { userId } }
-    ),
-    enabled: authStatus === 'authenticated' && !!userId && !!supabase,
-    dataType: 'semi-static',
-    cacheConfig: {
-      customStaleTime: 0,
-      customGcTime: 5 * 60 * 1000,
-    }
-  });
-
   return useQuery({
-    ...queryOptions,
+    queryKey: reservationKeys.my(userId),
+    queryFn: () => {
+      if (authStatus !== 'authenticated' || !userId || !supabase) {
+        return Promise.resolve([]);
+      }
+      return reservationService.getMyReservations(supabase, userId);
+    },
+    enabled: authStatus === 'authenticated' && !!userId && !!supabase,
+    staleTime: 0,
+    gcTime: 5 * 60 * 1000,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
@@ -168,22 +129,16 @@ export function useReservation(id: string) {
   const supabase = useSupabaseClient();
   const { authStatus } = useAuthContext();
   
-  return useQuery(buildQueryOptions({
+  return useQuery({
     queryKey: reservationKeys.detail(id),
-    queryFn: createStandardFetch(
-      () => {
-        // ✅ [2단계] queryFn 내부에서 최종 방어
-        if (authStatus !== 'authenticated' || !supabase) {
-          return Promise.resolve(null);
-        }
-        return reservationService.getReservationById(supabase, id);
-      },
-      { operation: 'fetch reservation by ID', params: { id } }
-    ),
-    // ✅ [Phase 1] authStatus 기반 안정화
+    queryFn: () => {
+      if (authStatus !== 'authenticated' || !supabase) {
+        return Promise.resolve(null);
+      }
+      return reservationService.getReservationById(supabase, id);
+    },
     enabled: !!id && authStatus === 'authenticated' && !!supabase,
-    dataType: 'semi-static'
-  }));
+  });
 }
 
 // 모든 예약을 가져오는 훅 (관리자용)
@@ -191,22 +146,16 @@ export function useAllReservations() {
   const supabase = useSupabaseClient();
   const { authStatus } = useAuthContext();
   
-  return useQuery(buildQueryOptions({
-    queryKey: reservationKeys.all, // .custom('admin', 'all') 대신 .all 사용
-    queryFn: createStandardFetch(
-      () => {
-        // ✅ [2단계] queryFn 내부에서 최종 방어
-        if (authStatus !== 'authenticated' || !supabase) {
-          return Promise.resolve([]);
-        }
-        return reservationService.getAllReservations(supabase);
-      },
-      { operation: 'fetch all reservations (admin)', params: {} }
-    ),
-    // ✅ [Phase 1] authStatus 기반 안정화
+  return useQuery({
+    queryKey: reservationKeys.all,
+    queryFn: () => {
+      if (authStatus !== 'authenticated' || !supabase) {
+        return Promise.resolve([]);
+      }
+      return reservationService.getAllReservations(supabase);
+    },
     enabled: authStatus === 'authenticated' && !!supabase,
-    dataType: 'dynamic',
-  }));
+  });
 }
 
 // 통계를 가져오는 훅
@@ -214,31 +163,26 @@ export function useReservationStatistics(startDate: string, endDate: string) {
   const supabase = useSupabaseClient();
   const { authStatus } = useAuthContext();
 
-  return useQuery(buildQueryOptions({
+  return useQuery({
     queryKey: reservationKeys.statistics(startDate, endDate),
-    queryFn: createStandardFetch(
-      async () => {
-        // ✅ [2단계] queryFn 내부에서 최종 방어
-        if (authStatus !== 'authenticated' || !supabase) {
-          return Promise.resolve(null);
-        }
-        
-        const { data, error } = await supabase
-          .rpc('get_reservation_statistics', {
-            start_date: startDate,
-            end_date: endDate
-          });
-        if (error) {
-          logger.error('Statistics RPC failed', error);
-          throw new Error(`통계 조회 실패: ${error.message}`);
-        }
-        return data;
-      },
-      { operation: 'fetch reservation statistics', params: { startDate, endDate } }
-    ),
-    // ✅ [Phase 1] authStatus 기반 안정화
+    queryFn: async () => {
+      if (authStatus !== 'authenticated' || !supabase) {
+        return Promise.resolve(null);
+      }
+      
+      const { data, error } = await supabase
+        .rpc('get_reservation_statistics', {
+          start_date: startDate,
+          end_date: endDate
+        });
+      if (error) {
+        logger.error('Statistics RPC failed', error);
+        throw new Error(`통계 조회 실패: ${error.message}`);
+      }
+      return data;
+    },
     enabled: !!startDate && !!endDate && authStatus === 'authenticated' && !!supabase,
-  }));
+  });
 }
 
 // ✅ Phase 2: 예약을 생성하는 뮤테이션 훅 - UI 피드백 로직 제거 (침범도: 40% → 0%)

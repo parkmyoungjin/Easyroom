@@ -1,12 +1,11 @@
 // FILE: src/contexts/AuthContext.tsx
-// 작전명: 중앙 관제탑 V2 (Operation: Central Control Tower V2)
-// 원칙: 인증 상태가 모든 데이터 흐름을 통제하며, 모든 의존성은 명확하게 선언된다.
+// 순수한 정보 제공자 - AuthProvider
+// 원칙: 오직 인증 상태 데이터 제공만 책임진다.
 
 'use client';
 
-// ✅ [핵심 수정] 모든 필요한 자재(타입, 훅, 컴포넌트)를 명확하게 import 합니다.
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { SupabaseClient, User, Session, AuthChangeEvent, Session as SupabaseSession } from '@supabase/supabase-js';
+import { SupabaseClient, User, Session } from '@supabase/supabase-js';
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 import { UserProfile } from '@/types/auth';
 import { ProfileRpcResult, convertRpcResultToUserProfile } from '@/lib/auth/profile-utils';
@@ -26,12 +25,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export interface AuthProviderProps {
   children: React.ReactNode;
   initialSession?: Session | null;
-  initialProfile?: UserProfile | null;
 }
 
 // --- 프로필 헬퍼 함수 ---
 // 이전에 정의한 getOrCreateProfile 함수는 여기에 그대로 존재한다고 가정합니다.
-async function getOrCreateProfile(supabase: SupabaseClient): Promise<UserProfile | null> {
+async function getOrCreateProfile(supabase: SupabaseClient | null): Promise<UserProfile | null> {
+  if (!supabase) {
+    console.error("[AuthContext] Supabase client is null");
+    return null;
+  }
+
   try {
     const { data, error } = await supabase.rpc('get_or_create_user_profile');
     if (error) throw error;
@@ -45,66 +48,90 @@ async function getOrCreateProfile(supabase: SupabaseClient): Promise<UserProfile
 
 
 // ============================================================================
-// 중앙 관제탑: AuthProvider
+// 순수한 정보 제공자: AuthProvider - 최종 단순화 버전
 // ============================================================================
 export const AuthProvider = ({
   children,
-  initialSession = null,
-  initialProfile = null
+  initialSession = null
 }: AuthProviderProps) => {
   const supabase = useSupabaseClient();
 
-  // [1단계 결과물] '신뢰 기반 초기화' - 서버의 판단을 절대적으로 신뢰
+  // 상태는 user와 userProfile만 관리한다. authStatus는 파생 상태이다.
   const [user, setUser] = useState<User | null>(initialSession?.user ?? null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(initialProfile ?? null);
-  const [authStatus, setAuthStatus] = useState<AuthStatus>(
-    initialSession ? 'authenticated' : 'unauthenticated'
-  );
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Supabase 클라이언트가 준비되지 않으면 아무것도 하지 않습니다.
-    if (!supabase) return;
+    let isMounted = true;
 
-    // [2단계 결과물] '단순화된 useEffect' - 오직 상태 '변화'만을 처리
+    const fetchProfile = async () => {
+      const profile = await getOrCreateProfile(supabase);
+      if (isMounted) {
+        setUserProfile(profile);
+      }
+    };
+
+    const handleAuthComplete = async () => {
+      if (!supabase) {
+        console.error("[AuthContext] Supabase client is not available");
+        if (isMounted) {
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      // 초기 세션이 서버로부터 주입되었는지 확인
+      if (initialSession) {
+        await fetchProfile();
+      } else {
+        // PWA/CSR 환경: 현재 세션을 확인
+        const { data: { session } } = await supabase.auth.getSession();
+        if (isMounted && session) {
+          await fetchProfile();
+        }
+      }
+
+      if (isMounted) {
+        setIsLoading(false);
+      }
+    };
+
+    handleAuthComplete();
+
+    if (!supabase) {
+      return () => {
+        isMounted = false;
+      };
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: AuthChangeEvent, session: SupabaseSession | null) => {
-        console.log(`[AuthProvider] State change detected: ${event}, hasSession: ${!!session}`);
-
-        if (session) {
-          // 세션이 존재하면 -> authenticated 상태로 전환
-          const profile = await getOrCreateProfile(supabase);
-          
-          if (profile) {
+      (_, session) => {
+        if (isMounted) {
+          if (session) {
+            fetchProfile();
             setUser(session.user);
-            setUserProfile(profile);
-            setAuthStatus('authenticated');
-            console.log("[AuthProvider] Successfully authenticated with profile");
           } else {
-            // 프로필 조회/생성 실패는 심각한 문제이므로 로그아웃 처리
-            console.error("[AuthProvider] Profile fetch failed. Signing out.");
-            await supabase.auth.signOut();
             setUser(null);
             setUserProfile(null);
-            setAuthStatus('unauthenticated');
           }
-        } else {
-          // 세션이 없다면 -> unauthenticated 상태로 전환
-          console.log("[AuthProvider] No session - setting unauthenticated");
-          setUser(null);
-          setUserProfile(null);
-          setAuthStatus('unauthenticated');
         }
       }
     );
 
-    // 컴포넌트 언마운트 시 구독을 해지합니다.
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [supabase, initialSession]);
+
+  // ✅ authStatus를 상태가 아닌, 현재 데이터에 기반한 '파생 값'으로 계산한다.
+  const authStatus: AuthStatus = isLoading
+    ? 'loading'
+    : user && userProfile ? 'authenticated' : 'unauthenticated';
 
   const value = { user, userProfile, authStatus };
 
+  // ✅ AuthProvider는 이제 순수한 '정보 전문가' - UI 렌더링에 관여하지 않음
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 

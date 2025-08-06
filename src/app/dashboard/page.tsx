@@ -4,15 +4,16 @@
 import { useAuth } from '@/hooks/useAuth';
 import Link from 'next/link';
 import {
-  Button, Card, Title, Text, Stack, Group, Container,
-  Grid, SimpleGrid, Avatar, ThemeIcon, Center
+  Card, Title, Text, Stack, Container,
+  Grid, SimpleGrid, ThemeIcon, Group, Avatar, Button
 } from '@mantine/core';
 import {
   Calendar, Users, Clock, Settings, LogOut, BarChart3,
   ArrowRight, Building2
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
+import AppLayout from '@/components/layout/AppLayout';
+
 
 // Bento Grid에 들어갈, 재사용 가능한 카드 컴포넌트 정의
 interface BentoCardProps {
@@ -79,23 +80,10 @@ function BentoCard({ title, description, icon, onClick, variant = 'default' }: B
  * 로그인한 사용자를 위한 개인화된 메인 허브 - Bento Grid 스타일
  */
 export default function DashboardPage() {
-  const router = useRouter();
   const { signOut, userProfile, authStatus } = useAuth();
 
-  // 로딩 상태 처리
-  if (authStatus === 'loading') {
-    return (
-      <Container my="xl" size="lg">
-        <Center mih="50vh">
-          <Stack align="center" gap="md">
-            <Text size="lg" c="dimmed">로딩 중...</Text>
-          </Stack>
-        </Center>
-      </Container>
-    );
-  }
-
-  // 인증되지 않은 사용자는 접근할 수 없음 (middleware에서 처리)
+  // AuthGatekeeper에서 모든 인증 및 리디렉션을 처리하므로
+  // 여기서는 단순히 userProfile 존재 여부만 확인
   if (!userProfile) {
     return null;
   }
@@ -120,38 +108,15 @@ export default function DashboardPage() {
       });
       return;
     }
-    router.push(path);
+    window.location.href = path;
   };
 
   return (
-    <Container my="xl" size="lg">
-      {/* --- 환영 섹션 --- */}
-      <Group justify="space-between" mb="xl">
-        <Stack gap="xs">
-          <Text size="lg" c="dimmed">안녕하세요,</Text>
-          <Title order={1} size="2.5rem" fw={700}>
-            {userProfile.name}님!
-          </Title>
-          <Text c="dimmed">
-            EasyRoom에서 편리하게 회의실을 예약하세요.
-          </Text>
-        </Stack>
-        <Group gap="md">
-          <Stack gap={0} align="flex-end" visibleFrom="sm">
-            <Text fw={600}>{userProfile.name}</Text>
-            <Text size="sm" c="dimmed">{userProfile.department}</Text>
-          </Stack>
-          <Group gap="sm">
-            <Avatar color="blue" radius="xl" size="lg">
-              {userProfile.name.charAt(0)}
-            </Avatar>
-            <Button variant="outline" onClick={handleLogout} leftSection={<LogOut size={16} />}>
-              <Text hiddenFrom="sm" visibleFrom="xs">로그아웃</Text>
-              <Text visibleFrom="sm">로그아웃</Text>
-            </Button>
-          </Group>
-        </Group>
-      </Group>
+    <AppLayout 
+      variant="default" 
+      showLogo={true}
+    >
+      <Container my="xl" size="lg">
 
       {/* --- Bento Grid 레이아웃 --- */}
       <SimpleGrid
@@ -233,5 +198,6 @@ export default function DashboardPage() {
         </Stack>
       </Card>
     </Container>
+    </AppLayout>
   );
 }

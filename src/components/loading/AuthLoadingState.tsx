@@ -14,18 +14,18 @@ interface AuthLoadingStateProps {
  * SSR-compatible loading state component that handles authentication initialization
  * Shows loading UI during hydration and initial auth check
  */
-export function AuthLoadingState({ 
-  children, 
-  fallback, 
+export function AuthLoadingState({
+  children,
+  fallback,
   timeout = 8000 // Increased timeout to match AuthContext timeout
 }: AuthLoadingStateProps) {
   const [isHydrated, setIsHydrated] = useState(false);
   const [hasTimedOut, setHasTimedOut] = useState(false);
   const [loadingPhase, setLoadingPhase] = useState<'hydrating' | 'supabase' | 'auth' | 'ready'>('hydrating');
-  
+
   const { authStatus } = useAuthContext();
   const supabase = useSupabaseClient();
-  
+
   // With new SSR architecture, Supabase client is always ready
   const isSupabaseReady = !!supabase;
   const isSupabaseLoading = false;
@@ -70,9 +70,9 @@ export function AuthLoadingState({
   // 2. Supabase is still loading
   // 3. Auth status is loading and hasn't timed out
   // 4. No critical errors present
-  const shouldShowLoading = 
-    !isHydrated || 
-    isSupabaseLoading || 
+  const shouldShowLoading =
+    !isHydrated ||
+    isSupabaseLoading ||
     (authStatus === 'loading' && !hasTimedOut && !supabaseError);
 
   if (shouldShowLoading) {
@@ -86,10 +86,10 @@ export function AuthLoadingState({
 /**
  * Default loading UI for authentication states with phase-specific messaging
  */
-function DefaultAuthLoadingUI({ 
-  phase, 
-  hasTimedOut 
-}: { 
+function DefaultAuthLoadingUI({
+  phase,
+  hasTimedOut
+}: {
   phase: 'hydrating' | 'supabase' | 'auth' | 'ready';
   hasTimedOut: boolean;
 }) {
@@ -97,7 +97,7 @@ function DefaultAuthLoadingUI({
     if (hasTimedOut) {
       return '로딩 시간이 초과되었습니다. 페이지를 새로고침해주세요.';
     }
-    
+
     switch (phase) {
       case 'hydrating':
         return '페이지를 준비 중입니다...';
@@ -126,8 +126,8 @@ function DefaultAuthLoadingUI({
           {getLoadingMessage()}
         </p>
         {hasTimedOut && (
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
           >
             새로고침

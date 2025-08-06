@@ -120,7 +120,7 @@ export function ClientPolyfillManager({
 }
 
 /**
- * Load service worker with proper error handling
+ * Load service worker with proper error handling and update detection
  */
 async function loadServiceWorker(): Promise<void> {
   if (!isBrowser() || !browserGlobals.navigator) {
@@ -135,18 +135,46 @@ async function loadServiceWorker(): Promise<void> {
       
       console.log('Service Worker registered successfully:', registration);
       
-      // Handle service worker updates
+      // 🎯 핵심 개선: zustand 스토어와 연결된 업데이트 감지 로직
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
         if (newWorker) {
+          console.log('[ServiceWorker] New service worker installing...');
+          
           newWorker.addEventListener('statechange', () => {
+            console.log('[ServiceWorker] State changed to:', newWorker.state);
+            
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New service worker is available
-              console.log('New service worker available');
-              // You can show a notification to the user here
+              // 🚀 새 서비스 워커가 설치 완료되고, 기존 서비스 워커가 활성 상태일 때
+              // 이는 새 버전이 대기 중임을 의미함
+              console.log('[ServiceWorker] New service worker installed and ready');
+              
+              // zustand 스토어에 업데이트 가능 상태 알림
+              // 동적 import로 스토어 로드 (서버 사이드 렌더링 호환성)
+              import('@/stores/updateStore').then(({ useUpdateStore }) => {
+                const { setUpdateAvailable } = useUpdateStore.getState();
+                setUpdateAvailable(registration);
+                console.log('[ServiceWorker] Update state set in store');
+              }).catch(error => {
+                console.error('[ServiceWorker] Failed to load update store:', error);
+              });
             }
           });
         }
+      });
+      
+      // 🔄 기존 서비스 워커가 새 버전으로 교체될 때 처리
+      registration.addEventListener('controllerchange', () => {
+        console.log('[ServiceWorker] Controller changed - new service worker took control');
+        
+        // 새 서비스 워커가 제어권을 가져갔으므로 상태 초기화
+        import('@/stores/updateStore').then(({ useUpdateStore }) => {
+          const { resetUpdateState } = useUpdateStore.getState();
+          resetUpdateState();
+          console.log('[ServiceWorker] Update state reset after controller change');
+        }).catch(error => {
+          console.error('[ServiceWorker] Failed to reset update state:', error);
+        });
       });
       
     } catch (error) {

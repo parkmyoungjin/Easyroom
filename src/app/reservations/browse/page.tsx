@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { Card, Select, Text } from '@mantine/core';
 import { format, addDays, addWeeks, addMonths, startOfDay, endOfDay } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { useRouter } from 'next/navigation';
+
 import InfiniteReservationList from '@/components/reservations/InfiniteReservationList';
-import MobileAppLayout from '@/components/layout/MobileAppLayout';
+import AppLayout from '@/components/layout/AppLayout';
 
 type DateRange = {
   from: Date;
@@ -63,13 +63,12 @@ const rangePresets: RangePreset[] = [
 ];
 
 export default function BrowseReservationsPage() {
-  const router = useRouter();
   const [dateRange, setDateRange] = useState<DateRange>(() => rangePresets[2].getRange()); // Default to "this week"
   const [selectedPreset, setSelectedPreset] = useState('this-week');
   const [pageSize, setPageSize] = useState(20);
 
   const handleBack = () => {
-    router.back();
+    window.history.back();
   };
 
   const handlePresetChange = (presetValue: string | null) => {
@@ -91,7 +90,7 @@ export default function BrowseReservationsPage() {
   };
 
   return (
-    <MobileAppLayout headerTitle="예약 둘러보기" onBack={handleBack}>
+    <AppLayout headerTitle="예약 둘러보기" onBack={handleBack}>
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -189,6 +188,6 @@ export default function BrowseReservationsPage() {
           className="mb-8"
         />
       </div>
-    </MobileAppLayout>
+    </AppLayout>
   );
 }

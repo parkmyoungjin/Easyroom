@@ -9,10 +9,7 @@ import { RoomAmenities } from '@/types/database';
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
-import {
-  buildQueryOptions,
-  createStandardFetch
-} from '@/lib/utils/query-optimization';
+
 // Phase 2: useAuth import 제거 (더 이상 직접 사용하지 않음)
 import { logger } from '@/lib/utils/logger';
 import { roomKeys } from '@/lib/queryKeys'; // Phase 3: 중앙화된 쿼리 키 import
@@ -24,26 +21,16 @@ export function useRooms() {
   const supabase = useSupabaseClient();
   const { authStatus } = useAuthContext();
 
-  return useQuery(buildQueryOptions({
+  return useQuery({
     queryKey: roomKeys.active(),
-    queryFn: createStandardFetch(
-      () => {
-        // ✅ [2단계] queryFn 내부에서 최종 방어
-        if (authStatus !== 'authenticated' || !supabase) {
-          // 인증되지 않았다면, 네트워크 요청 없이 즉시 빈 배열을 반환
-          return Promise.resolve([]);
-        }
-        return roomService.getActiveRooms(supabase);
-      },
-      {
-        operation: 'fetch active rooms',
-        params: {}
+    queryFn: () => {
+      if (authStatus !== 'authenticated' || !supabase) {
+        return Promise.resolve([]);
       }
-    ),
-    // ✅ [Phase 1] authStatus 기반 안정화
+      return roomService.getActiveRooms(supabase);
+    },
     enabled: authStatus === 'authenticated' && !!supabase,
-    dataType: 'static'
-  }));
+  });
 }
 
 // Get all rooms including inactive (admin only) - Optimized
@@ -51,29 +38,18 @@ export function useAllRooms() {
   const supabase = useSupabaseClient();
   const { authStatus } = useAuthContext();
 
-  return useQuery(buildQueryOptions({
+  return useQuery({
     queryKey: [...roomKeys.all, 'admin', 'all'],
-    queryFn: createStandardFetch(
-      () => {
-        // ✅ [2단계] queryFn 내부에서 최종 방어
-        if (authStatus !== 'authenticated' || !supabase) {
-          return Promise.resolve([]);
-        }
-        return roomService.getAllRoomsIncludingInactive(supabase);
-      },
-      {
-        operation: 'fetch all rooms (admin)',
-        params: {}
+    queryFn: () => {
+      if (authStatus !== 'authenticated' || !supabase) {
+        return Promise.resolve([]);
       }
-    ),
-    // ✅ [Phase 1] authStatus 기반 안정화
+      return roomService.getAllRoomsIncludingInactive(supabase);
+    },
     enabled: authStatus === 'authenticated' && !!supabase,
-    dataType: 'static',
-    cacheConfig: {
-      customStaleTime: 10 * 60 * 1000,
-      customGcTime: 30 * 60 * 1000
-    }
-  }));
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000
+  });
 }
 
 // Get room by ID - Optimized
@@ -81,25 +57,16 @@ export function useRoom(id: string) {
   const supabase = useSupabaseClient();
   const { authStatus } = useAuthContext();
 
-  return useQuery(buildQueryOptions({
+  return useQuery({
     queryKey: roomKeys.detail(id),
-    queryFn: createStandardFetch(
-      () => {
-        // ✅ [2단계] queryFn 내부에서 최종 방어
-        if (authStatus !== 'authenticated' || !supabase) {
-          return Promise.resolve(null);
-        }
-        return roomService.getRoomById(supabase, id);
-      },
-      {
-        operation: 'fetch room by ID',
-        params: { id }
+    queryFn: () => {
+      if (authStatus !== 'authenticated' || !supabase) {
+        return Promise.resolve(null);
       }
-    ),
-    // ✅ [Phase 1] authStatus 기반 안정화
+      return roomService.getRoomById(supabase, id);
+    },
     enabled: !!id && authStatus === 'authenticated' && !!supabase,
-    dataType: 'static'
-  }));
+  });
 }
 
 // Search rooms - Optimized
@@ -107,29 +74,18 @@ export function useSearchRooms(query: string) {
   const supabase = useSupabaseClient();
   const { authStatus } = useAuthContext();
 
-  return useQuery(buildQueryOptions({
+  return useQuery({
     queryKey: roomKeys.search(query),
-    queryFn: createStandardFetch(
-      () => {
-        // ✅ [2단계] queryFn 내부에서 최종 방어
-        if (authStatus !== 'authenticated' || !supabase) {
-          return Promise.resolve([]);
-        }
-        return roomService.searchRooms(supabase, query);
-      },
-      {
-        operation: 'search rooms',
-        params: { query }
+    queryFn: () => {
+      if (authStatus !== 'authenticated' || !supabase) {
+        return Promise.resolve([]);
       }
-    ),
-    // ✅ [Phase 1] authStatus 기반 안정화
+      return roomService.searchRooms(supabase, query);
+    },
     enabled: !!query && query.length > 0 && authStatus === 'authenticated' && !!supabase,
-    dataType: 'static',
-    cacheConfig: {
-      customStaleTime: 5 * 60 * 1000,
-      customGcTime: 10 * 60 * 1000
-    }
-  }));
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000
+  });
 }
 
 // Get rooms by capacity - Optimized
@@ -137,29 +93,18 @@ export function useRoomsByCapacity(minCapacity: number) {
   const supabase = useSupabaseClient();
   const { authStatus } = useAuthContext();
 
-  return useQuery(buildQueryOptions({
+  return useQuery({
     queryKey: roomKeys.capacity(minCapacity),
-    queryFn: createStandardFetch(
-      () => {
-        // ✅ [2단계] queryFn 내부에서 최종 방어
-        if (authStatus !== 'authenticated' || !supabase) {
-          return Promise.resolve([]);
-        }
-        return roomService.getRoomsByCapacity(supabase, minCapacity);
-      },
-      {
-        operation: 'fetch rooms by capacity',
-        params: { minCapacity }
+    queryFn: () => {
+      if (authStatus !== 'authenticated' || !supabase) {
+        return Promise.resolve([]);
       }
-    ),
-    // ✅ [Phase 1] authStatus 기반 안정화
+      return roomService.getRoomsByCapacity(supabase, minCapacity);
+    },
     enabled: minCapacity > 0 && authStatus === 'authenticated' && !!supabase,
-    dataType: 'static',
-    cacheConfig: {
-      customStaleTime: 10 * 60 * 1000,
-      customGcTime: 30 * 60 * 1000
-    }
-  }));
+    staleTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000
+  });
 }
 
 // ✅ Phase 2: 회의실 가용성 조회 훅 - RPC 호출과 폴백 로직 서비스 계층 이전 (침범도: 60% → 0%)
@@ -167,30 +112,18 @@ export function useRoomAvailability(roomId: string, startDate: string, endDate: 
   const supabase = useSupabaseClient();
   const { authStatus } = useAuthContext();
 
-  return useQuery(buildQueryOptions({
+  return useQuery({
     queryKey: roomKeys.availability(roomId, startDate, endDate),
-    queryFn: createStandardFetch(
-      () => {
-        // ✅ 가드 조건만 유지, 모든 비즈니스 로직은 서비스 계층으로 이전
-        if (authStatus !== 'authenticated' || !supabase) {
-          return Promise.resolve([]);
-        }
-
-        // ✅ 서비스 계층 완전 위임 - RPC 호출과 폴백 로직 모두 서비스에서 처리
-        return RoomService.getInstance().getRoomAvailability(supabase, roomId, startDate, endDate);
-      },
-      {
-        operation: 'check room availability (service layer)',
-        params: { roomId, startDate, endDate }
+    queryFn: () => {
+      if (authStatus !== 'authenticated' || !supabase) {
+        return Promise.resolve([]);
       }
-    ),
+      return RoomService.getInstance().getRoomAvailability(supabase, roomId, startDate, endDate);
+    },
     enabled: !!roomId && !!startDate && !!endDate && authStatus === 'authenticated' && !!supabase,
-    dataType: 'real-time',
-    cacheConfig: {
-      customStaleTime: 1 * 60 * 1000, // 1 minute
-      customGcTime: 5 * 60 * 1000 // 5 minutes
-    }
-  }));
+    staleTime: 1 * 60 * 1000,
+    gcTime: 5 * 60 * 1000
+  });
 }
 
 // Advanced room search with RPC function
@@ -205,43 +138,32 @@ export function useAdvancedRoomSearch(params: {
   const supabase = useSupabaseClient();
   const { authStatus } = useAuthContext();
 
-  return useQuery(buildQueryOptions({
+  return useQuery({
     queryKey: roomKeys.advancedSearch(params),
-    queryFn: createStandardFetch(
-      async () => {
-        // ✅ [2단계] queryFn 내부에서 최종 방어
-        if (authStatus !== 'authenticated' || !supabase) {
-          return Promise.resolve([]);
-        }
-
-        const { data, error } = await supabase
-          .rpc('search_rooms_advanced', {
-            search_query: query,
-            min_capacity: minCapacity,
-            required_amenities: requiredAmenities,
-            available_from: availableFrom ? new Date(availableFrom).toISOString() : null,
-            available_to: availableTo ? new Date(availableTo).toISOString() : null
-          });
-
-        if (error) {
-          throw new Error(`Advanced room search failed: ${error.message}`);
-        }
-
-        return data;
-      },
-      {
-        operation: 'advanced room search',
-        params
+    queryFn: async () => {
+      if (authStatus !== 'authenticated' || !supabase) {
+        return Promise.resolve([]);
       }
-    ),
-    // ✅ [Phase 1] authStatus 기반 안정화
+
+      const { data, error } = await supabase
+        .rpc('search_rooms_advanced', {
+          search_query: query,
+          min_capacity: minCapacity,
+          required_amenities: requiredAmenities,
+          available_from: availableFrom ? new Date(availableFrom).toISOString() : null,
+          available_to: availableTo ? new Date(availableTo).toISOString() : null
+        });
+
+      if (error) {
+        throw new Error(`Advanced room search failed: ${error.message}`);
+      }
+
+      return data;
+    },
     enabled: !!(query || minCapacity > 0 || requiredAmenities.length > 0 || (availableFrom && availableTo)) && authStatus === 'authenticated' && !!supabase,
-    dataType: 'dynamic',
-    cacheConfig: {
-      customStaleTime: 2 * 60 * 1000, // 2 minutes
-      customGcTime: 10 * 60 * 1000 // 10 minutes
-    }
-  }));
+    staleTime: 2 * 60 * 1000,
+    gcTime: 10 * 60 * 1000
+  });
 }
 
 // Create room mutation (admin only)
@@ -441,29 +363,16 @@ export function useAvailableTimeSlots(roomId: string, date: Date | null) {
   // Date 객체를 'yyyy-MM-dd' 형식으로 변환 (쿼리 키용)
   const dateKey = date ? format(date, 'yyyy-MM-dd') : '';
 
-  return useQuery(buildQueryOptions({
+  return useQuery({
     queryKey: roomKeys.availableSlots(roomId, dateKey),
-    queryFn: createStandardFetch(
-      () => {
-        // ✅ [2단계] queryFn 내부에서 최종 방어
-        if (authStatus !== 'authenticated' || !roomId || !date || !supabase) {
-          return Promise.resolve([]);
-        }
-
-        // 서비스 함수 호출
-        return roomService.getAvailableTimeSlots(supabase, roomId, date);
-      },
-      {
-        operation: 'fetch available time slots',
-        params: { roomId, dateKey }
+    queryFn: () => {
+      if (authStatus !== 'authenticated' || !roomId || !date || !supabase) {
+        return Promise.resolve([]);
       }
-    ),
-    // ✅ [Phase 1] authStatus 기반 안정화
+      return roomService.getAvailableTimeSlots(supabase, roomId, date);
+    },
     enabled: !!roomId && !!date && authStatus === 'authenticated' && !!supabase,
-    dataType: 'dynamic',
-    cacheConfig: {
-      customStaleTime: 1 * 60 * 1000, // 1분
-      customGcTime: 5 * 60 * 1000 // 5분
-    }
-  }));
+    staleTime: 1 * 60 * 1000,
+    gcTime: 5 * 60 * 1000
+  });
 } 

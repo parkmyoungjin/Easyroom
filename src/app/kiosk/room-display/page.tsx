@@ -1,10 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { usePublicReservations } from '@/hooks/useReservations';
-import MobileAppLayout from '@/components/layout/MobileAppLayout';
+import AppLayout from '@/components/layout/AppLayout';
 import CurrentStatusPanel from '@/components/dashboard/CurrentStatusPanel';
 import TimelinePanel from '@/components/dashboard/TimelinePanel';
 import { Grid, Alert, Loader, Text, Container } from '@mantine/core';
@@ -13,8 +12,7 @@ import { ko } from 'date-fns/locale';
 import type { PublicReservation } from '@/types/database';
 
 export default function RoomDisplayPage() {
-  const router = useRouter();
-  const { userProfile, loading } = useAuth();
+  const { userProfile } = useAuth(); // ✅ loading 제거 - AuthGatekeeper가 처리
   
   // ✅ Phase 1: 실시간 시간 상태 - 1분마다 업데이트
   const [now, setNow] = useState(new Date());
@@ -35,7 +33,6 @@ export default function RoomDisplayPage() {
   
   const { 
     data: todayReservations, 
-    isLoading, 
     isError 
   } = usePublicReservations(
     startDateStr, 
@@ -87,41 +84,25 @@ export default function RoomDisplayPage() {
   }, [todayReservations, now]);
 
   const handleGoBack = () => {
-    // 인증 상태에 따라 올바른 페이지로 이동
-    if (userProfile) {
-      // 인증된 사용자는 dashboard로
-      router.push('/dashboard');
-    } else {
-      // 비인증 사용자는 welcome으로
-      router.push('/welcome');
-    }
+    // AuthGatekeeper가 모든 라우팅을 처리하므로 단순히 뒤로가기만 수행
+    window.history.back();
   };
 
   const navigateToLogin = () => {
-    router.push('/login');
+    window.location.href = '/login';
   };
 
   const navigateToSignup = () => {
-    router.push('/signup');
+    window.location.href = '/signup';
   };
 
-  // 로딩 상태
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <Loader size="lg" />
-          <Text size="lg" fw={600} mt="md">살아있는 현황판 로딩 중</Text>
-          <Text size="sm" c="dimmed" mt="xs">실시간 데이터를 불러오고 있습니다...</Text>
-        </div>
-      </div>
-    );
-  }
+  // ✅ 로딩 상태 처리 제거 - AuthGatekeeper가 모든 로딩 처리
 
   return (
-    <MobileAppLayout 
+    <AppLayout 
       headerTitle="살아있는 현황판" 
       onBack={handleGoBack}
+      variant="kiosk"
     >
       <div className="min-h-screen bg-gray-50">
         <Container size="xl" px="md" py="lg">
@@ -169,18 +150,10 @@ export default function RoomDisplayPage() {
             </Alert>
           )}
 
-          {/* 로딩 상태 */}
-          {isLoading && (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <Loader size="lg" />
-                <Text size="md" mt="md">실시간 데이터 동기화 중...</Text>
-              </div>
-            </div>
-          )}
+          {/* ✅ 로딩 상태 처리 제거 - AuthGatekeeper가 모든 로딩 처리 */}
 
           {/* ✅ Phase 2: 메인 대시보드 - 좌/우 2분할 레이아웃 */}
-          {!isLoading && !isError && (
+          {!isError && (
             <Grid gutter="lg">
               {/* 왼쪽 패널: 현재 상태 */}
               <Grid.Col span={{ base: 12, md: 5 }}>
@@ -202,7 +175,7 @@ export default function RoomDisplayPage() {
           )}
 
           {/* 기능 안내 (비인증 사용자용) */}
-          {!userProfile && !isLoading && (
+          {!userProfile && (
             <Alert color="gray" title="💡 살아있는 현황판의 특징" mt="xl">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
                 <div>
@@ -226,6 +199,6 @@ export default function RoomDisplayPage() {
           )}
         </Container>
       </div>
-    </MobileAppLayout>
+    </AppLayout>
   );
 }
