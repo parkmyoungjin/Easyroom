@@ -63,7 +63,10 @@
   * {
     @apply border-[hsl(var(--border))];
   }
+  html {
+    @apply bg-[hsl(var(--background))];
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground bg-[hsl(var(--background))];
   }
 }

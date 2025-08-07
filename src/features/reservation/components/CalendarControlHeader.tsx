@@ -4,8 +4,11 @@
 
 import { useMemo } from 'react';
 import { format, addDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, LocateFixed } from 'lucide-react';
-import { Group, Button, Text, Badge, useMantineTheme, Paper, Stack } from '@mantine/core';
+import { ChevronLeft, ChevronRight, LocateFixed, Calendar, Users } from 'lucide-react';
+import { 
+  Group, Button, Text, Badge, useMantineTheme, Paper, Stack, 
+  ThemeIcon, Title, useMantineColorScheme 
+} from '@mantine/core';
 
 interface CalendarControlHeaderProps {
   currentDate: Date;
@@ -21,6 +24,7 @@ export default function CalendarControlHeader({
   departmentColorMap
 }: CalendarControlHeaderProps) {
   const theme = useMantineTheme();
+  const { colorScheme } = useMantineColorScheme();
 
   // 주간 범위 계산
   const weekRange = useMemo(() => {
@@ -51,48 +55,72 @@ export default function CalendarControlHeader({
   const weekDisplay = `${format(weekRange.start, 'M월 d일')} ~ ${format(weekRange.end, 'd일')}`;
 
   return (
-    <Paper shadow="xs" p="sm" radius="md" withBorder>
+    <Paper
+      shadow="sm"
+      p={{ base: 'sm', sm: 'md' }}
+      radius="md"
+      style={{
+        border: colorScheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e5e7eb'
+      }}
+    >
       <Stack gap="sm">
-        {/* 컴팩트 네비게이션 라인 */}
+        {/* 모바일 최적화 네비게이션 */}
         <Group justify="space-between" align="center">
+          <Group align="center" gap="xs">
+            <ThemeIcon variant="light" color="blue" size="sm" display={{ base: 'none', sm: 'flex' }}>
+              <Calendar size={16} />
+            </ThemeIcon>
+            <Stack gap={1}>
+              <Text size="xs" c="dimmed" fw={500} display={{ base: 'none', sm: 'block' }}>주간 일정</Text>
+              <Group gap="xs" align="center">
+                <Text fw={500} size="xs" c="dimmed">{format(weekRange.start, 'yyyy년')}</Text>
+                <Text fw={600} size="sm">{weekDisplay}</Text>
+              </Group>
+            </Stack>
+          </Group>
+
           <Group gap="xs">
             <Button
-              variant="outline"
-              size="compact-sm"
+              variant="light"
+              color="gray"
+              size="xs"
+              radius="lg"
               onClick={handlePreviousWeek}
-              aria-label="이전 주"
+              px="xs"
             >
               <ChevronLeft size={14} />
             </Button>
             <Button
-              variant="subtle"
-              size="compact-sm"
+              variant="filled"
+              color="blue"
+              size="xs"
+              radius="lg"
               onClick={handleGoToToday}
-              leftSection={<LocateFixed size={12} />}
+              px="sm"
             >
               오늘
             </Button>
             <Button
-              variant="outline"
-              size="compact-sm"
+              variant="light"
+              color="gray"
+              size="xs"
+              radius="lg"
               onClick={handleNextWeek}
-              aria-label="다음 주"
+              px="xs"
             >
               <ChevronRight size={14} />
             </Button>
           </Group>
-
-          <Group gap="xs" align="center">
-            <Text fw={500} size="sm" c="dimmed">{format(weekRange.start, 'yyyy년')}</Text>
-            <Text fw={700} size="md">{weekDisplay}</Text>
-          </Group>
         </Group>
 
-        {/* 컴팩트 범례 라인 */}
-        <Group gap="xs" align="center">
-          <Text fw={500} size="xs" c="dimmed" style={{ minWidth: '60px' }}>예약팀:</Text>
-          {allDepartments.length > 0 ? (
-            <Group gap="xs">
+        {/* 컴팩트 부서 범례 */}
+        {allDepartments.length > 0 && (
+          <Group gap="xs" align="center">
+            <ThemeIcon variant="light" color="orange" size="xs" display={{ base: 'none', sm: 'flex' }}>
+              <Users size={12} />
+            </ThemeIcon>
+            <Text fw={500} size="xs" c="dimmed" display={{ base: 'none', sm: 'block' }}>부서:</Text>
+            <Group gap="xs" style={{ flex: 1 }}>
               {allDepartments.map(dept => {
                 const color = departmentColorMap.get(dept) || 'gray';
                 return (
@@ -100,17 +128,16 @@ export default function CalendarControlHeader({
                     key={dept}
                     color={color}
                     variant="light"
-                    size="sm"
+                    size="xs"
+                    radius="sm"
                   >
                     {dept}
                   </Badge>
                 );
               })}
             </Group>
-          ) : (
-            <Text size="xs" c="dimmed">이번 주에는 예약이 없습니다.</Text>
-          )}
-        </Group>
+          </Group>
+        )}
       </Stack>
     </Paper>
   );

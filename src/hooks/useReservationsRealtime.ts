@@ -40,6 +40,13 @@ export function useReservationsRealtime(startDate: string, endDate: string, isAu
       try {
         console.log(`[ReservationsRealtime] Initializing subscription for range: ${startDate} ~ ${endDate}`);
         
+        // ✅ [핵심 수정 1] 필터링을 위한 날짜를 UTC ISO 문자열로 명확하게 변환합니다.
+        const filterStartDate = new Date(startDate).toISOString();
+        // endDate는 해당 날짜의 가장 마지막 시간(23:59:59.999)까지 포함해야 합니다.
+        const endOfDay = new Date(endDate);
+        endOfDay.setUTCHours(23, 59, 59, 999);
+        const filterEndDate = endOfDay.toISOString();
+        
         // 동적 채널명으로 날짜 범위별 구독
         const channelName = `reservations-${startDate}-${endDate}`;
         
@@ -51,8 +58,10 @@ export function useReservationsRealtime(startDate: string, endDate: string, isAu
               event: '*',
               schema: 'public',
               table: 'reservations',
-              // 🎯 핵심: 서버사이드 필터링으로 지정된 날짜 범위만 수신
-              filter: `start_time.gte.${startDate}T00:00:00Z,start_time.lt.${endDate}T23:59:59Z`
+              // ✅ [핵심 수정 2] 변환된 UTC 시간을 필터에 사용합니다.
+              // DB의 start_time이 filterEndDate보다 '작고', end_time이 filterStartDate보다 '크면'
+              // 두 기간이 겹치는 것입니다.
+              filter: `start_time=lt.${filterEndDate}&end_time=gt.${filterStartDate}`
             },
             async (payload) => {
               if (!mounted) return;

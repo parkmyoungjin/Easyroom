@@ -12,7 +12,7 @@ interface AppInitializerProps {
  * 오직 브랜딩 스플래시의 시간 제어만 책임진다.
  * 
  * 책임:
- * 1. 앱 최초 시작 시에만 브랜딩 스플래시 표시 (최소 2.5초 보장)
+ * 1. 앱 최초 시작 시에만 브랜딩 스플래시 표시 (최소 5.4초 보장)
  * 2. 이후 페이지 이동 시에는 즉시 콘텐츠 렌더링
  */
 export function AppInitializer({ children }: AppInitializerProps) {
@@ -43,7 +43,7 @@ export function AppInitializer({ children }: AppInitializerProps) {
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('app_initialized', 'true');
       }
-    }, 2500);
+    }, 5400); // 모션 완료(3.4초) + 유지 시간(2초) = 5.4초
 
     return () => clearTimeout(timer);
   }, [hasAppInitialized]);

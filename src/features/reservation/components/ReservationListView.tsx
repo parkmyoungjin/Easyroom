@@ -4,8 +4,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Accordion, Badge, Group, Text, ActionIcon, Stack, Button, Tooltip } from '@mantine/core';
-import { IconPencil, IconTrash, IconCalendar, IconClock, IconMapPin } from '@tabler/icons-react';
+import { 
+  Paper, Badge, Group, Text, ActionIcon, Stack, Button, 
+  ThemeIcon, useMantineColorScheme, SimpleGrid, Title, Divider
+} from '@mantine/core';
+import { 
+  Edit, Trash2, Calendar, Clock, MapPin, Plus, 
+  CalendarX, CheckCircle, XCircle 
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { ReservationActionDrawer } from '@/features/reservation/components/ReservationActionDrawer';
@@ -15,29 +21,62 @@ import type { ReservationWithDetails } from '@/types/database';
 interface ReservationListViewProps {
   reservations?: ReservationWithDetails[];
   isError: boolean;
+  showActions?: boolean;
 }
 
 // ✅ props로 데이터를 직접 받습니다.
-export function ReservationListView({ reservations = [], isError }: ReservationListViewProps) {
+export function ReservationListView({ reservations = [], isError, showActions = true }: ReservationListViewProps) {
   const router = useRouter();
+  const { colorScheme } = useMantineColorScheme();
   const [selectedReservation, setSelectedReservation] = useState<ReservationWithDetails | null>(null);
 
   if (isError) {
     return (
-      <Stack align="center" py="xl">
-        <Text c="red" ta="center">예약 목록을 불러오는데 실패했습니다.</Text>
-      </Stack>
+      <Paper
+        p="xl"
+        radius="xl"
+        style={{
+          border: colorScheme === 'dark' ? '2px solid rgba(255, 0, 0, 0.3)' : '2px solid #dc2626'
+        }}
+      >
+        <Stack align="center" gap="md">
+          <ThemeIcon size="xl" radius="xl" color="red" variant="light">
+            <XCircle size={32} />
+          </ThemeIcon>
+          <Title order={3} c="red">오류 발생</Title>
+          <Text c="dimmed" ta="center">예약 목록을 불러오는데 실패했습니다.</Text>
+        </Stack>
+      </Paper>
     );
   }
 
   if (reservations.length === 0) {
     return (
-      <Stack align="center" py="xl" gap="md">
-        <IconCalendar size={48} color="gray" />
-        <Text size="lg" fw={600}>예약이 없습니다</Text>
-        <Text c="dimmed" ta="center">새로운 회의실을 예약해보세요.</Text>
-        <Button onClick={() => router.push('/reservations/new')}>새 예약하기</Button>
-      </Stack>
+      <Paper
+        p="xl"
+        radius="xl"
+        style={{
+          border: colorScheme === 'dark' ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #4f46e5'
+        }}
+      >
+        <Stack align="center" gap="lg">
+          <ThemeIcon size="xl" radius="xl" color="blue" variant="light">
+            <CalendarX size={32} />
+          </ThemeIcon>
+          <Stack align="center" gap="xs">
+            <Title order={3}>예약이 없습니다</Title>
+            <Text c="dimmed" ta="center">새로운 회의실을 예약해보세요.</Text>
+          </Stack>
+          <Button 
+            size="lg" 
+            radius="xl" 
+            leftSection={<Plus size={18} />}
+            onClick={() => router.push('/reservations/new')}
+          >
+            새 예약하기
+          </Button>
+        </Stack>
+      </Paper>
     );
   }
 
@@ -51,77 +90,122 @@ export function ReservationListView({ reservations = [], isError }: ReservationL
 
   return (
     <>
-      <Accordion variant="separated">
+      <Stack gap="md">
         {reservations.map((reservation) => (
-          <Accordion.Item key={reservation.id} value={reservation.id}>
-            <Accordion.Control>
-              <Group justify="space-between" wrap="nowrap">
-                <Stack gap={4} style={{ flex: 1 }}>
-                  <Text fw={500} size="sm" lineClamp={1}>
-                    {reservation.title}
-                  </Text>
-                  <Group gap="xs" wrap="nowrap">
-                    <IconClock size={14} color="gray" />
-                    <Text size="xs" c="dimmed">
-                      {format(new Date(reservation.start_time), 'M월 d일 (E) HH:mm', { locale: ko })}
-                      {' - '}
-                      {format(new Date(reservation.end_time), 'HH:mm', { locale: ko })}
-                    </Text>
-                  </Group>
-                </Stack>
-                <Badge 
-                  color={reservation.status === 'confirmed' ? 'blue' : 'gray'}
-                  size="sm"
-                  style={{ flexShrink: 0 }}
-                >
-                  {reservation.status === 'confirmed' ? '확정됨' : '취소됨'}
-                </Badge>
-              </Group>
-            </Accordion.Control>
-            
-            <Accordion.Panel>
-              <Stack gap="md">
-                <Group gap="xs">
-                  <IconMapPin size={16} color="gray" />
-                  <Text size="sm">
-                    <Text component="span" fw={500}>회의실:</Text> {reservation.room?.name || '알 수 없는 회의실'}
-                  </Text>
+          <Paper
+            key={reservation.id}
+            shadow="lg"
+            p="xl"
+            radius="xl"
+            style={{
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              border: colorScheme === 'dark' ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #e5e7eb',
+              background: 'var(--mantine-color-body)',
+            }}
+            styles={{
+              root: {
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+                  borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.5)' : '#4f46e5',
+                },
+              },
+            }}
+          >
+            <Stack gap="md">
+              {/* 헤더 영역 */}
+              <Group justify="space-between" align="flex-start">
+                <Group align="center" gap="md">
+                  <ThemeIcon
+                    size="lg"
+                    radius="xl"
+                    color={reservation.status === 'confirmed' ? 'blue' : 'gray'}
+                    variant="light"
+                  >
+                    {reservation.status === 'confirmed' ? <CheckCircle size={20} /> : <XCircle size={20} />}
+                  </ThemeIcon>
+                  <Stack gap={4}>
+                    <Title order={4} lineClamp={1}>
+                      {reservation.title}
+                    </Title>
+                    <Group gap="xs" align="center">
+                      <Text size="sm" fw={500}>
+                        {format(new Date(reservation.start_time), 'M월 d일 (E)', { locale: ko })}
+                      </Text>
+                      <Text size="sm" c="dimmed">
+                        {format(new Date(reservation.start_time), 'HH:mm', { locale: ko })}
+                        {' - '}
+                        {format(new Date(reservation.end_time), 'HH:mm', { locale: ko })}
+                      </Text>
+                    </Group>
+                  </Stack>
                 </Group>
                 
-                {reservation.purpose && (
-                  <Text size="sm">
-                    <Text component="span" fw={500}>목적:</Text> {reservation.purpose}
-                  </Text>
-                )}
-                
-                {reservation.status === 'confirmed' && (
-                  <Group justify="flex-end" mt="sm">
-                    <Tooltip label="예약 수정" withArrow position="top">
-                      <ActionIcon 
-                        variant="default" 
-                        size="lg"
-                        onClick={() => handleEdit(reservation)}
-                      >
-                        <IconPencil size={16} />
-                      </ActionIcon>
-                    </Tooltip>
-                    <Tooltip label="예약 취소" withArrow position="top">
-                      <ActionIcon 
-                        variant="default" 
-                        color="red" 
-                        size="lg"
-                        onClick={() => handleCancel(reservation)}
-                      >
-                        <IconTrash size={16} />
-                      </ActionIcon>
-                    </Tooltip>
+                {showActions && reservation.status === 'confirmed' && (
+                  <Group gap="xs">
+                    <ActionIcon 
+                      variant="light"
+                      color="blue"
+                      size="lg"
+                      radius="xl"
+                      onClick={() => handleEdit(reservation)}
+                    >
+                      <Edit size={16} />
+                    </ActionIcon>
+                    <ActionIcon 
+                      variant="light"
+                      color="red"
+                      size="lg"
+                      radius="xl"
+                      onClick={() => handleCancel(reservation)}
+                    >
+                      <Trash2 size={16} />
+                    </ActionIcon>
                   </Group>
                 )}
-              </Stack>
-            </Accordion.Panel>
-          </Accordion.Item>
+              </Group>
+
+              <Divider />
+
+              {/* 정보 영역 */}
+              <Group gap="xs" align="flex-start">
+                <ThemeIcon size="sm" radius="xl" color="orange" variant="light">
+                  <MapPin size={14} />
+                </ThemeIcon>
+                <Stack gap={2}>
+                  <Text size="xs" c="dimmed" fw={500}>회의실</Text>
+                  <Group gap="xs" align="center">
+                    <Text size="sm" fw={500}>
+                      {reservation.room?.name || '알 수 없는 회의실'}
+                    </Text>
+                    {reservation.room?.capacity && (
+                      <Text size="sm" c="dimmed">
+                        ({reservation.room.capacity}인실)
+                      </Text>
+                    )}
+                  </Group>
+                </Stack>
+              </Group>
+
+              {reservation.purpose && (
+                <>
+                  <Divider />
+                  <Group gap="xs" align="flex-start">
+                    <ThemeIcon size="sm" radius="xl" color="gray" variant="light">
+                      <Calendar size={14} />
+                    </ThemeIcon>
+                    <Stack gap={2}>
+                      <Text size="xs" c="dimmed" fw={500}>회의 목적</Text>
+                      <Text size="sm">{reservation.purpose}</Text>
+                    </Stack>
+                  </Group>
+                </>
+              )}
+            </Stack>
+          </Paper>
         ))}
-      </Accordion>
+      </Stack>
 
       <ReservationActionDrawer
         opened={!!selectedReservation}

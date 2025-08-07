@@ -13,7 +13,7 @@ import { useUpdateReservation } from '@/hooks/useReservations';
 import { toast } from 'sonner';
 import { DndContext, DragEndEvent, useDraggable, useDroppable, DragOverlay, closestCenter, useSensor, useSensors, PointerSensor, TouchSensor } from '@dnd-kit/core';
 // ✅ [핵심] Mantine 컴포넌트들을 import 합니다.
-import { Paper, Stack, Box, Text, useMantineTheme } from '@mantine/core';
+import { Paper, Stack, Box, Text, useMantineTheme, useMantineColorScheme } from '@mantine/core';
 
 // --- 설정 상수 ---
 const DAYS = ['월', '화', '수', '목', '금'];
@@ -282,48 +282,88 @@ export default function GoogleCalendarView({
     });
   }, [isAuthenticated, weekStartDate, updateReservation, reservations]);
 
+  const { colorScheme } = useMantineColorScheme();
+
   return (
     <>
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
-        <Paper shadow="xs" p="md" radius="md" withBorder>
-          <Stack gap="md">
-            {/* 요일 헤더 */}
-            <Box style={{ display: 'flex' }}>
+        <div style={{ 
+          minHeight: 'calc(100vh - 200px)', 
+          background: colorScheme === 'dark' ? 'var(--mantine-color-dark-7)' : 'var(--mantine-color-gray-0)',
+          padding: '8px'
+        }}>
+          <Stack gap="sm">
+            {/* 모바일 최적화 요일 헤더 */}
+            <Box style={{ display: 'flex', marginBottom: '4px' }}>
               {/* 시간 라벨을 위한 빈 공간 */}
               <Box w={40} />
               {/* 요일 헤더들 */}
               {DAYS.map((day, i) => {
                 const date = addDays(weekStartDate, i);
+                const isTodayDate = isToday(date);
                 return (
-                  <Box key={i} style={{ flex: 1 }}>
-                    <Box
+                  <Box key={i} style={{ flex: 1, padding: '0 1px' }}>
+                    <Paper
                       p="xs"
-                      style={{ borderRadius: theme.radius.sm }}
-                      bg={isToday(date) ? theme.colors.blue[0] : 'transparent'}
+                      radius="sm"
+                      style={{
+                        background: isTodayDate 
+                          ? 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)'
+                          : colorScheme === 'dark' 
+                            ? 'rgba(255, 255, 255, 0.05)' 
+                            : theme.colors.gray[1],
+                        border: 'none',
+                        color: isTodayDate ? 'white' : undefined
+                      }}
                     >
-                      <Text ta="center" fw={700} size="sm">{day}</Text>
-                      <Text ta="center" c="dimmed" size="xs">{format(date, 'M/d')}</Text>
-                    </Box>
+                      <Text ta="center" fw={600} size="xs" c={isTodayDate ? 'white' : undefined}>
+                        {day}
+                      </Text>
+                      <Text 
+                        ta="center" 
+                        size="xs" 
+                        c={isTodayDate ? 'rgba(255,255,255,0.8)' : 'dimmed'}
+                        style={{ fontSize: '10px' }}
+                      >
+                        {format(date, 'M/d')}
+                      </Text>
+                    </Paper>
                   </Box>
                 );
               })}
             </Box>
 
-            {/* 메인 캘린더 영역 - 픽셀 완벽 그리드 */}
-            <Box style={{ display: 'flex' }}>
+            {/* 풀스크린 캘린더 그리드 */}
+            <Box 
+              style={{ 
+                display: 'flex',
+                background: colorScheme === 'dark' ? 'var(--mantine-color-dark-6)' : 'white',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                border: colorScheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : `1px solid ${theme.colors.gray[3]}`
+              }}
+            >
               {/* 시간 라벨 컬럼 */}
-              <Box w={40} style={{ position: 'relative' }}>
+              <Box 
+                w={40} 
+                style={{ 
+                  position: 'relative',
+                  background: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : theme.colors.gray[0],
+                  borderRight: colorScheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : `1px solid ${theme.colors.gray[2]}`
+                }}
+              >
                 {timeSlots.map((timeString, i) => (
                   <Box key={i} h={SLOT_HEIGHT} style={{ position: 'relative' }}>
                     {i % 2 === 0 && (
                       <Text 
                         c="dimmed" 
                         size="xs" 
+                        fw={500}
                         style={{ 
                           position: 'absolute', 
-                          top: -8, 
+                          top: -6, 
                           right: 4,
-                          fontSize: '10px'
+                          fontSize: '9px'
                         }}
                       >
                         {timeString}
@@ -333,34 +373,41 @@ export default function GoogleCalendarView({
                 ))}
               </Box>
 
-              {/* 메인 그리드 영역 */}
-              <Box style={{ flex: 1, position: 'relative' }}>
-                {/* 가로선 그리기 */}
-                {timeSlots.map((_, i) => (
-                  <Box
-                    key={`horizontal-${i}`}
-                    h={SLOT_HEIGHT}
-                    style={{
-                      borderBottom: `1px solid ${theme.colors.gray[3]}`,
-                      width: '100%'
-                    }}
-                  />
-                ))}
+                {/* 메인 그리드 영역 */}
+                <Box style={{ flex: 1, position: 'relative' }}>
+                  {/* 가로선 그리기 */}
+                  {timeSlots.map((_, i) => (
+                    <Box
+                      key={`horizontal-${i}`}
+                      h={SLOT_HEIGHT}
+                      style={{
+                        borderBottom: colorScheme === 'dark' 
+                          ? '1px solid rgba(255, 255, 255, 0.05)' 
+                          : `1px solid ${theme.colors.gray[2]}`,
+                        width: '100%',
+                        background: i % 4 === 0 || i % 4 === 1 
+                          ? (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.01)' : theme.colors.gray[0])
+                          : 'transparent'
+                      }}
+                    />
+                  ))}
 
-                {/* 세로선 그리기 */}
-                {DAYS.map((_, dayIndex) => (
-                  <Box
-                    key={`vertical-${dayIndex}`}
-                    style={{
-                      position: 'absolute',
-                      top: 0,
-                      left: `${(dayIndex / DAYS.length) * 100}%`,
-                      width: `${100 / DAYS.length}%`,
-                      height: '100%',
-                      borderRight: dayIndex < DAYS.length - 1 ? `1px solid ${theme.colors.gray[3]}` : 'none'
-                    }}
-                  />
-                ))}
+                  {/* 세로선 그리기 */}
+                  {DAYS.map((_, dayIndex) => (
+                    <Box
+                      key={`vertical-${dayIndex}`}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: `${(dayIndex / DAYS.length) * 100}%`,
+                        width: `${100 / DAYS.length}%`,
+                        height: '100%',
+                        borderRight: dayIndex < DAYS.length - 1 
+                          ? (colorScheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : `1px solid ${theme.colors.gray[2]}`)
+                          : 'none'
+                      }}
+                    />
+                  ))}
 
                 {/* 드롭 영역 및 예약 블록 렌더링 */}
                 <Box style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
@@ -412,11 +459,11 @@ export default function GoogleCalendarView({
                         })}
                     </Box>
                   ))}
+                  </Box>
                 </Box>
-              </Box>
             </Box>
           </Stack>
-        </Paper>
+        </div>
 
         {/* 드래그 오버레이 */}
         <DragOverlay>

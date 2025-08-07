@@ -5,7 +5,14 @@
 import { useMemo, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Stack, Card, Text } from '@mantine/core';
+import { 
+  Button, Stack, Paper, Text, Group, ThemeIcon, Badge, 
+  SimpleGrid, useMantineColorScheme, Title, Divider 
+} from '@mantine/core';
+import { 
+  Calendar, Clock, MapPin, User, FileText, 
+  CheckCircle, AlertCircle 
+} from 'lucide-react';
 import { ControlledDateInput } from '@/components/forms/ControlledDateInput';
 import { ControlledTextInput } from '@/components/forms/ControlledTextInput';
 import { ControlledSelect } from '@/components/forms/ControlledSelect';
@@ -224,15 +231,24 @@ export default function ReservationForm({
         return options;
     }, [selectedStartTime, timeSlotStatus]);
 
+    const { colorScheme } = useMantineColorScheme();
+
     // 로딩 중일 때 (Edit 모드)
     if (isLoading) {
         return (
-            <Card withBorder shadow="sm" radius="md" p="lg">
+            <Paper
+                shadow="lg"
+                p="xl"
+                radius="xl"
+                style={{
+                    border: colorScheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid var(--mantine-color-gray-3)'
+                }}
+            >
                 <Stack align="center" gap="md">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     <Text c="dimmed">로딩 중...</Text>
                 </Stack>
-            </Card>
+            </Paper>
         );
     }
 
@@ -365,142 +381,226 @@ export default function ReservationForm({
     const isPending = isCreating || isUpdating;
 
     return (
-        <Card withBorder shadow="sm" radius="md" p="lg">
-            <Stack gap="lg">
-                <div>
-                    <Text size="xl" fw={600}>
-                        {mode === 'create' ? '예약 정보 입력' : '예약 수정'}
-                    </Text>
-                    <Text size="sm" c="dimmed" mt="xs">
-                        {mode === 'create'
-                            ? '회의실 예약은 평일 오전 8시부터 오후 7시까지 가능합니다.'
-                            : '예약 정보를 수정하세요'
-                        }
-                    </Text>
-                </div>
-                
+        <Stack gap="xl">
+            {/* 헤더 섹션 */}
+            <Paper
+                p="xl"
+                radius="xl"
+                style={{
+                    background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                    color: 'white'
+                }}
+            >
+                <Group align="center" gap="md">
+                    <ThemeIcon size="lg" radius="xl" color="white" variant="light" style={{ background: 'rgba(255,255,255,0.2)' }}>
+                        {mode === 'create' ? <Calendar size={24} /> : <FileText size={24} />}
+                    </ThemeIcon>
+                    <Stack gap={4}>
+                        <Title order={2} c="white">
+                            {mode === 'create' ? '새 예약 만들기' : '예약 정보 수정'}
+                        </Title>
+                        <Text c="rgba(255,255,255,0.8)" size="sm">
+                            {mode === 'create'
+                                ? '회의실 예약은 평일 오전 8시부터 오후 7시까지 가능합니다'
+                                : '예약 정보를 수정하세요'
+                            }
+                        </Text>
+                    </Stack>
+                </Group>
+            </Paper>
+
+            {/* 폼 섹션 */}
+            <Paper
+                shadow="lg"
+                p="xl"
+                radius="xl"
+                style={{
+                    border: colorScheme === 'dark' ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #4f46e5'
+                }}
+            >
                 <form onSubmit={form.handleSubmit(onSubmit)}>
-                    <Stack gap="md">
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                            <ControlledTextInput
-                                control={form.control}
-                                name="title"
-                                label="부서명"
-                                placeholder={userProfile?.department ? '' : "부서명을 입력하세요"}
-                                disabled={!!userProfile?.department}
-                                required
-                                withAsterisk
-                            />
+                    <Stack gap="xl">
+                        {/* 기본 정보 섹션 */}
+                        <Stack gap="md">
+                            <Group align="center" gap="sm">
+                                <ThemeIcon variant="light" color="blue" size="sm">
+                                    <User size={16} />
+                                </ThemeIcon>
+                                <Text fw={600} size="lg">기본 정보</Text>
+                            </Group>
+                            
+                            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                                <ControlledTextInput
+                                    control={form.control}
+                                    name="title"
+                                    label="부서명"
+                                    placeholder={userProfile?.department ? '' : "부서명을 입력하세요"}
+                                    disabled={!!userProfile?.department}
+                                    required
+                                    withAsterisk
+                                />
 
-                            <ControlledTextInput
-                                control={form.control}
-                                name="booker"
-                                label="예약자"
-                                placeholder={userProfile?.name ? '' : "예약자를 입력하세요"}
-                                disabled={!!userProfile?.name}
-                                required
-                                withAsterisk
-                            />
-                        </div>
+                                <ControlledTextInput
+                                    control={form.control}
+                                    name="booker"
+                                    label="예약자"
+                                    placeholder={userProfile?.name ? '' : "예약자를 입력하세요"}
+                                    disabled={!!userProfile?.name}
+                                    required
+                                    withAsterisk
+                                />
+                            </SimpleGrid>
+                        </Stack>
 
-                        <ControlledSelect
-                            control={form.control}
-                            name="roomId"
-                            label="회의실"
-                            placeholder={isLoadingRooms ? "회의실 목록 로딩 중..." : "회의실을 선택하세요"}
-                            data={rooms?.map((room) => ({
-                                value: room.id,
-                                label: `${room.name} (${room.capacity}인실)`
-                            })) || []}
-                            disabled={isLoadingRooms}
-                            required
-                            withAsterisk
-                            onSelectionChange={(value) => {
-                                form.setValue('startTime', '');
-                                form.setValue('endTime', '');
-                            }}
-                        />
-                        <ControlledDateInput
-                            control={form.control}
-                            name="date"
-                            label="예약 날짜"
-                            placeholder="날짜를 선택하세요"
-                            minDate={new Date()}
-                            excludeDate={(dateString) => {
-                                // ✅ 문자열로 받은 날짜를 Date 객체로 변환하여 주말 체크
-                                const dateObj = new Date(dateString);
-                                return dateObj.getDay() === 0 || dateObj.getDay() === 6;
-                            }}
-                            required
-                            withAsterisk
-                            onDateChange={() => {
-                                // 날짜 변경 시 시간 필드 초기화
-                                form.setValue('startTime', '');
-                                form.setValue('endTime', '');
-                            }}
-                        />
+                        <Divider />
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                            <ControlledSelect
-                                control={form.control}
-                                name="startTime"
-                                label="시작 시간"
-                                placeholder={
-                                    isLoadingSlots ? "예약 현황 조회 중..."
-                                        : !selectedRoomId || !selectedDate ? "회의실과 날짜를 선택하세요"
-                                            : "시작 시간을 선택하세요"
-                                }
-                                data={START_TIME_SLOTS.map(time => {
-                                    const status = timeSlotStatus[time];
-                                    const isDisabled = status?.isBooked || false;
-                                    return {
+                        {/* 회의실 및 날짜 섹션 */}
+                        <Stack gap="md">
+                            <Group align="center" gap="sm">
+                                <ThemeIcon variant="light" color="green" size="sm">
+                                    <MapPin size={16} />
+                                </ThemeIcon>
+                                <Text fw={600} size="lg">회의실 및 날짜</Text>
+                            </Group>
+                            
+                            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                                <ControlledSelect
+                                    control={form.control}
+                                    name="roomId"
+                                    label="회의실"
+                                    placeholder={isLoadingRooms ? "회의실 목록 로딩 중..." : "회의실을 선택하세요"}
+                                    data={rooms?.map((room) => ({
+                                        value: room.id,
+                                        label: `${room.name} (${room.capacity}인실)`
+                                    })) || []}
+                                    disabled={isLoadingRooms}
+                                    required
+                                    withAsterisk
+                                    onSelectionChange={(value) => {
+                                        form.setValue('startTime', '');
+                                        form.setValue('endTime', '');
+                                    }}
+                                />
+                                
+                                <ControlledDateInput
+                                    control={form.control}
+                                    name="date"
+                                    label="예약 날짜"
+                                    placeholder="날짜를 선택하세요"
+                                    minDate={new Date()}
+                                    excludeDate={(dateString) => {
+                                        // ✅ 문자열로 받은 날짜를 Date 객체로 변환하여 주말 체크
+                                        const dateObj = new Date(dateString);
+                                        return dateObj.getDay() === 0 || dateObj.getDay() === 6;
+                                    }}
+                                    required
+                                    withAsterisk
+                                    onDateChange={() => {
+                                        // 날짜 변경 시 시간 필드 초기화
+                                        form.setValue('startTime', '');
+                                        form.setValue('endTime', '');
+                                    }}
+                                />
+                            </SimpleGrid>
+                        </Stack>
+
+                        <Divider />
+
+                        {/* 시간 선택 섹션 */}
+                        <Stack gap="md">
+                            <Group align="center" gap="sm">
+                                <ThemeIcon variant="light" color="orange" size="sm">
+                                    <Clock size={16} />
+                                </ThemeIcon>
+                                <Text fw={600} size="lg">시간 선택</Text>
+                                {selectedRoomId && selectedDate && (
+                                    <Badge variant="light" color="blue" size="sm">
+                                        실시간 예약 현황 반영
+                                    </Badge>
+                                )}
+                            </Group>
+                            
+                            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+                                <ControlledSelect
+                                    control={form.control}
+                                    name="startTime"
+                                    label="시작 시간"
+                                    placeholder={
+                                        isLoadingSlots ? "예약 현황 조회 중..."
+                                            : !selectedRoomId || !selectedDate ? "회의실과 날짜를 선택하세요"
+                                                : "시작 시간을 선택하세요"
+                                    }
+                                    data={START_TIME_SLOTS.map(time => {
+                                        const status = timeSlotStatus[time];
+                                        const isDisabled = status?.isBooked || false;
+                                        return {
+                                            value: time,
+                                            label: `${time}${isDisabled ? ' (예약됨)' : ''}`,
+                                            disabled: isDisabled
+                                        };
+                                    })}
+                                    disabled={!selectedRoomId || !selectedDate || isLoadingSlots}
+                                    required
+                                    withAsterisk
+                                    onSelectionChange={() => {
+                                        form.setValue('endTime', '');
+                                    }}
+                                />
+
+                                <ControlledSelect
+                                    control={form.control}
+                                    name="endTime"
+                                    label="종료 시간"
+                                    placeholder={
+                                        !selectedStartTime ? "시작 시간을 먼저 선택하세요"
+                                            : endTimeOptions.length === 0 ? "선택 가능한 시간이 없습니다"
+                                                : "종료 시간을 선택하세요"
+                                    }
+                                    data={endTimeOptions.map(time => ({
                                         value: time,
-                                        label: `${time}${isDisabled ? ' (예약됨)' : ''}`,
-                                        disabled: isDisabled
-                                    };
-                                })}
-                                disabled={!selectedRoomId || !selectedDate || isLoadingSlots}
-                                required
-                                withAsterisk
-                                onSelectionChange={() => {
-                                    form.setValue('endTime', '');
-                                }}
-                            />
+                                        label: time
+                                    }))}
+                                    disabled={!selectedStartTime || endTimeOptions.length === 0}
+                                    required
+                                    withAsterisk
+                                />
+                            </SimpleGrid>
+                        </Stack>
 
-                            <ControlledSelect
+                        <Divider />
+
+                        {/* 추가 정보 섹션 */}
+                        <Stack gap="md">
+                            <Group align="center" gap="sm">
+                                <ThemeIcon variant="light" color="gray" size="sm">
+                                    <FileText size={16} />
+                                </ThemeIcon>
+                                <Text fw={600} size="lg">추가 정보</Text>
+                                <Text size="sm" c="dimmed">(선택사항)</Text>
+                            </Group>
+                            
+                            <ControlledTextarea
                                 control={form.control}
-                                name="endTime"
-                                label="종료 시간"
-                                placeholder={
-                                    !selectedStartTime ? "시작 시간을 먼저 선택하세요"
-                                        : endTimeOptions.length === 0 ? "선택 가능한 시간이 없습니다"
-                                            : "종료 시간을 선택하세요"
-                                }
-                                data={endTimeOptions.map(time => ({
-                                    value: time,
-                                    label: time
-                                }))}
-                                disabled={!selectedStartTime || endTimeOptions.length === 0}
-                                required
-                                withAsterisk
+                                name="purpose"
+                                label="회의 목적"
+                                placeholder="회의 목적을 입력하세요 (예: 프로젝트 회의, 팀 미팅 등)"
+                                resize="none"
+                                rows={4}
                             />
-                        </div>
+                        </Stack>
 
-                        <ControlledTextarea
-                            control={form.control}
-                            name="purpose"
-                            label="목적 (선택)"
-                            placeholder="회의 목적을 입력하세요"
-                            resize="none"
-                            rows={4}
-                        />
+                        <Divider />
 
-                        <div style={{ display: 'flex', gap: '1rem' }}>
+                        {/* 액션 버튼 */}
+                        <Group justify="center" gap="md">
                             <Button
                                 type="button"
-                                variant="outline"
+                                variant="light"
+                                color="gray"
+                                size="lg"
+                                radius="xl"
                                 onClick={onCancel}
-                                style={{ flex: 1 }}
+                                style={{ minWidth: '120px' }}
                             >
                                 취소
                             </Button>
@@ -508,14 +608,17 @@ export default function ReservationForm({
                                 type="submit" 
                                 disabled={isPending} 
                                 loading={isPending}
-                                style={{ flex: 1 }}
+                                size="lg"
+                                radius="xl"
+                                leftSection={mode === 'create' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+                                style={{ minWidth: '120px' }}
                             >
                                 {mode === 'create' ? '예약하기' : '수정 완료'}
                             </Button>
-                        </div>
+                        </Group>
                     </Stack>
                 </form>
-            </Stack>
-        </Card>
+            </Paper>
+        </Stack>
     );
 }

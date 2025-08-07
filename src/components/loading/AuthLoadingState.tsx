@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
+import { useMantineColorScheme } from '@mantine/core';
 
 interface AuthLoadingStateProps {
   children: React.ReactNode;
@@ -93,6 +94,8 @@ function DefaultAuthLoadingUI({
   phase: 'hydrating' | 'supabase' | 'auth' | 'ready';
   hasTimedOut: boolean;
 }) {
+  const { colorScheme } = useMantineColorScheme();
+  
   const getLoadingMessage = () => {
     if (hasTimedOut) {
       return '로딩 시간이 초과되었습니다. 페이지를 새로고침해주세요.';
@@ -111,24 +114,58 @@ function DefaultAuthLoadingUI({
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
+    <div 
+      className="flex items-center justify-center min-h-screen"
+      style={{
+        background: colorScheme === 'dark' 
+          ? 'linear-gradient(135deg, #1a1b23 0%, #2d3748 100%)'
+          : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
+      }}
+    >
       <div className="text-center">
         {hasTimedOut ? (
-          <div className="text-red-500 mb-4">
+          <div className="mb-4" style={{ color: '#ef4444' }}>
             <svg className="h-8 w-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
         ) : (
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div 
+            className="animate-spin rounded-full h-8 w-8 mx-auto mb-4"
+            style={{
+              borderWidth: '2px',
+              borderStyle: 'solid',
+              borderColor: 'transparent',
+              borderBottomColor: colorScheme === 'dark' ? '#60a5fa' : '#2563eb'
+            }}
+          ></div>
         )}
-        <p className={`text-sm ${hasTimedOut ? 'text-red-600' : 'text-gray-600'}`}>
+        <p 
+          className="text-sm"
+          style={{
+            color: hasTimedOut 
+              ? '#ef4444' 
+              : colorScheme === 'dark' 
+                ? '#94a3b8' 
+                : '#64748b'
+          }}
+        >
           {getLoadingMessage()}
         </p>
         {hasTimedOut && (
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            className="mt-4 px-4 py-2 rounded transition-colors"
+            style={{
+              backgroundColor: colorScheme === 'dark' ? '#3b82f6' : '#2563eb',
+              color: 'white'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = colorScheme === 'dark' ? '#2563eb' : '#1d4ed8';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = colorScheme === 'dark' ? '#3b82f6' : '#2563eb';
+            }}
           >
             새로고침
           </button>
@@ -142,11 +179,28 @@ function DefaultAuthLoadingUI({
  * Skeleton loading component for auth-dependent content
  */
 export function AuthContentSkeleton() {
+  const { colorScheme } = useMantineColorScheme();
+  
   return (
     <div className="animate-pulse">
-      <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-      <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
-      <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+      <div 
+        className="h-4 rounded w-3/4 mb-4"
+        style={{
+          backgroundColor: colorScheme === 'dark' ? '#374151' : '#e5e7eb'
+        }}
+      ></div>
+      <div 
+        className="h-4 rounded w-1/2 mb-4"
+        style={{
+          backgroundColor: colorScheme === 'dark' ? '#374151' : '#e5e7eb'
+        }}
+      ></div>
+      <div 
+        className="h-4 rounded w-5/6"
+        style={{
+          backgroundColor: colorScheme === 'dark' ? '#374151' : '#e5e7eb'
+        }}
+      ></div>
     </div>
   );
 }

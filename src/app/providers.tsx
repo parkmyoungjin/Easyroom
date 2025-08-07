@@ -3,14 +3,20 @@
 
 // Since QueryClientProvider relies on useContext under the hood, we have to put 'use client' on top
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ThemeProvider } from 'next-themes';
-import { MantineProvider } from '@mantine/core';
+import { MantineProvider, createTheme } from '@mantine/core';
 import { useState } from "react";
 import { StartupValidationProvider, StartupValidationGuard } from '@/components/providers/StartupValidationProvider';
 
 // Import Mantine styles
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
+
+// Mantine 테마 설정
+const theme = createTheme({
+  primaryColor: 'blue',
+  defaultRadius: 'md',
+  fontFamily: 'Inter, system-ui, sans-serif',
+});
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -52,18 +58,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         }
       }}
     >
-      <MantineProvider>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem={false}
-          disableTransitionOnChange
-          storageKey="room-booking-theme"
-        >
-          <QueryClientProvider client={queryClient}>
-            {children}
-          </QueryClientProvider>
-        </ThemeProvider>
+      <MantineProvider theme={theme} defaultColorScheme="dark">
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       </MantineProvider>
     </StartupValidationProvider>
   );

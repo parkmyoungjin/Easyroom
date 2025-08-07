@@ -18,6 +18,7 @@ interface AuthContextType {
   user: User | null;
   userProfile: UserProfile | null;
   authStatus: AuthStatus;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -129,7 +130,15 @@ export const AuthProvider = ({
     ? 'loading'
     : user && userProfile ? 'authenticated' : 'unauthenticated';
 
-  const value = { user, userProfile, authStatus };
+  // 프로필 새로고침 함수
+  const refreshProfile = async () => {
+    if (supabase && user) {
+      const profile = await getOrCreateProfile(supabase);
+      setUserProfile(profile);
+    }
+  };
+
+  const value = { user, userProfile, authStatus, refreshProfile };
 
   // ✅ AuthProvider는 이제 순수한 '정보 전문가' - UI 렌더링에 관여하지 않음
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -7,6 +7,7 @@ import { ClientPolyfillManager } from '@/lib/polyfills/ClientPolyfillManager';
 import { SupabaseProvider } from '@/contexts/SupabaseProvider';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AuthToastManager } from '@/components/auth/AuthErrorToast';
+import { ColorSchemeScript } from '@mantine/core';
 
 import { GlobalNotification } from '@/components/layout/GlobalNotification';
 import AuthGatekeeper from '@/components/layout/AuthGatekeeper';
@@ -52,18 +53,31 @@ export const metadata: Metadata = {
   applicationName: '회의실 예약 시스템',
 };
 
-// ✅ 단순화된 RootLayout - 오직 세션만 가져온다
+// ✅ 보안 강화된 RootLayout - getUser()로 안전한 인증 확인
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // ✅ 서버에서는 오직 세션 정보만 가져온다
+  // ✅ 서버에서 안전한 사용자 인증 확인 (JWT 토큰 실시간 검증)
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  
+  // AuthProvider 호환성을 위해 완전한 Session 타입으로 변환
+  const session = user && !error ? { 
+    user, 
+    access_token: '', // AuthProvider에서 실제로 사용하지 않음
+    refresh_token: '',
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    token_type: 'bearer'
+  } : null;
   return (
-    <html lang="ko" suppressHydrationWarning>
-      <body className={`${inter.className} min-h-screen bg-background antialiased`}>
+    <html lang="ko" suppressHydrationWarning className="dark">
+      <head>
+        <ColorSchemeScript defaultColorScheme="dark" />
+      </head>
+      <body className={`${inter.className} min-h-screen antialiased`}>
         <ClientPolyfillManager enableServiceWorker={true} enablePWAComponents={true}>
           <Providers>
             <SupabaseProvider>

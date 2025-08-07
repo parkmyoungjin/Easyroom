@@ -32,18 +32,23 @@ export async function DELETE(
 
     logger.apiCall('/api/admin/users/[userId]', 'DELETE', undefined, true, { targetUserId: userId, requestId });
     
-    // 서버 사이드에서 관리자 권한 확인 - ssr 방식으로 변경
+    // 서버 사이드에서 관리자 권한 확인 - 보안 강화된 getUser() 사용
     const supabase = await createClient();
-    const sessionResult = await performanceMonitor.measureAuthentication(
-      async () => await supabase.auth.getSession(),
+    const userResult = await performanceMonitor.measureAuthentication(
+      async () => await supabase.auth.getUser(),
       {
         endpoint: '/api/admin/users/[userId]',
-        method: 'getSession',
+        method: 'getUser',
         requestId
       }
     );
 
-    const { data: { session } } = sessionResult;
+    const { data: { user }, error } = userResult;
+    // AuthProvider 호환성을 위해 session 형태로 변환
+    const session = user && !error ? { 
+      user, 
+      expires_at: Math.floor(Date.now() / 1000) + 3600 
+    } : null;
 
     if (!session) {
       // Security monitoring: Record authentication failure

@@ -4,8 +4,10 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useMantineColorScheme } from '@mantine/core';
 
 export function SplashScreen() {
+  const { colorScheme } = useMantineColorScheme();
   const titleText = "EasyRoom";
 
   const containerVariants = {
@@ -13,8 +15,8 @@ export function SplashScreen() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
+        staggerChildren: 0.15,  // 글자 간격을 더 느리게 (0.1 → 0.15)
+        delayChildren: 0.4,     // 시작 지연을 더 길게 (0.2 → 0.4)
       },
     },
   };
@@ -28,21 +30,29 @@ export function SplashScreen() {
       opacity: 1, // 2. 제자리에서 불투명한 상태로 변경
       transition: {
         ease: "linear", // 일정한 속도로 나타나도록
-        duration: 0.3,  // 나타나는 속도
+        duration: 0.5,  // 각 글자 등장을 더 느리게 (0.3 → 0.5)
       },
     },
   };
 
   return (
     <motion.div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-background"
+      className="fixed inset-0 z-[100] flex items-center justify-center"
+      style={{
+        background: colorScheme === 'dark'
+          ? 'linear-gradient(135deg, #1a1b23 0%, #2d3748 100%)'
+          : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
+      }}
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
       <div className="text-center">
         <motion.h1
-          className="text-5xl font-bold text-blue-600 mb-2 flex overflow-hidden"
+          className="text-5xl font-bold mb-2 flex overflow-hidden"
+          style={{
+            color: colorScheme === 'dark' ? '#ffffff' : '#000000'
+          }}
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -55,12 +65,15 @@ export function SplashScreen() {
         </motion.h1>
 
         <motion.p
-          className="text-xl text-gray-600"
+          className="text-xl"
+          style={{
+            color: colorScheme === 'dark' ? '#94a3b8' : '#64748b'
+          }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{
-            delay: titleText.length * 0.1 + 0.5,
-            duration: 0.8,
+            delay: titleText.length * 0.15 + 0.8,  // 부제목을 더 느리게 등장
+            duration: 1.0,                          // 부제목 등장 속도도 느리게
           }}
         >
           회의실 예약 시스템
