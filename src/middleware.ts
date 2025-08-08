@@ -70,25 +70,27 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  // 2. 관리자 경로 보호 로직 (일단 주석 처리 - 안전한 구현을 위해)
-  /*
+  // 2. 관리자 경로 보호 로직
   if (pathname.startsWith('/admin')) {
     if (!user) {
       console.log(`[Middleware] Admin route - redirecting unauthenticated user to /welcome`);
       return NextResponse.redirect(new URL('/welcome', request.url));
     }
     
-    // TODO: 사용자 프로필에서 역할 확인 (Phase 3에서 JWT claims로 최적화 예정)
-    const { data: profile } = await supabase
-      .rpc('get_or_create_user_profile')
-      .single();
-    
-    if (!profile || profile.role !== 'admin') {
-      console.log(`[Middleware] Admin route - non-admin user redirected to /dashboard`);
+    // 사용자 프로필에서 역할 확인 (Phase 3에서 JWT claims로 최적화 예정)
+    try {
+      const { data: profiles } = await supabase.rpc('get_or_create_user_profile');
+      const profile = profiles?.[0];
+      
+      if (!profile || (profile as any).role !== 'admin') {
+        console.log(`[Middleware] Admin route - non-admin user redirected to /dashboard`);
+        return NextResponse.redirect(new URL('/dashboard', request.url));
+      }
+    } catch (error) {
+      console.error(`[Middleware] Error checking admin role:`, error);
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
-  */
 
   // 3. 인증이 필요한 경로 보호 로직
   const protectedPaths = ['/dashboard', '/reservations', '/profile'];
