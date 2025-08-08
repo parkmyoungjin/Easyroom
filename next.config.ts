@@ -11,95 +11,33 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config, { isServer, dev }) => {
-    // Enhanced fallback configuration for better server isolation
+  webpack: (config, { isServer }) => {
+    // Essential fallback configuration for server isolation
     config.resolve.fallback = {
       ...config.resolve.fallback,
       fs: false,
       net: false,
       tls: false,
-      crypto: false,
-      stream: false,
-      url: false,
-      zlib: false,
-      http: false,
-      https: false,
-      assert: false,
-      os: false,
-      path: false,
     };
 
-    // Enhanced server-side isolation without global injection
+    // Server-side module resolution
     if (isServer) {
-      // Server-side optimizations without polluting globals
-      config.plugins = config.plugins || [];
-      
-      // Add server-specific optimizations
       config.resolve.alias = {
         ...config.resolve.alias,
-        // Ensure server-only modules are properly resolved
         '@/lib/polyfills/server-isolation': require.resolve('./src/lib/polyfills/server-isolation.ts'),
       };
-    } else {
-      // Client-side optimizations
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        // Ensure client-only modules are properly resolved
-        '@/lib/polyfills/client-polyfills': require.resolve('./src/lib/polyfills/client-polyfills.ts'),
-      };
-    }
-
-    // Enhanced production optimizations
-    if (!dev) {
-      config.optimization = config.optimization || {};
-      config.optimization.minimizer = config.optimization.minimizer || [];
       
-      const TerserPlugin = require('terser-webpack-plugin');
-      config.optimization.minimizer.push(
-        new TerserPlugin({
-          terserOptions: {
-            compress: {
-              drop_console: true, // Remove console.log in production
-              drop_debugger: true, // Remove debugger statements
-              pure_funcs: ['console.info', 'console.debug', 'console.warn'], // Remove specific console methods
-            },
-            mangle: {
-              safari10: true, // Fix Safari 10 issues
-            },
-          },
-          extractComments: false, // Don't extract comments to separate files
-        })
-      );
-
-      // Split chunks for better caching
-      config.optimization.splitChunks = {
-        ...config.optimization.splitChunks,
-        cacheGroups: {
-          ...config.optimization.splitChunks?.cacheGroups,
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            chunks: 'all',
-            priority: 10,
-          },
-          common: {
-            name: 'common',
-            minChunks: 2,
-            chunks: 'all',
-            priority: 5,
-            reuseExistingChunk: true,
-          },
-        },
-      };
-    }
-
-    // Ignore problematic modules that cause server-side issues
-    config.externals = config.externals || [];
-    if (isServer) {
+      // Ignore problematic modules that cause server-side issues
+      config.externals = config.externals || [];
       config.externals.push({
         'react-native-sqlite-storage': 'react-native-sqlite-storage',
         'react-native': 'react-native',
       });
+    } else {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@/lib/polyfills/client-polyfills': require.resolve('./src/lib/polyfills/client-polyfills.ts'),
+      };
     }
     
     return config;
@@ -111,11 +49,7 @@ const nextConfig: NextConfig = {
     scrollRestoration: true, // Better scroll restoration
   },
 
-  // Force CSS cache busting
-  generateBuildId: async () => {
-    // Generate unique build ID to force cache invalidation
-    return `build-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
-  },
+
 
   // Security headers
   async headers() {
