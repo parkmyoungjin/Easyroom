@@ -72,18 +72,8 @@ self.addEventListener('activate', (event) => {
           })
         );
       }),
-      // 모든 클라이언트에게 새 버전 알림
-      self.clients.claim().then(() => {
-        return self.clients.matchAll().then((clients) => {
-          clients.forEach((client) => {
-            client.postMessage({
-              type: 'SW_UPDATED',
-              version: SW_VERSION,
-              message: '새로운 버전이 활성화되었습니다.'
-            });
-          });
-        });
-      }),
+      // 모든 클라이언트 제어권 획득 (알림 없이)
+      self.clients.claim(),
       // Initial deployment check
       handleDeploymentCheck()
     ])
@@ -417,14 +407,7 @@ async function handleDeploymentCheck() {
       // Store new version info
       await storeVersion(deploymentInfo);
       
-      // Notify clients about deployment
-      const clients = await self.clients.matchAll();
-      clients.forEach(client => {
-        client.postMessage({
-          type: 'DEPLOYMENT_DETECTED',
-          data: deploymentInfo
-        });
-      });
+      // 배포 감지됨 (알림 없이 처리)
       
       // Optionally invalidate caches for new deployment
       await invalidateOldCaches(deploymentInfo);
