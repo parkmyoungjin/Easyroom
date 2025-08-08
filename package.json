@@ -146,6 +146,7 @@
     "eslint-config-next": "15.1.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "knip": "^5.62.0",
     "postcss": "^8",
     "supabase": "^2.33.9",
     "tailwindcss": "^3.4.1",
