@@ -4,8 +4,8 @@
 
 import { useState, useMemo, FC, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { format, addDays, getDay, getHours, getMinutes, isToday } from 'date-fns';
-import { utcToKst } from "@/lib/utils/date";
+import { addDays, getDay, getHours, getMinutes, isToday } from 'date-fns';
+import { utcToKst, formatDate } from "@/lib/utils/date";
 import type { PublicReservation } from "@/types/database";
 import { ReservationDetailDialog } from "@/features/reservation/components/ReservationDetailDialog";
 import { useReservationsRealtime } from '@/hooks/useReservationsRealtime';
@@ -205,8 +205,8 @@ export default function GoogleCalendarView({
 
 
 
-  const startDateStr = format(weekStartDate, 'yyyy-MM-dd');
-  const endDateStr = format(addDays(weekStartDate, 5), 'yyyy-MM-dd');
+  const startDateStr = formatDate(weekStartDate, 'yyyy-MM-dd');
+  const endDateStr = formatDate(addDays(weekStartDate, 5), 'yyyy-MM-dd');
   useReservationsRealtime(startDateStr, endDateStr, isAuthenticated);
 
   const { mutate: updateReservation } = useUpdateReservation();
@@ -227,7 +227,7 @@ export default function GoogleCalendarView({
     const startTime = new Date(selectedDate);
     startTime.setHours(hours, minutes, 0, 0);
 
-    router.push(`/reservations/new?date=${format(startTime, 'yyyy-MM-dd')}&time=${time}`);
+    router.push(`/reservations/new?date=${formatDate(startTime, 'yyyy-MM-dd')}&time=${time}`);
   };
 
   // 🎯 드래그 시작 - 전역 상태 추적 시작
@@ -381,7 +381,7 @@ export default function GoogleCalendarView({
                         c={isTodayDate ? 'rgba(255,255,255,0.8)' : 'dimmed'}
                         style={{ fontSize: '10px' }}
                       >
-                        {format(date, 'M/d')}
+                        {formatDate(date, 'M/d')}
                       </Text>
                     </Paper>
                   </Box>

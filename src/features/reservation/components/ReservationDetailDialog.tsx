@@ -1,8 +1,8 @@
 "use client";
 
 import { Button, Modal, Text, Group, Stack, Badge } from "@mantine/core";
-import { format } from "date-fns";
 import { ko } from "date-fns/locale";
+import { formatDateTime, formatTime } from "@/lib/utils/date";
 import { useRouter } from "next/navigation";
 import { useCancelReservation } from "@/hooks/useReservations";
 import { useAuth } from "@/hooks/useAuth";
@@ -102,14 +102,14 @@ export function ReservationDetailDialog({
           <Group justify="space-between">
             <Text size="sm" c="dimmed">날짜</Text>
             <Text size="sm">
-              {format(startTime, 'yyyy년 MM월 dd일 (EEEE)', { locale: ko })}
+              {formatDateTime(startTime, 'yyyy년 MM월 dd일 (EEEE)')}
             </Text>
           </Group>
 
           <Group justify="space-between">
             <Text size="sm" c="dimmed">시간</Text>
             <Text size="sm">
-              {format(startTime, 'HH:mm')} - {format(endTime, 'HH:mm')} ({duration}분)
+              {formatTime(startTime, 'HH:mm')} - {formatTime(endTime, 'HH:mm')} ({duration}분)
             </Text>
           </Group>
         </Stack>

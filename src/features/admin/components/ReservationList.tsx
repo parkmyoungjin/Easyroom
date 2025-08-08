@@ -3,9 +3,8 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { utcToKst } from '@/lib/utils/date';
+import { utcToKst, formatDateTime, formatTime } from '@/lib/utils/date';
 import {
   Table,
   TextInput,
@@ -53,7 +52,7 @@ export function ReservationList() {
   const [activePage, setActivePage] = useState(1);
   const itemsPerPage = 10;
 
-  const queryStartDate = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+  const queryStartDate = selectedDate ? formatDateTime(selectedDate, 'yyyy-MM-dd') : formatDateTime(new Date(), 'yyyy-MM-dd');
   const queryEndDate = queryStartDate;
 
   const { data: reservations, isLoading } = useReservationsWithDetails(
@@ -305,14 +304,12 @@ export function ReservationList() {
                   <Table.Td>
                     <Stack gap={2}>
                       <Text size="sm">
-                        {format(utcToKst(reservation.start_time), 'PPP EEEE', {
-                          locale: ko,
-                        })}
+                        {formatDateTime(reservation.start_time, 'PPP EEEE')}
                       </Text>
                       <Text size="xs" c="dimmed">
-                        {format(utcToKst(reservation.start_time), 'p', { locale: ko })}
+                        {formatTime(reservation.start_time, 'p')}
                         {' ~ '}
-                        {format(utcToKst(reservation.end_time), 'p', { locale: ko })}
+                        {formatTime(reservation.end_time, 'p')}
                       </Text>
                     </Stack>
                   </Table.Td>

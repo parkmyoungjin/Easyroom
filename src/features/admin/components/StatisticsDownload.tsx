@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { DatePickerInput } from '@mantine/dates';
+import { formatDate } from '@/lib/utils/date';
 import { Stack, Text, Group, Card, Button, Progress } from '@mantine/core';
 import { toast } from 'sonner';
 import { useReservationStatistics } from '@/hooks/useReservationStatistics';
@@ -26,8 +27,8 @@ export function StatisticsDownload() {
 
     downloadStatistics(
       {
-        startDate: format(new Date(startDate), "yyyy-MM-dd"),
-        endDate: format(new Date(endDate), "yyyy-MM-dd"),
+        startDate: formatDate(new Date(startDate), "yyyy-MM-dd"),
+        endDate: formatDate(new Date(endDate), "yyyy-MM-dd"),
       },
       {
         onSuccess: () => {
@@ -38,8 +39,8 @@ export function StatisticsDownload() {
         onError: (error) => {
           const reservationError = ReservationErrorHandler.handleReservationError(error, {
             action: 'download_statistics',
-            startDate: format(new Date(startDate), "yyyy-MM-dd"),
-            endDate: format(new Date(endDate), "yyyy-MM-dd"),
+            startDate: formatDate(new Date(startDate), "yyyy-MM-dd"),
+            endDate: formatDate(new Date(endDate), "yyyy-MM-dd"),
             timestamp: new Date().toISOString()
           });
 
@@ -88,8 +89,8 @@ export function StatisticsDownload() {
             <div>
               <h4 className="font-medium text-sm mb-2">선택된 기간</h4>
               <Text size="sm" c="dimmed">
-                {format(new Date(startDate), 'PPP', { locale: ko })} ~{' '}
-                {format(new Date(endDate), 'PPP', { locale: ko })}
+                {formatDate(new Date(startDate), 'PPP')} ~{' '}
+                {formatDate(new Date(endDate), 'PPP')}
               </Text>
             </div>
           )}

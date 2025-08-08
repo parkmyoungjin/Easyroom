@@ -2,8 +2,9 @@
 
 import { useState } from 'react';
 import { Card, Select, Text } from '@mantine/core';
-import { format, addDays, addWeeks, addMonths, startOfDay, endOfDay } from 'date-fns';
+import { addDays, addWeeks, addMonths, startOfDay, endOfDay } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { formatDate } from '@/lib/utils/date';
 
 import InfiniteReservationList from '@/components/reservations/InfiniteReservationList';
 import AppLayout from '@/components/layout/AppLayout';
@@ -83,10 +84,10 @@ export default function BrowseReservationsPage() {
 
 
   const formatDateRange = (range: DateRange) => {
-    if (format(range.from, 'yyyy-MM-dd') === format(range.to, 'yyyy-MM-dd')) {
-      return format(range.from, 'yyyy년 MM월 dd일 (EEE)', { locale: ko });
+    if (formatDate(range.from, 'yyyy-MM-dd') === formatDate(range.to, 'yyyy-MM-dd')) {
+      return formatDate(range.from, 'yyyy년 MM월 dd일 (EEE)');
     }
-    return `${format(range.from, 'MM월 dd일', { locale: ko })} ~ ${format(range.to, 'MM월 dd일 (EEE)', { locale: ko })}`;
+    return `${formatDate(range.from, 'MM월 dd일')} ~ ${formatDate(range.to, 'MM월 dd일 (EEE)')}`;
   };
 
   return (
@@ -128,7 +129,7 @@ export default function BrowseReservationsPage() {
                 <div className="flex gap-2">
                   <input
                     type="date"
-                    value={format(dateRange.from, 'yyyy-MM-dd')}
+                    value={formatDate(dateRange.from, 'yyyy-MM-dd')}
                     onChange={(e) => {
                       if (e.target.value && selectedPreset === 'custom') {
                         const newFrom = new Date(e.target.value);
@@ -141,7 +142,7 @@ export default function BrowseReservationsPage() {
                   <span className="flex items-center text-sm text-muted-foreground">~</span>
                   <input
                     type="date"
-                    value={format(dateRange.to, 'yyyy-MM-dd')}
+                    value={formatDate(dateRange.to, 'yyyy-MM-dd')}
                     onChange={(e) => {
                       if (e.target.value && selectedPreset === 'custom') {
                         const newTo = new Date(e.target.value);
@@ -182,8 +183,8 @@ export default function BrowseReservationsPage() {
 
         {/* Infinite Reservation List */}
         <InfiniteReservationList
-          startDate={format(dateRange.from, 'yyyy-MM-dd')}
-          endDate={format(dateRange.to, 'yyyy-MM-dd')}
+          startDate={formatDate(dateRange.from, 'yyyy-MM-dd')}
+          endDate={formatDate(dateRange.to, 'yyyy-MM-dd')}
           limit={pageSize}
           className="mb-8"
         />

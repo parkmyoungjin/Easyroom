@@ -4,9 +4,9 @@ import { useEffect, useRef, useCallback } from 'react';
 import { Card, Text, Group, Stack, Button, Badge } from '@mantine/core';
 import { Calendar, Clock, MapPin, User, Loader2, AlertCircle } from 'lucide-react';
 import { useInfinitePublicReservations, useFlattenedReservations } from '@/hooks/useInfinitePublicReservations';
-import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { logger } from '@/lib/utils/logger';
+import { formatDateTime, formatTime } from '@/lib/utils/date';
 import type { PublicReservation, PublicReservationAnonymous } from '@/types/database';
 
 interface InfiniteReservationListProps {
@@ -301,9 +301,9 @@ function ReservationCard({
           <Group gap="xs">
             <Clock className="h-4 w-4" />
             <Text size="sm" c="dimmed">
-              {format(new Date(reservation.start_time), 'yyyy년 MM월 dd일 (EEE) HH:mm', { locale: ko })}
+              {formatDateTime(reservation.start_time, 'yyyy년 MM월 dd일 (EEE) HH:mm')}
               {' ~ '}
-              {format(new Date(reservation.end_time), 'HH:mm', { locale: ko })}
+              {formatTime(reservation.end_time, 'HH:mm')}
             </Text>
           </Group>
 

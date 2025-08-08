@@ -3,12 +3,13 @@
 'use client';
 
 import { useMemo } from 'react';
-import { format, addDays } from 'date-fns';
+import { addDays } from 'date-fns';
 import { ChevronLeft, ChevronRight, LocateFixed, Calendar, Users } from 'lucide-react';
 import {
   Group, Button, Text, Badge, useMantineTheme, Paper, Stack,
   ThemeIcon, Title, useMantineColorScheme
 } from '@mantine/core';
+import { formatDate } from '@/lib/utils/date';
 
 interface CalendarControlHeaderProps {
   currentDate: Date;
@@ -52,7 +53,7 @@ export default function CalendarControlHeader({
     onDateChange(new Date());
   };
 
-  const weekDisplay = `${format(weekRange.start, 'M월 d일')} ~ ${format(weekRange.end, 'd일')}`;
+  const weekDisplay = `${formatDate(weekRange.start, 'M월 d일')} ~ ${formatDate(weekRange.end, 'd일')}`;
 
   return (
     <Paper
@@ -73,7 +74,7 @@ export default function CalendarControlHeader({
             <Stack gap={1}>
               <Text size="xs" c="dimmed" fw={500} display={{ base: 'none', sm: 'block' }}>주간 일정</Text>
               <Group gap="xs" align="center">
-                <Text fw={500} size="xs" c="dimmed">{format(weekRange.start, 'yyyy년')}</Text>
+                <Text fw={500} size="xs" c="dimmed">{formatDate(weekRange.start, 'yyyy년')}</Text>
                 <Text fw={600} size="sm" c={colorScheme === 'dark' ? 'white' : 'dark'}>{weekDisplay}</Text>
               </Group>
             </Stack>
