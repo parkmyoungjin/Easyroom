@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useMemo, FC, useCallback } from 'react';
+import React, { useState, useMemo, FC, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { addDays, getDay, getHours, getMinutes, isToday } from 'date-fns';
 import { utcToKst, formatDate } from "@/lib/utils/date";
@@ -37,7 +37,11 @@ interface DraggableReservationBlockProps {
   isAuthenticated: boolean;
 }
 
-const DraggableReservationBlock: FC<DraggableReservationBlockProps> = ({ reservation, top, height, color, onSelect, isAuthenticated }) => {
+const DraggableReservationBlock: FC<DraggableReservationBlockProps> = React.memo(({ reservation, top, height, color, onSelect, isAuthenticated }) => {
+  // 렌더링 추적을 위한 로그 (개발 환경에서만)
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Rendering DraggableReservationBlock: ${reservation.id}`);
+  }
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: reservation.id,
     disabled: !isAuthenticated,
@@ -117,7 +121,9 @@ const DraggableReservationBlock: FC<DraggableReservationBlockProps> = ({ reserva
       <Text size="xs" fw={700} truncate c="white">{reservation.title}</Text>
     </Paper>
   );
-};
+});
+
+DraggableReservationBlock.displayName = 'DraggableReservationBlock';
 
 // ============================================================================
 // 🎯 드롭 가능한 시간 슬롯 컴포넌트 (그리드 기반 최종 진화형)

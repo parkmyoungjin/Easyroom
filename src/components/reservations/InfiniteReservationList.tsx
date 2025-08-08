@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { Card, Text, Group, Stack, Button, Badge } from '@mantine/core';
 import { Calendar, Clock, MapPin, User, Loader2, AlertCircle } from 'lucide-react';
 import { useInfinitePublicReservations, useFlattenedReservations } from '@/hooks/useInfinitePublicReservations';
@@ -253,11 +253,16 @@ export function InfiniteReservationList({
 }
 
 // Individual reservation card component
-function ReservationCard({
+const ReservationCard = React.memo(function ReservationCard({
   reservation
 }: {
   reservation: PublicReservation | PublicReservationAnonymous;
 }) {
+  // 렌더링 추적을 위한 로그 (개발 환경에서만)
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Rendering ReservationCard: ${reservation.id}`);
+  }
+
   const isAuthenticated = 'user_id' in reservation;
   const isMyReservation = reservation.is_mine;
 
@@ -331,6 +336,8 @@ function ReservationCard({
       </Stack>
     </Card>
   );
-}
+});
+
+ReservationCard.displayName = 'ReservationCard';
 
 export default InfiniteReservationList;
