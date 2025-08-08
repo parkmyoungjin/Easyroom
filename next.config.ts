@@ -69,8 +69,8 @@ const nextConfig: NextConfig = {
     }
     scriptSrc += ` ${supabaseUrl} https://vercel.live`;
     
-    // 환경별 connect-src 설정
-    let connectSrc = `'self' ${supabaseUrl} ${supabaseWsUrl} https://vercel.live`;
+    // 환경별 connect-src 설정 (Vercel 플랫폼 완전 지원)
+    let connectSrc = `'self' ${supabaseUrl} ${supabaseWsUrl} https://vercel.live https://vercel.com wss://ws-us3.pusher.com`;
     if (isDevelopment) {
       connectSrc += " ws://localhost:* http://localhost:*";
     }
@@ -81,7 +81,7 @@ const nextConfig: NextConfig = {
       `script-src ${scriptSrc}`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https:",
+      "img-src 'self' data: blob: https: https://vercel.com",
       `connect-src ${connectSrc}`,
       "frame-src https://vercel.live",
       "object-src 'none'",
