@@ -578,10 +578,7 @@ async function runIntegrityReport() {
 
 // Export for use in other scripts
 module.exports = {
-  DataIntegrityAnalyzer,
-  DataIntegrityIssue,
-  ISSUE_TYPES,
-  SEVERITY_LEVELS
+  DataIntegrityAnalyzer
 };
 
 // Run analysis if script is executed directly

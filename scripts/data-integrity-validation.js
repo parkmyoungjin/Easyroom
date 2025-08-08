@@ -349,11 +349,7 @@ async function generateIntegrityReport() {
  * Export individual validation functions for use in other scripts
  */
 module.exports = {
-  validateReservationUserIds,
-  validateUserIdReferences,
-  validateUserDataConsistency,
-  generateIntegrityReport,
-  ValidationResult
+  generateIntegrityReport
 };
 
 // Run validation if script is executed directly

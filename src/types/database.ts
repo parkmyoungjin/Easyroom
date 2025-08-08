@@ -4,7 +4,6 @@ import type { AuthId, DatabaseUserId } from './enhanced-types';
 // Generated from Supabase schema
 // Enhanced with branded types for type safety
 
-
 export type Json =
   | string
   | number
@@ -12,6 +11,11 @@ export type Json =
   | null
   | { [key: string]: Json | undefined }
   | Json[]
+
+
+
+
+
 
 export interface Database {
   public: {
@@ -181,8 +185,7 @@ export interface Database {
 }
 
 export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
-export type Insertable<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert']
-export type Updatable<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update']
+
 
 export type User = Tables<'users'>
 export type Room = Tables<'rooms'>

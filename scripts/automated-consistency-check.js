@@ -449,12 +449,7 @@ async function runConsistencyCheck() {
 
 // Export functions for use in other scripts
 module.exports = {
-  checkOrphanedReservations,
-  checkAuthIdConfusion,
-  checkDuplicateAuthIds,
-  checkOrphanedUsers,
-  generateConsistencyReport,
-  ConsistencyCheckResult
+  generateConsistencyReport
 };
 
 // Run check if script is executed directly
