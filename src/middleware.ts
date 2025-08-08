@@ -76,12 +76,12 @@ export async function middleware(request: NextRequest) {
       console.log(`[Middleware] Admin route - redirecting unauthenticated user to /welcome`);
       return NextResponse.redirect(new URL('/welcome', request.url));
     }
-    
+
     // 사용자 프로필에서 역할 확인 (Phase 3에서 JWT claims로 최적화 예정)
     try {
       const { data: profiles } = await supabase.rpc('get_or_create_user_profile');
       const profile = profiles?.[0];
-      
+
       if (!profile || (profile as any).role !== 'admin') {
         console.log(`[Middleware] Admin route - non-admin user redirected to /dashboard`);
         return NextResponse.redirect(new URL('/dashboard', request.url));
@@ -124,5 +124,17 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  /**
+   * 미들웨어 실행에서 제외할 경로 목록:
+   * - api/: API 라우트
+   * - _next/static: Next.js 정적 파일
+   * - _next/image: Next.js 이미지 최적화 파일
+   * - assets/: public/assets 폴더의 모든 리소스
+   * - sw.js: 서비스 워커 파일 (명시적 제외)
+   * - 모든 아이콘/이미지 파일 확장자 (명시적 제외)
+   * 
+   * 아키텍처 원칙: "사용자의 '의도'가 담긴 요청은 미들웨어가 검사하고, 
+   *                시스템의 '기능'을 위한 요청은 미들웨어가 통과시킨다."
+   */
+  matcher: ['/((?!api|_next/static|_next/image|assets|sw.js|.*\\.(?:svg|png|jpg|jpeg|gif|ico)$).*)']
 };

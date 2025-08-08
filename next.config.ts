@@ -83,7 +83,7 @@ const nextConfig: NextConfig = {
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       `connect-src ${connectSrc}`,
-      "frame-src 'none'",
+      "frame-src https://vercel.live",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
