@@ -76,7 +76,7 @@ export function ReservationDetailDialog({
       <Stack gap="md">
         {/* 예약 제목 */}
         <div>
-          <Text fw={600} size="lg">{reservation.title}</Text>
+          <Text fw={600} size="lg" c="dark">{reservation.title}</Text>
           {reservation.purpose && (
             <Text size="sm" c="dimmed" mt="xs">{reservation.purpose}</Text>
           )}
@@ -96,7 +96,7 @@ export function ReservationDetailDialog({
 
           <Group justify="space-between">
             <Text size="sm" c="dimmed">회의실</Text>
-            <Text size="sm">{reservation.room_id}</Text>
+            <Text size="sm">{reservation.room_name}</Text>
           </Group>
 
           <Group justify="space-between">

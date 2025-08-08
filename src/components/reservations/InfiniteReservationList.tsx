@@ -141,7 +141,7 @@ export function InfiniteReservationList({
       <Card shadow="sm" padding="lg" radius="md" withBorder style={{ textAlign: 'center', paddingTop: '2rem', paddingBottom: '2rem' }}>
         <Stack align="center" gap="md">
           <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
-          <Text size="lg" fw={500}>예약 목록을 불러올 수 없습니다</Text>
+          <Text size="lg" fw={500} c="dark">예약 목록을 불러올 수 없습니다</Text>
           <Text size="sm" c="dimmed">
             {isNetworkError 
               ? '네트워크 연결을 확인해주세요' 
@@ -186,7 +186,7 @@ export function InfiniteReservationList({
       <Card shadow="sm" padding="lg" radius="md" withBorder style={{ textAlign: 'center', paddingTop: '2rem', paddingBottom: '2rem' }}>
         <Stack align="center" gap="md">
           <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <Text size="lg" fw={500}>예약이 없습니다</Text>
+          <Text size="lg" fw={500} c="dark">예약이 없습니다</Text>
           <Text size="sm" c="dimmed">
             선택한 기간에 예약된 회의실이 없습니다.
           </Text>
@@ -277,7 +277,7 @@ function ReservationCard({
         <Group justify="space-between" align="flex-start">
           <Stack gap="xs" style={{ flex: 1 }}>
             <Group gap="sm">
-              <Text size="lg" fw={500}>{reservation.title}</Text>
+              <Text size="lg" fw={500} c="dark">{reservation.title}</Text>
               {isMyReservation && (
                 <Badge variant="filled" size="xs">
                   내 예약

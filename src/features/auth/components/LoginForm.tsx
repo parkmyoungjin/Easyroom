@@ -75,12 +75,14 @@ export function LoginForm({ initialEmail }: LoginFormProps = {}) {
     }
   }, [currentStep, timeRemaining]);
 
-  // Show migration message on mount
+  // Show migration message on mount - 임시 주석처리
+  /*
   useEffect(() => {
     if (shouldShowMigrationMessage('auth-method-changed')) {
       setShowMigrationMessage('auth-method-changed');
     }
   }, [shouldShowMigrationMessage]);
+  */
 
   const onEmailSubmit = useCallback(async (data: MagicLinkLoginFormData) => {
     if (!isOnline) {
@@ -238,7 +240,7 @@ export function LoginForm({ initialEmail }: LoginFormProps = {}) {
           이메일 변경
         </Button>
         
-        <Text fw={600} size="lg">OTP 코드 입력</Text>
+        <Text fw={600} size="lg" c="dark">OTP 코드 입력</Text>
         <Text size="sm" c="dimmed" mt="xs">
           <strong>{userEmail}</strong>로 발송된 6자리 코드를 입력해주세요
         </Text>
@@ -307,7 +309,7 @@ export function LoginForm({ initialEmail }: LoginFormProps = {}) {
         <LogIn className="w-8 h-8 text-green-600" />
       </div>
       <div>
-        <Text fw={600} size="lg">로그인 성공!</Text>
+        <Text fw={600} size="lg" c="dark">로그인 성공!</Text>
         <Text size="sm" c="dimmed" mt="xs">
           잠시 후 메인 페이지로 이동합니다...
         </Text>
@@ -317,6 +319,8 @@ export function LoginForm({ initialEmail }: LoginFormProps = {}) {
 
   return (
     <div className="w-full max-w-md mx-auto">
+      {/* 마이그레이션 메시지 - 임시 주석처리 */}
+      {/*
       {showMigrationMessage && (
         <div className="mb-6">
           <MigrationMessage
@@ -325,16 +329,44 @@ export function LoginForm({ initialEmail }: LoginFormProps = {}) {
           />
         </div>
       )}
+      */}
 
-      <Card withBorder shadow="sm" p="xl">
-        <Stack gap="md">
-          <div className="text-center">
-            <Text fw={700} size="xl">로그인</Text>
-            <Text size="sm" c="dimmed" mt="xs">
+      {/* 헤더 섹션 - Dashboard 스타일 */}
+      <Card
+        shadow="lg"
+        p="xl"
+        radius="xl"
+        mb="xl"
+        style={{
+          background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+          color: 'white'
+        }}
+      >
+        <Group justify="center" align="center">
+          <Stack gap="xs" align="center">
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+              <LogIn size={32} color="white" />
+            </div>
+            <Text fw={700} size="xl" c="white" ta="center">
+              로그인
+            </Text>
+            <Text size="sm" c="rgba(255,255,255,0.8)" ta="center">
               이메일로 OTP 코드를 받아 로그인하세요
             </Text>
-          </div>
+          </Stack>
+        </Group>
+      </Card>
 
+      {/* 폼 섹션 - Dashboard 스타일 */}
+      <Card
+        shadow="lg"
+        p="xl"
+        radius="xl"
+        style={{
+          border: '2px solid #4f46e5'
+        }}
+      >
+        <Stack gap="xl">
           {currentStep === 'email' && renderEmailStep()}
           {currentStep === 'otp' && renderOTPStep()}
           {currentStep === 'success' && renderSuccessStep()}

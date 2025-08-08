@@ -49,6 +49,43 @@ const DraggableReservationBlock: FC<DraggableReservationBlockProps> = ({ reserva
     zIndex: 100, // 드래그 중일 때 다른 요소 위로 올라오도록
   } : {};
 
+  // 🎯 클릭 감지를 위한 상태
+  const [clickStartTime, setClickStartTime] = useState<number>(0);
+  const [clickStartPos, setClickStartPos] = useState<{ x: number; y: number } | null>(null);
+
+  // 🎯 마우스/터치 다운 이벤트
+  const handlePointerDown = (e: React.PointerEvent) => {
+    setClickStartTime(Date.now());
+    setClickStartPos({ x: e.clientX, y: e.clientY });
+    
+    // 드래그 라이브러리의 기본 동작 실행
+    if (listeners?.onPointerDown) {
+      listeners.onPointerDown(e);
+    }
+  };
+
+  // 🎯 마우스/터치 업 이벤트
+  const handlePointerUp = (e: React.PointerEvent) => {
+    const clickDuration = Date.now() - clickStartTime;
+    const distance = clickStartPos ? 
+      Math.sqrt(
+        Math.pow(e.clientX - clickStartPos.x, 2) + 
+        Math.pow(e.clientY - clickStartPos.y, 2)
+      ) : 0;
+
+    // 짧은 시간(300ms 이하)이고 짧은 거리(8px 이하) 이동이면 클릭으로 간주
+    if (clickDuration < 300 && distance < 8 && !isDragging) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('클릭 이벤트 발생:', reservation.title); // 디버깅용
+      onSelect(reservation);
+    }
+
+    // 상태 초기화
+    setClickStartTime(0);
+    setClickStartPos(null);
+  };
+
   return (
     <Paper
       ref={setNodeRef}
@@ -63,18 +100,21 @@ const DraggableReservationBlock: FC<DraggableReservationBlockProps> = ({ reserva
         width: 'calc(100% - 4px)',
         marginLeft: '2px',
         opacity: isDragging ? 0.5 : 1,
-        cursor: isAuthenticated ? 'grab' : 'default',
-        transition: 'box-shadow 200ms ease',
+        cursor: isAuthenticated ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
+        transition: isDragging ? 'none' : 'box-shadow 200ms ease, transform 200ms ease',
+        userSelect: 'none', // 텍스트 선택 방지
+        touchAction: 'none', // 브라우저 기본 터치 동작 방지
         ...style,
       }}
       bg={`${color}.7`}
       c="white"
       bd={`${color}.9`}
-      onClick={(e) => { e.stopPropagation(); onSelect(reservation); }}
-      {...listeners}
+      // 🎯 정교한 클릭/드래그 분리 이벤트
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
       {...attributes}
     >
-      <Text size="xs" fw={700} truncate>{reservation.title}</Text>
+      <Text size="xs" fw={700} truncate c="white">{reservation.title}</Text>
     </Paper>
   );
 };
@@ -142,14 +182,23 @@ export default function GoogleCalendarView({
   const theme = useMantineTheme();
   const [selectedReservation, setSelectedReservation] = useState<PublicReservation | null>(null);
   const [draggedReservation, setDraggedReservation] = useState<PublicReservation | null>(null);
+  
+  // 🎯 전역 드래그 상태 추적 - 클릭/드래그 충돌 완전 방지
+  const [isDragInProgress, setIsDragInProgress] = useState(false);
 
-  // 🎯 모바일 터치 센서 설정 - 드래그 앤 드롭 안정성 확보
+  // 🎯 정교한 센서 설정 - 클릭과 드래그의 완벽한 분리
   const sensors = useSensors(
-    useSensor(PointerSensor), // 데스크탑 마우스, 펜 등 포인터 이벤트용
+    // 데스크탑: 마우스 이동 기반 드래그 (클릭 즉시 반응)
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px 이상 움직여야 드래그 시작
+      },
+    }),
+    // 모바일: 최적화된 터치 센서 (클릭 반응성 향상)
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 250,    // 250ms 길게 누르기로 드래그 시작
-        tolerance: 5,  // 5px 이상 움직이기 전까지는 스크롤 허용
+        delay: 100,     // 250ms → 100ms로 단축 (클릭 반응성 향상)
+        tolerance: 10,  // 5px → 10px로 증가 (스크롤 허용 범위 확대)
       },
     })
   );
@@ -181,14 +230,21 @@ export default function GoogleCalendarView({
     router.push(`/reservations/new?date=${format(startTime, 'yyyy-MM-dd')}&time=${time}`);
   };
 
+  // 🎯 드래그 시작 - 전역 상태 추적 시작
   const handleDragStart = (event: any) => {
     setDraggedReservation(event.active.data.current?.reservation ?? null);
+    setIsDragInProgress(true);
   };
 
   // ✅ 3단계: 그리드 기반 시스템에 맞는 단순화된 handleDragEnd 로직
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     setDraggedReservation(null);
+    
+    // 🎯 드래그 종료 - 전역 상태 초기화 (지연 처리로 클릭 이벤트와 충돌 방지)
+    setTimeout(() => {
+      setIsDragInProgress(false);
+    }, 100);
 
     if (!over || !isAuthenticated) return;
 
@@ -316,7 +372,7 @@ export default function GoogleCalendarView({
                         color: isTodayDate ? 'white' : undefined
                       }}
                     >
-                      <Text ta="center" fw={600} size="xs" c={isTodayDate ? 'white' : undefined}>
+                      <Text ta="center" fw={600} size="xs" c={isTodayDate ? 'white' : (colorScheme === 'dark' ? 'white' : 'dark')}>
                         {day}
                       </Text>
                       <Text 

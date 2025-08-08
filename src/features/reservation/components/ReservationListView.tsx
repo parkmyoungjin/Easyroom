@@ -130,7 +130,7 @@ export function ReservationListView({ reservations = [], isError, showActions = 
                       {reservation.title}
                     </Title>
                     <Group gap="xs" align="center">
-                      <Text size="sm" fw={500}>
+                      <Text size="sm" fw={500} c="dark">
                         {format(new Date(reservation.start_time), 'M월 d일 (E)', { locale: ko })}
                       </Text>
                       <Text size="sm" c="dimmed">
@@ -176,7 +176,7 @@ export function ReservationListView({ reservations = [], isError, showActions = 
                 <Stack gap={2}>
                   <Text size="xs" c="dimmed" fw={500}>회의실</Text>
                   <Group gap="xs" align="center">
-                    <Text size="sm" fw={500}>
+                    <Text size="sm" fw={500} c="dark">
                       {reservation.room?.name || '알 수 없는 회의실'}
                     </Text>
                     {reservation.room?.capacity && (

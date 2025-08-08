@@ -5,15 +5,16 @@
 import { useMemo, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { 
-  Button, Stack, Paper, Text, Group, ThemeIcon, Badge, 
-  SimpleGrid, useMantineColorScheme, Title, Divider 
+import { useSearchParams } from 'next/navigation';
+import {
+    Button, Stack, Paper, Text, Group, ThemeIcon, Badge,
+    SimpleGrid, useMantineColorScheme, Title, Divider
 } from '@mantine/core';
-import { 
-  Calendar, Clock, MapPin, User, FileText, 
-  CheckCircle, AlertCircle 
+import {
+    Calendar, Clock, MapPin, User, FileText,
+    CheckCircle, AlertCircle
 } from 'lucide-react';
-import { ControlledDateInput } from '@/components/forms/ControlledDateInput';
+import { ControlledCalendar } from '@/components/forms/ControlledCalendar';
 import { ControlledTextInput } from '@/components/forms/ControlledTextInput';
 import { ControlledSelect } from '@/components/forms/ControlledSelect';
 import { ControlledTextarea } from '@/components/forms/ControlledTextarea';
@@ -70,6 +71,7 @@ export default function ReservationForm({
 }: ReservationFormProps) {
     const { userProfile } = useAuth();
     const { isDateInPast, isDateWeekend } = useTime();
+    const searchParams = useSearchParams();
 
     const { data: rooms, isLoading: isLoadingRooms } = useRooms();
     const { mutate: createReservation, isPending: isCreating } = useCreateReservation();
@@ -83,6 +85,8 @@ export default function ReservationForm({
     // Phase 2: DI 패턴 적용 - userProfile에서 userId 추출하여 주입
     const { data: myReservationsData } = useMyReservations(userProfile?.dbId);
     const myReservations: ReservationWithDetails[] = myReservationsData || [];
+    
+
 
     const form = useForm<NewReservationFormValues>({
         resolver: zodResolver(newReservationFormSchema),
@@ -152,16 +156,50 @@ export default function ReservationForm({
         }
     }, [mode, reservationId, myReservations, userProfile, form, toast, onCancel]);
 
-    // Create 모드일 때 사용자 프로필로 초기화
+    // Create 모드일 때 URL 파라미터와 사용자 프로필로 초기화
     useEffect(() => {
         if (mode === 'create' && userProfile) {
+            // URL 파라미터에서 날짜와 시간 추출
+            const urlDate = searchParams.get('date');
+            const urlTime = searchParams.get('time');
+            
+            // 기본값 설정
+            let initialDate = new Date();
+            let initialStartTime = '';
+            
+            // URL에서 날짜 파라미터가 있으면 사용
+            if (urlDate) {
+                try {
+                    const parsedDate = new Date(urlDate);
+                    // 유효한 날짜인지 확인
+                    if (!isNaN(parsedDate.getTime())) {
+                        initialDate = parsedDate;
+                    }
+                } catch (error) {
+                    console.warn('Invalid date parameter:', urlDate);
+                }
+            }
+            
+            // URL에서 시간 파라미터가 있으면 사용
+            if (urlTime) {
+                // 시간 형식 검증 (HH:mm)
+                const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+                if (timeRegex.test(urlTime)) {
+                    initialStartTime = urlTime;
+                }
+            }
+            
             form.reset({
-                ...form.getValues(),
                 title: userProfile.department || '',
                 booker: userProfile.name || '',
+                purpose: '',
+                date: initialDate,
+                startTime: initialStartTime,
+                endTime: '',
+                roomId: '',
             });
         }
-    }, [mode, userProfile, form]);
+    }, [mode, userProfile, searchParams, form]);
 
     const selectedDate = form.watch('date');
     const selectedRoomId = form.watch('roomId');
@@ -318,7 +356,7 @@ export default function ReservationForm({
                 onSuccess: () => {
                     // 이전에 예약이 없었는지 확인 (첫 예약인지 체크)
                     const isFirstReservation = myReservations?.length === 0;
-                    
+
                     if (isFirstReservation) {
                         showNotification(
                             '첫 예약을 축하합니다!',
@@ -426,16 +464,15 @@ export default function ReservationForm({
                                 <ThemeIcon variant="light" color="blue" size="sm">
                                     <User size={16} />
                                 </ThemeIcon>
-                                <Text fw={600} size="lg">기본 정보</Text>
+                                <Text fw={600} size="lg" c={colorScheme === 'dark' ? 'white' : 'dark'}>기본 정보</Text>
                             </Group>
-                            
+
                             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                                 <ControlledTextInput
                                     control={form.control}
                                     name="title"
                                     label="부서명"
-                                    placeholder={userProfile?.department ? '' : "부서명을 입력하세요"}
-                                    disabled={!!userProfile?.department}
+                                    placeholder={userProfile?.department ? userProfile.department : "부서명을 입력하세요"}
                                     required
                                     withAsterisk
                                 />
@@ -444,8 +481,7 @@ export default function ReservationForm({
                                     control={form.control}
                                     name="booker"
                                     label="예약자"
-                                    placeholder={userProfile?.name ? '' : "예약자를 입력하세요"}
-                                    disabled={!!userProfile?.name}
+                                    placeholder={userProfile?.name ? userProfile.name : "예약자를 입력하세요"}
                                     required
                                     withAsterisk
                                 />
@@ -460,9 +496,9 @@ export default function ReservationForm({
                                 <ThemeIcon variant="light" color="green" size="sm">
                                     <MapPin size={16} />
                                 </ThemeIcon>
-                                <Text fw={600} size="lg">회의실 및 날짜</Text>
+                                <Text fw={600} size="lg" c={colorScheme === 'dark' ? 'white' : 'dark'}>회의실 및 날짜</Text>
                             </Group>
-                            
+
                             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                                 <ControlledSelect
                                     control={form.control}
@@ -481,20 +517,18 @@ export default function ReservationForm({
                                         form.setValue('endTime', '');
                                     }}
                                 />
-                                
-                                <ControlledDateInput
+
+                                <ControlledCalendar
                                     control={form.control}
                                     name="date"
                                     label="예약 날짜"
                                     placeholder="날짜를 선택하세요"
                                     minDate={new Date()}
-                                    excludeDate={(dateString) => {
-                                        // ✅ 문자열로 받은 날짜를 Date 객체로 변환하여 주말 체크
-                                        const dateObj = new Date(dateString);
-                                        return dateObj.getDay() === 0 || dateObj.getDay() === 6;
+                                    excludeDate={(date) => {
+                                        // 주말 체크 (일요일: 0, 토요일: 6)
+                                        return date.getDay() === 0 || date.getDay() === 6;
                                     }}
                                     required
-                                    withAsterisk
                                     onDateChange={() => {
                                         // 날짜 변경 시 시간 필드 초기화
                                         form.setValue('startTime', '');
@@ -512,14 +546,14 @@ export default function ReservationForm({
                                 <ThemeIcon variant="light" color="orange" size="sm">
                                     <Clock size={16} />
                                 </ThemeIcon>
-                                <Text fw={600} size="lg">시간 선택</Text>
+                                <Text fw={600} size="lg" c={colorScheme === 'dark' ? 'white' : 'dark'}>시간 선택</Text>
                                 {selectedRoomId && selectedDate && (
                                     <Badge variant="light" color="blue" size="sm">
                                         실시간 예약 현황 반영
                                     </Badge>
                                 )}
                             </Group>
-                            
+
                             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                                 <ControlledSelect
                                     control={form.control}
@@ -575,10 +609,10 @@ export default function ReservationForm({
                                 <ThemeIcon variant="light" color="gray" size="sm">
                                     <FileText size={16} />
                                 </ThemeIcon>
-                                <Text fw={600} size="lg">추가 정보</Text>
+                                <Text fw={600} size="lg" c={colorScheme === 'dark' ? 'white' : 'dark'}>추가 정보</Text>
                                 <Text size="sm" c="dimmed">(선택사항)</Text>
                             </Group>
-                            
+
                             <ControlledTextarea
                                 control={form.control}
                                 name="purpose"
@@ -604,9 +638,9 @@ export default function ReservationForm({
                             >
                                 취소
                             </Button>
-                            <Button 
-                                type="submit" 
-                                disabled={isPending} 
+                            <Button
+                                type="submit"
+                                disabled={isPending}
                                 loading={isPending}
                                 size="lg"
                                 radius="xl"
@@ -619,6 +653,7 @@ export default function ReservationForm({
                     </Stack>
                 </form>
             </Paper>
+
         </Stack>
     );
 }

@@ -70,7 +70,7 @@ export function ReservationActionDrawer({
         <Drawer.Header>
           <Drawer.Title>
             <div>
-              <Text size="lg" fw={600} lineClamp={1}>
+              <Text size="lg" fw={600} lineClamp={1} c="dark">
                 {reservation.title}
               </Text>
               <Text size="sm" c="dimmed" mt={4}>

@@ -5,9 +5,19 @@
 
 import { motion } from 'framer-motion';
 import { useMantineColorScheme } from '@mantine/core';
+import { useEffect, useState } from 'react';
 
 export function SplashScreen() {
   const { colorScheme } = useMantineColorScheme();
+  const [mounted, setMounted] = useState(false);
+
+  // 클라이언트에서만 colorScheme을 사용하도록 함
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // 서버 사이드에서는 기본값(dark) 사용, 클라이언트에서는 실제 colorScheme 사용
+  const actualColorScheme = mounted ? colorScheme : 'dark';
   const titleText = "EasyRoom";
 
   const containerVariants = {
@@ -39,7 +49,7 @@ export function SplashScreen() {
     <motion.div
       className="fixed inset-0 z-[100] flex items-center justify-center"
       style={{
-        background: colorScheme === 'dark'
+        background: actualColorScheme === 'dark'
           ? 'linear-gradient(135deg, #1a1b23 0%, #2d3748 100%)'
           : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
       }}
@@ -51,7 +61,7 @@ export function SplashScreen() {
         <motion.h1
           className="text-5xl font-bold mb-2 flex overflow-hidden"
           style={{
-            color: colorScheme === 'dark' ? '#ffffff' : '#000000'
+            color: actualColorScheme === 'dark' ? '#ffffff' : '#000000'
           }}
           variants={containerVariants}
           initial="hidden"
@@ -67,7 +77,7 @@ export function SplashScreen() {
         <motion.p
           className="text-xl"
           style={{
-            color: colorScheme === 'dark' ? '#94a3b8' : '#64748b'
+            color: actualColorScheme === 'dark' ? '#94a3b8' : '#64748b'
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

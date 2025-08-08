@@ -78,7 +78,7 @@ export default function ReservationStatusPage() {
           p={{ base: 'sm', sm: 'md' }}
           radius="md"
           style={{
-            background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+            background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
             color: 'white',
             margin: '8px'
           }}

@@ -11,7 +11,7 @@ export default function NewReservationPage() {
       <Container my="xl" size="md">
         <ReservationForm
           mode="create"
-          onSuccess={() => window.history.back()}
+          onSuccess={() => { }} // 예약 완료 후 페이지에 그대로 머물기
           onCancel={() => window.history.back()}
         />
       </Container>

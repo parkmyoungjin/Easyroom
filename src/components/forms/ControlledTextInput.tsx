@@ -7,20 +7,20 @@ type ControlledTextInputProps<T extends FieldValues> = Omit<TextInputProps, 'val
   name: Path<T>;
 };
 
-export function ControlledTextInput<T extends FieldValues>({ 
-  control, 
-  name, 
-  ...rest 
+export function ControlledTextInput<T extends FieldValues>({
+  control,
+  name,
+  ...rest
 }: ControlledTextInputProps<T>) {
   return (
     <Controller
       control={control}
       name={name}
       render={({ field, fieldState: { error } }) => (
-        <TextInput 
-          {...rest} 
-          {...field} 
-          error={error?.message} 
+        <TextInput
+          {...rest}
+          {...field}
+          error={error?.message}
         />
       )}
     />

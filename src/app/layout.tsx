@@ -73,9 +73,9 @@ export default async function RootLayout({
     token_type: 'bearer'
   } : null;
   return (
-    <html lang="ko" suppressHydrationWarning className="dark">
+    <html lang="ko" suppressHydrationWarning={true}>
       <head>
-        <ColorSchemeScript defaultColorScheme="dark" />
+        <ColorSchemeScript defaultColorScheme="auto" />
       </head>
       <body className={`${inter.className} min-h-screen antialiased`}>
         <ClientPolyfillManager enableServiceWorker={true} enablePWAComponents={true}>

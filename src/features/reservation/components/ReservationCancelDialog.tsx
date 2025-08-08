@@ -176,7 +176,7 @@ export function ReservationCancelDialog({ reservation, open, onOpenChange }: Res
             <Text size="sm">다음 예약을 취소하시겠습니까?</Text>
             
             <div>
-              <Text fw={600} size="md">{reservation.title}</Text>
+              <Text fw={600} size="md" c="dark">{reservation.title}</Text>
               <Text size="sm" c="dimmed">
                 {format(new Date(reservation.start_time), 'PPP EEEE p', { locale: ko })} ~{' '}
                 {format(new Date(reservation.end_time), 'p', { locale: ko })}

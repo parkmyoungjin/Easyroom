@@ -35,7 +35,7 @@ function PublicListView({ reservations }: { reservations: PublicReservation[] })
     return (
       <Card withBorder p="xl" style={{ textAlign: 'center' }}>
         <Calendar size={48} className="mx-auto mb-4 text-gray-400" />
-        <Text size="lg" fw={500}>예약 없음</Text>
+        <Text size="lg" fw={500} c="dark">예약 없음</Text>
         <Text size="sm" c="dimmed">선택된 주에는 예약이 없습니다.</Text>
       </Card>
     );
@@ -52,7 +52,7 @@ function PublicListView({ reservations }: { reservations: PublicReservation[] })
           <Card key={reservation.id} withBorder p="md" className="hover:shadow-md transition-shadow">
             <Group justify="space-between" align="flex-start">
               <div className="flex-1">
-                <Text fw={600} size="md" mb="xs">{reservation.title}</Text>
+                <Text fw={600} size="md" mb="xs" c="dark">{reservation.title}</Text>
 
                 <div className="space-y-2">
                   <Group gap="xs">
@@ -152,8 +152,8 @@ export default function ReservationView() {
 
         <div className="flex flex-col items-center gap-2">
           <div className="text-center">
-            <Text fw={600} size="sm">{format(weekRange.start, 'yyyy년')}</Text>
-            <Text size="lg">{weekDisplay}</Text>
+            <Text fw={600} size="sm" c="dark">{format(weekRange.start, 'yyyy년')}</Text>
+            <Text size="lg" c="dark">{weekDisplay}</Text>
           </div>
           <Button variant="subtle" size="compact-sm" onClick={handleGoToToday}>
             <LocateFixed size={16} style={{ marginRight: '8px' }} />

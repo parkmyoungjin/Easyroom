@@ -58,16 +58,42 @@ export function SignupForm({ initialEmail }: SignupFormProps = {}) {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <Card withBorder shadow="sm" p="xl">
-        <Stack gap="md">
-          <Stack align="center" gap="md" mb="lg">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-              <UserPlus className="h-6 w-6 text-primary" />
+      {/* 헤더 섹션 - Dashboard 스타일 */}
+      <Card
+        shadow="lg"
+        p="xl"
+        radius="xl"
+        mb="xl"
+        style={{
+          background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+          color: 'white'
+        }}
+      >
+        <Group justify="center" align="center">
+          <Stack gap="xs" align="center">
+            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+              <UserPlus size={32} color="white" />
             </div>
-            <Text size="xl" fw={700} ta="center">새로운 계정 만들기</Text>
-            <Text size="sm" c="dimmed" ta="center">이메일, 이름, 부서를 입력하여 즉시 회원가입을 완료하세요.</Text>
+            <Text fw={700} size="xl" c="white" ta="center">
+              새로운 계정 만들기
+            </Text>
+            <Text size="sm" c="rgba(255,255,255,0.8)" ta="center">
+              이메일, 이름, 부서를 입력하여 즉시 회원가입을 완료하세요
+            </Text>
           </Stack>
+        </Group>
+      </Card>
 
+      {/* 폼 섹션 - Dashboard 스타일 */}
+      <Card
+        shadow="lg"
+        p="xl"
+        radius="xl"
+        style={{
+          border: '2px solid #4f46e5'
+        }}
+      >
+        <Stack gap="xl">
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {error && (
               <Alert color="red" title="회원가입 실패" icon={<AlertCircle size={16} />}>

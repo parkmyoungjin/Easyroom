@@ -5,9 +5,9 @@
 import { useMemo } from 'react';
 import { format, addDays } from 'date-fns';
 import { ChevronLeft, ChevronRight, LocateFixed, Calendar, Users } from 'lucide-react';
-import { 
-  Group, Button, Text, Badge, useMantineTheme, Paper, Stack, 
-  ThemeIcon, Title, useMantineColorScheme 
+import {
+  Group, Button, Text, Badge, useMantineTheme, Paper, Stack,
+  ThemeIcon, Title, useMantineColorScheme
 } from '@mantine/core';
 
 interface CalendarControlHeaderProps {
@@ -74,7 +74,7 @@ export default function CalendarControlHeader({
               <Text size="xs" c="dimmed" fw={500} display={{ base: 'none', sm: 'block' }}>주간 일정</Text>
               <Group gap="xs" align="center">
                 <Text fw={500} size="xs" c="dimmed">{format(weekRange.start, 'yyyy년')}</Text>
-                <Text fw={600} size="sm">{weekDisplay}</Text>
+                <Text fw={600} size="sm" c={colorScheme === 'dark' ? 'white' : 'dark'}>{weekDisplay}</Text>
               </Group>
             </Stack>
           </Group>
@@ -98,7 +98,7 @@ export default function CalendarControlHeader({
               onClick={handleGoToToday}
               px="sm"
             >
-              오늘
+              이번주
             </Button>
             <Button
               variant="light"

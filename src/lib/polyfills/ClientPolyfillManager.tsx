@@ -14,13 +14,7 @@ const ServiceWorkerManager = dynamic(
   }
 );
 
-const InstallPrompt = dynamic(
-  () => import('@/components/pwa/InstallPrompt'),
-  { 
-    ssr: false,
-    loading: () => null
-  }
-);
+
 
 const OfflineHandler = dynamic(
   () => import('@/components/pwa/OfflineHandler'),
@@ -107,7 +101,6 @@ export function ClientPolyfillManager({
       )}
       {isInitialized && enablePWAComponents && compatibility?.isSupported && process.env.NODE_ENV === 'production' && (
         <>
-          <InstallPrompt />
           <OfflineHandler />
           <DeploymentUpdateNotification />
         </>
@@ -197,16 +190,10 @@ export async function loadPWAComponents(): Promise<void> {
   try {
     // Dynamic import of PWA-related modules
     const [
-      { default: installPrompt },
       { default: offlineHandler }
     ] = await Promise.all([
-      import('@/components/pwa/InstallPrompt').catch(() => ({ default: null })),
       import('@/components/pwa/OfflineHandler').catch(() => ({ default: null }))
     ]);
-
-    if (installPrompt) {
-      console.log('PWA install prompt loaded');
-    }
     
     if (offlineHandler) {
       console.log('PWA offline handler loaded');

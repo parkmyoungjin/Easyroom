@@ -39,13 +39,13 @@ function ActionCard({
         return {
           background: 'var(--mantine-color-body)',
           color: 'var(--mantine-color-text)',
-          border: isDark ? '2px solid rgba(255, 255, 255, 0.8)' : '2px solid #dc2626'
+          border: isDark ? '2px solid rgba(156, 163, 175, 0.6)' : '2px solid #dc2626'
         };
       default:
         return {
           background: 'var(--mantine-color-body)',
           color: 'var(--mantine-color-text)',
-          border: isDark ? '2px solid rgba(255, 255, 255, 0.6)' : '2px solid #4f46e5'
+          border: isDark ? '2px solid rgba(156, 163, 175, 0.5)' : '2px solid #4f46e5'
         };
     }
   };

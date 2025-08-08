@@ -200,15 +200,15 @@ export default function AppHeader({
                 },
               }}
             >
-                <Group gap="sm">
-                  <Stack gap={0} align="flex-end">
-                    <Text fw={600} size="sm">{userProfile.name}</Text>
-                    <Text size="xs" c="dimmed">{userProfile.department}</Text>
-                  </Stack>
-                  <ThemeIcon size="lg" radius="xl" color="blue" variant="light">
-                    <User size={20} />
-                  </ThemeIcon>
-                </Group>
+              <Group gap="sm">
+                <Stack gap={0} align="flex-end">
+                  <Text fw={600} size="sm">{userProfile.name}</Text>
+                  <Text size="xs" c="dimmed">{userProfile.department}</Text>
+                </Stack>
+                <ThemeIcon size="lg" radius="xl" color="blue" variant="light">
+                  <User size={20} />
+                </ThemeIcon>
+              </Group>
             </Paper>
           </UnstyledButton>
         </Menu.Target>
@@ -325,7 +325,7 @@ export default function AppHeader({
           {/* 왼쪽 영역: 로고 + 제목 */}
           <Group align="center" gap="lg">
             {showLogo && (
-              <Title order={2} size="1.8rem" fw={700} c="blue">
+              <Title order={2} size="1.8rem" fw={700} c={colorScheme === 'dark' ? 'white' : 'dark'}>
                 EasyRoom
               </Title>
             )}
