@@ -3,6 +3,13 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
+  // [핵심 원칙] GET 요청이 아닌 경우, 미들웨어의 모든 로직을 건너뜁니다.
+  // OPTIONS, HEAD, POST 등은 라우팅 검사의 대상이 아닙니다.
+  // 아키텍처 원칙: "미들웨어는 사용자가 페이지를 보려고 할 때(GET)만 검사한다."
+  if (request.method !== 'GET') {
+    return NextResponse.next();
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
