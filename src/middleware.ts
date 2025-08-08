@@ -148,7 +148,7 @@ export async function middleware(request: NextRequest) {
   // 5. 로그인 사용자의 인증 페이지 접근 시 리다이렉트
   if (user) {
     if (pathname === '/' || authRoutes.includes(pathname)) {
-      console.log(`[Middleware] Auth route - redirecting authenticated user to /dashboard`);
+      console.log(`[Middleware] Auth route (${pathname}) - redirecting authenticated user to /dashboard`);
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }

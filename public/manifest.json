@@ -25,9 +25,8 @@
 
   "url_handlers": [
     {
-      "origin": "https://easyroom-pi.vercel.app" 
+      "origin": "https://easyroom-pi.vercel.app"
     }
   ],
-
   "handle_links": "preferred"
 }
