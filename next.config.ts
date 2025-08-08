@@ -70,7 +70,7 @@ const nextConfig: NextConfig = {
     scriptSrc += ` ${supabaseUrl} https://vercel.live`;
     
     // 환경별 connect-src 설정
-    let connectSrc = `'self' ${supabaseUrl} ${supabaseWsUrl}`;
+    let connectSrc = `'self' ${supabaseUrl} ${supabaseWsUrl} https://vercel.live`;
     if (isDevelopment) {
       connectSrc += " ws://localhost:* http://localhost:*";
     }
