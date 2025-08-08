@@ -26,13 +26,43 @@ export interface UserProfile {
   // id: string;
 }
 
+/**
+ * Enhanced user profile with full type safety
+ */
+export interface EnhancedUserProfile {
+  authId: AuthId
+  databaseId: DatabaseUserId
+  email: string
+  name: string
+  department: string
+  role: 'admin' | 'employee'
+  isActive: boolean
+  createdAt: Date
+  updatedAt?: Date
+  lastValidated?: Date
+}
 
-
-
+/**
+ * 로그인 요청 타입 (이메일 기반)
+ */
+export interface LoginRequest {
+  email: string
+  password: string
+}
 
 /**
  * 회원가입 요청 타입 (Magic Link 이메일 기반)
  */
+export interface SignupRequest {
+  email: string
+  fullName: string
+  department: string
+  role?: 'admin' | 'employee'
+}
 
-
-
+export interface CreateUserData {
+  email: string
+  fullName: string
+  department: string
+  role?: 'employee' | 'admin'
+}

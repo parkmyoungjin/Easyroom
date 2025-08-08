@@ -35,15 +35,15 @@ export default function AuthErrorToast() {
 export function AuthSuccessToast() {
   const { user, authStatus } = useAuthContext();
 
-  // 로그인 성공 알림은 LoginForm에서 처리하므로 여기서는 제거
-  // useEffect(() => {
-  //   if (authStatus === 'authenticated' && user?.email) {
-  //     toast.success("로그인 성공", {
-  //       description: `${user.email}로 로그인되었습니다.`,
-  //       duration: 3000,
-  //     });
-  //   }
-  // }, [authStatus, user]);
+  useEffect(() => {
+    // Show success message when user signs in
+    if (authStatus === 'authenticated' && user?.email) {
+      toast.success("로그인 성공", {
+        description: `${user.email}로 로그인되었습니다.`,
+        duration: 3000,
+      });
+    }
+  }, [authStatus, user]);
 
   useEffect(() => {
     // Show message when user signs out

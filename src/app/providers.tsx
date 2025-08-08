@@ -5,7 +5,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MantineProvider, createTheme } from '@mantine/core';
 import { useState } from "react";
-
+import { StartupValidationProvider, StartupValidationGuard } from '@/components/providers/StartupValidationProvider';
 
 // Import Mantine styles
 import '@mantine/core/styles.css';
@@ -37,11 +37,32 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       })
   );
 
+  // Determine environment-specific validation settings
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isDevelopment = process.env.NODE_ENV === 'development';
+
   return (
-    <MantineProvider theme={theme} defaultColorScheme="auto">
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
-    </MantineProvider>
+    <StartupValidationProvider
+      strictMode={isProduction}
+      includeOptional={isDevelopment}
+      failFast={true}
+      skipValidation={true} // 임시로 비활성화
+      onValidationComplete={(result) => {
+        if (isDevelopment) {
+          console.log('Startup validation completed:', result);
+        }
+      }}
+      onValidationError={(error) => {
+        if (isDevelopment) {
+          console.error('Startup validation error:', error);
+        }
+      }}
+    >
+      <MantineProvider theme={theme} defaultColorScheme="auto">
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
+      </MantineProvider>
+    </StartupValidationProvider>
   );
 }

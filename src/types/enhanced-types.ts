@@ -138,7 +138,18 @@ export interface SecurityEventContext {
   correlationId?: string;
 }
 
-
+/**
+ * Security monitoring configuration
+ */
+export interface SecurityMonitoringConfig {
+  enableRealTimeAlerts: boolean;
+  alertThresholds: Record<SecurityEventType, {
+    count: number;
+    timeWindowMinutes: number;
+  }>;
+  logLevel: 'debug' | 'info' | 'warn' | 'error';
+  retentionDays: number;
+}
 
 // ============================================================================
 // PERFORMANCE CONTEXT INTERFACES
@@ -187,7 +198,19 @@ export interface ResourceUsage {
   databaseConnections?: number;
 }
 
-
+/**
+ * Performance monitoring configuration
+ */
+export interface PerformanceMonitoringConfig {
+  enableMetricCollection: boolean;
+  thresholds: Record<PerformanceOperation, {
+    warningMs: number;
+    criticalMs: number;
+  }>;
+  sampleRate: number; // 0.0 to 1.0
+  retentionHours: number;
+  enableResourceTracking: boolean;
+}
 
 // ============================================================================
 // DATA INTEGRITY INTERFACES

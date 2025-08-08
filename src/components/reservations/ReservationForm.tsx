@@ -30,10 +30,11 @@ interface BookedInterval {
     title: string;
 }
 import { useCreateReservation, useUpdateReservation, useMyReservations } from '@/hooks/useReservations';
+import { format } from "date-fns";
 import { useAuth } from '@/hooks/useAuth';
 import { useTime } from '@/hooks/useTime';
 import { newReservationFormSchema, type NewReservationFormValues } from "@/lib/validations/schemas";
-import { formatDateTimeForDatabase2, formatTime, formatDate } from "@/lib/utils/date";
+import { formatDateTimeForDatabase2 } from "@/lib/utils/date";
 import { handleAuthError } from '@/lib/utils/auth-error-handler';
 import type { ReservationInsert, ReservationWithDetails } from '@/types/database';
 import { canEditReservation, getPermissionErrorMessage } from '@/lib/utils/reservation-permissions';
@@ -135,8 +136,8 @@ export default function ReservationForm({
                 const startDate = new Date(targetReservation.start_time);
                 const endDate = new Date(targetReservation.end_time);
 
-                const startTime = formatTime(startDate, 'HH:mm');
-                const endTime = formatTime(endDate, 'HH:mm');
+                const startTime = format(startDate, 'HH:mm');
+                const endTime = format(endDate, 'HH:mm');
 
                 form.reset({
                     title: targetReservation.title,
@@ -235,7 +236,7 @@ export default function ReservationForm({
         }));
 
         START_TIME_SLOTS.forEach(slotTime => {
-            const slotStart = new Date(`${formatDate(stableSelectedDate, 'yyyy-MM-dd')}T${slotTime}:00.000+09:00`).getTime();
+            const slotStart = new Date(`${format(stableSelectedDate, 'yyyy-MM-dd')}T${slotTime}:00.000+09:00`).getTime();
             const slotEnd = slotStart + 30 * 60 * 1000;
 
             const conflictingReservation = bookedIntervals.find((interval: BookedInterval) =>

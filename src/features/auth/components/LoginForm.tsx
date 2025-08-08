@@ -133,11 +133,6 @@ export function LoginForm({ initialEmail }: LoginFormProps = {}) {
         toast.success('로그인 성공!', {
           description: '잠시 후 메인 페이지로 이동합니다.',
         });
-        
-        // 로그인 성공 후 dashboard로 리다이렉트
-        setTimeout(() => {
-          window.location.href = '/dashboard';
-        }, 1500); // 1.5초 후 리다이렉트
       } catch (error) {
         console.error('OTP verification error:', error);
         setError('OTP 인증 중 오류가 발생했습니다.');

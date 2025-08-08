@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { Card, Text, Group, Stack, Button, Badge } from '@mantine/core';
 import { Calendar, Clock, MapPin, User, Loader2, AlertCircle } from 'lucide-react';
 import { useInfinitePublicReservations, useFlattenedReservations } from '@/hooks/useInfinitePublicReservations';
+import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { logger } from '@/lib/utils/logger';
-import { formatDateTime, formatTime } from '@/lib/utils/date';
 import type { PublicReservation, PublicReservationAnonymous } from '@/types/database';
 
 interface InfiniteReservationListProps {
@@ -104,20 +104,20 @@ export function InfiniteReservationList({
   const LoadingSkeleton = () => {
     const skeletonCount = Math.min(limit, 5); // Show up to 5 skeleton items
     return (
-      <Stack gap="md">
+      <div className="space-y-4">
         {[...Array(skeletonCount)].map((_, i) => (
           <Card key={i} shadow="sm" padding="lg" radius="md" withBorder style={{ animation: 'pulse 2s infinite' }}>
             <Stack gap="sm">
-              <div style={{ height: '16px', backgroundColor: 'var(--mantine-color-gray-3)', borderRadius: '4px', width: '33%' }}></div>
-              <div style={{ height: '12px', backgroundColor: 'var(--mantine-color-gray-3)', borderRadius: '4px', width: '50%' }}></div>
+              <div className="h-4 bg-muted rounded w-1/3"></div>
+              <div className="h-3 bg-muted rounded w-1/2"></div>
             </Stack>
             <Stack gap="xs" mt="md">
-              <div style={{ height: '12px', backgroundColor: 'var(--mantine-color-gray-3)', borderRadius: '4px', width: '100%' }}></div>
-              <div style={{ height: '12px', backgroundColor: 'var(--mantine-color-gray-3)', borderRadius: '4px', width: '75%' }}></div>
+              <div className="h-3 bg-muted rounded w-full"></div>
+              <div className="h-3 bg-muted rounded w-3/4"></div>
             </Stack>
           </Card>
         ))}
-      </Stack>
+      </div>
     );
   };
 
@@ -140,7 +140,7 @@ export function InfiniteReservationList({
     return (
       <Card shadow="sm" padding="lg" radius="md" withBorder style={{ textAlign: 'center', paddingTop: '2rem', paddingBottom: '2rem' }}>
         <Stack align="center" gap="md">
-          <AlertCircle style={{ margin: '0 auto', height: '48px', width: '48px', color: 'var(--mantine-color-red-6)', marginBottom: '16px' }} />
+          <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
           <Text size="lg" fw={500} c="dark">예약 목록을 불러올 수 없습니다</Text>
           <Text size="sm" c="dimmed">
             {isNetworkError 
@@ -185,7 +185,7 @@ export function InfiniteReservationList({
     return (
       <Card shadow="sm" padding="lg" radius="md" withBorder style={{ textAlign: 'center', paddingTop: '2rem', paddingBottom: '2rem' }}>
         <Stack align="center" gap="md">
-          <Calendar style={{ margin: '0 auto', height: '48px', width: '48px', color: 'var(--mantine-color-gray-6)', marginBottom: '16px' }} />
+          <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
           <Text size="lg" fw={500} c="dark">예약이 없습니다</Text>
           <Text size="sm" c="dimmed">
             선택한 기간에 예약된 회의실이 없습니다.
@@ -198,54 +198,54 @@ export function InfiniteReservationList({
   return (
     <div className={className}>
       {/* Header with total count */}
-      <Group justify="space-between" align="center" mb="md">
-        <Text size="xl" fw={600}>예약 목록</Text>
-        <Badge variant="light" color="gray">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-semibold">예약 목록</h2>
+        <Badge variant="secondary">
           총 {totalCount}개 중 {reservations.length}개 표시
         </Badge>
-      </Group>
+      </div>
 
       {/* Reservation list */}
-      <Stack gap="md">
+      <div className="space-y-4">
         {reservations.map((reservation, index) => (
           <ReservationCard
             key={`${reservation.id}-${index}`}
             reservation={reservation}
           />
         ))}
-      </Stack>
+      </div>
 
       {/* Load more trigger with enhanced UX */}
-      <div ref={loadMoreRef} style={{ marginTop: '24px' }}>
+      <div ref={loadMoreRef} className="mt-6">
         {isFetchingNextPage && (
-          <Group justify="center" align="center" py="md">
-            <Loader2 style={{ height: '24px', width: '24px', animation: 'spin 1s linear infinite', marginRight: '8px' }} />
-            <Text size="sm" c="dimmed">
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="h-6 w-6 animate-spin mr-2" />
+            <span className="text-muted-foreground">
               더 많은 예약을 불러오는 중... ({reservations.length}/{totalCount})
-            </Text>
-          </Group>
+            </span>
+          </div>
         )}
 
         {hasNextPage && !isFetchingNextPage && (
-          <Group justify="center" py="md">
+          <div className="flex justify-center py-4">
             <Button
               onClick={handleLoadMore}
               variant="outline"
-              style={{ width: '100%', maxWidth: '300px' }}
+              className="w-full max-w-xs"
               disabled={isFetchingNextPage}
             >
               더 보기 ({totalCount - reservations.length}개 남음)
             </Button>
-          </Group>
+          </div>
         )}
 
         {!hasNextPage && reservations.length > 0 && (
-          <Group justify="center" py="md">
-            <Group align="center" gap="xs">
-              <Calendar style={{ height: '16px', width: '16px' }} />
-              <Text size="sm" c="dimmed">모든 예약을 불러왔습니다 (총 {totalCount}개)</Text>
-            </Group>
-          </Group>
+          <div className="text-center py-4 text-muted-foreground">
+            <div className="flex items-center justify-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span>모든 예약을 불러왔습니다 (총 {totalCount}개)</span>
+            </div>
+          </div>
         )}
       </div>
     </div>
@@ -253,16 +253,11 @@ export function InfiniteReservationList({
 }
 
 // Individual reservation card component
-const ReservationCard = React.memo(function ReservationCard({
+function ReservationCard({
   reservation
 }: {
   reservation: PublicReservation | PublicReservationAnonymous;
 }) {
-  // 렌더링 추적을 위한 로그 (개발 환경에서만)
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`Rendering ReservationCard: ${reservation.id}`);
-  }
-
   const isAuthenticated = 'user_id' in reservation;
   const isMyReservation = reservation.is_mine;
 
@@ -306,9 +301,9 @@ const ReservationCard = React.memo(function ReservationCard({
           <Group gap="xs">
             <Clock className="h-4 w-4" />
             <Text size="sm" c="dimmed">
-              {formatDateTime(reservation.start_time, 'yyyy년 MM월 dd일 (EEE) HH:mm')}
+              {format(new Date(reservation.start_time), 'yyyy년 MM월 dd일 (EEE) HH:mm', { locale: ko })}
               {' ~ '}
-              {formatTime(reservation.end_time, 'HH:mm')}
+              {format(new Date(reservation.end_time), 'HH:mm', { locale: ko })}
             </Text>
           </Group>
 
@@ -336,8 +331,6 @@ const ReservationCard = React.memo(function ReservationCard({
       </Stack>
     </Card>
   );
-});
-
-ReservationCard.displayName = 'ReservationCard';
+}
 
 export default InfiniteReservationList;

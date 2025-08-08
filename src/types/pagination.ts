@@ -287,7 +287,74 @@ export interface PaginationActions {
   reset: () => void;
 }
 
+/**
+ * Create pagination state and actions for hooks
+ */
+export function createPaginationControls(
+  initialState?: Partial<PaginationState>,
+  config?: {
+    maxLimit?: number;
+    onStateChange?: (state: PaginationState) => void;
+  }
+): [PaginationState, PaginationActions] {
+  const defaultState: PaginationState = {
+    limit: PAGINATION_DEFAULTS.DEFAULT_LIMIT,
+    offset: PAGINATION_DEFAULTS.DEFAULT_OFFSET,
+    sortOrder: PAGINATION_DEFAULTS.DEFAULT_SORT_ORDER,
+    ...initialState,
+  };
 
+  // This would be implemented with useState in actual React hooks
+  // For now, we'll return the structure that hooks would use
+  const state = defaultState;
+  
+  const actions: PaginationActions = {
+    setLimit: (limit: number) => {
+      const maxLimit = config?.maxLimit || PAGINATION_DEFAULTS.MAX_LIMIT;
+      const validLimit = Math.min(Math.max(limit, PAGINATION_DEFAULTS.MIN_LIMIT), maxLimit);
+      const newState = { ...state, limit: validLimit, offset: 0 };
+      config?.onStateChange?.(newState);
+    },
+    setOffset: (offset: number) => {
+      const validOffset = Math.max(offset, 0);
+      const newState = { ...state, offset: validOffset };
+      config?.onStateChange?.(newState);
+    },
+    setSortBy: (sortBy?: string) => {
+      const newState = { ...state, sortBy, offset: 0 };
+      config?.onStateChange?.(newState);
+    },
+    setSortOrder: (sortOrder: 'asc' | 'desc') => {
+      const newState = { ...state, sortOrder, offset: 0 };
+      config?.onStateChange?.(newState);
+    },
+    setSearch: (search?: string) => {
+      const newState = { ...state, search, offset: 0 };
+      config?.onStateChange?.(newState);
+    },
+    nextPage: () => {
+      const newOffset = state.offset + state.limit;
+      const newState = { ...state, offset: newOffset };
+      config?.onStateChange?.(newState);
+    },
+    previousPage: () => {
+      const newOffset = Math.max(state.offset - state.limit, 0);
+      const newState = { ...state, offset: newOffset };
+      config?.onStateChange?.(newState);
+    },
+    goToPage: (page: number) => {
+      const validPage = Math.max(page, 1);
+      const newOffset = (validPage - 1) * state.limit;
+      const newState = { ...state, offset: newOffset };
+      config?.onStateChange?.(newState);
+    },
+    reset: () => {
+      config?.onStateChange?.(defaultState);
+    },
+  };
+
+  return [state, actions];
+}
 
 // ============================================================================
 // TYPE EXPORTS

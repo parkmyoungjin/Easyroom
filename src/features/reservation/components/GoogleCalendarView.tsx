@@ -2,10 +2,10 @@
 
 'use client';
 
-import React, { useState, useMemo, FC, useCallback } from 'react';
+import { useState, useMemo, FC, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { addDays, getDay, getHours, getMinutes, isToday } from 'date-fns';
-import { utcToKst, formatDate } from "@/lib/utils/date";
+import { format, addDays, getDay, getHours, getMinutes, isToday } from 'date-fns';
+import { utcToKst } from "@/lib/utils/date";
 import type { PublicReservation } from "@/types/database";
 import { ReservationDetailDialog } from "@/features/reservation/components/ReservationDetailDialog";
 import { useReservationsRealtime } from '@/hooks/useReservationsRealtime';
@@ -37,11 +37,7 @@ interface DraggableReservationBlockProps {
   isAuthenticated: boolean;
 }
 
-const DraggableReservationBlock: FC<DraggableReservationBlockProps> = React.memo(({ reservation, top, height, color, onSelect, isAuthenticated }) => {
-  // 렌더링 추적을 위한 로그 (개발 환경에서만)
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`Rendering DraggableReservationBlock: ${reservation.id}`);
-  }
+const DraggableReservationBlock: FC<DraggableReservationBlockProps> = ({ reservation, top, height, color, onSelect, isAuthenticated }) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: reservation.id,
     disabled: !isAuthenticated,
@@ -121,9 +117,7 @@ const DraggableReservationBlock: FC<DraggableReservationBlockProps> = React.memo
       <Text size="xs" fw={700} truncate c="white">{reservation.title}</Text>
     </Paper>
   );
-});
-
-DraggableReservationBlock.displayName = 'DraggableReservationBlock';
+};
 
 // ============================================================================
 // 🎯 드롭 가능한 시간 슬롯 컴포넌트 (그리드 기반 최종 진화형)
@@ -211,8 +205,8 @@ export default function GoogleCalendarView({
 
 
 
-  const startDateStr = formatDate(weekStartDate, 'yyyy-MM-dd');
-  const endDateStr = formatDate(addDays(weekStartDate, 5), 'yyyy-MM-dd');
+  const startDateStr = format(weekStartDate, 'yyyy-MM-dd');
+  const endDateStr = format(addDays(weekStartDate, 5), 'yyyy-MM-dd');
   useReservationsRealtime(startDateStr, endDateStr, isAuthenticated);
 
   const { mutate: updateReservation } = useUpdateReservation();
@@ -233,7 +227,7 @@ export default function GoogleCalendarView({
     const startTime = new Date(selectedDate);
     startTime.setHours(hours, minutes, 0, 0);
 
-    router.push(`/reservations/new?date=${formatDate(startTime, 'yyyy-MM-dd')}&time=${time}`);
+    router.push(`/reservations/new?date=${format(startTime, 'yyyy-MM-dd')}&time=${time}`);
   };
 
   // 🎯 드래그 시작 - 전역 상태 추적 시작
@@ -387,7 +381,7 @@ export default function GoogleCalendarView({
                         c={isTodayDate ? 'rgba(255,255,255,0.8)' : 'dimmed'}
                         style={{ fontSize: '10px' }}
                       >
-                        {formatDate(date, 'M/d')}
+                        {format(date, 'M/d')}
                       </Text>
                     </Paper>
                   </Box>
