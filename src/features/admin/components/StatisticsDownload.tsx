@@ -57,15 +57,15 @@ export function StatisticsDownload() {
   const [startDate, endDate] = dateRange;
 
   return (
-    <div className="space-y-6">
-      <Card className="p-6">
+    <Stack gap="xl">
+      <Card p="xl">
         <Stack gap="lg">
-          <div>
-            <h3 className="text-lg font-semibold mb-2">통계 다운로드</h3>
+          <Stack gap="xs">
+            <Text size="lg" fw={600}>통계 다운로드</Text>
             <Text size="sm" c="dimmed">
               원하는 기간을 선택하여 예약 통계를 다운로드하세요.
             </Text>
-          </div>
+          </Stack>
 
           <DatePickerInput
             type="range"
@@ -86,25 +86,25 @@ export function StatisticsDownload() {
           />
 
           {startDate && endDate && (
-            <div>
-              <h4 className="font-medium text-sm mb-2">선택된 기간</h4>
+            <Stack gap="xs">
+              <Text size="sm" fw={500}>선택된 기간</Text>
               <Text size="sm" c="dimmed">
                 {formatDate(new Date(startDate), 'PPP')} ~{' '}
                 {formatDate(new Date(endDate), 'PPP')}
               </Text>
-            </div>
+            </Stack>
           )}
 
-          <div>
-            <h4 className="font-medium text-sm mb-2">포함되는 데이터</h4>
-            <ul className="space-y-1 text-sm text-gray-600">
-              <li>• 회의실별 예약 건수</li>
-              <li>• 시간대별 예약 분포</li>
-              <li>• 부서별 사용 통계</li>
-              <li>• 취소율 및 사유</li>
-              <li>• 평균 회의 시간</li>
-            </ul>
-          </div>
+          <Stack gap="xs">
+            <Text size="sm" fw={500}>포함되는 데이터</Text>
+            <Stack gap="xs">
+              <Text size="sm" c="dimmed">• 회의실별 예약 건수</Text>
+              <Text size="sm" c="dimmed">• 시간대별 예약 분포</Text>
+              <Text size="sm" c="dimmed">• 부서별 사용 통계</Text>
+              <Text size="sm" c="dimmed">• 취소율 및 사유</Text>
+              <Text size="sm" c="dimmed">• 평균 회의 시간</Text>
+            </Stack>
+          </Stack>
 
           <Stack gap="md">
             <Button
@@ -133,6 +133,6 @@ export function StatisticsDownload() {
           </Stack>
         </Stack>
       </Card>
-    </div>
+    </Stack>
   );
 } 

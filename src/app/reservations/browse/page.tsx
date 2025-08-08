@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Card, Select, Text } from '@mantine/core';
+import { Card, Select, Text, SimpleGrid, Stack, Group } from '@mantine/core';
 import { addDays, addWeeks, addMonths, startOfDay, endOfDay } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { formatDate } from '@/lib/utils/date';
@@ -92,13 +92,13 @@ export default function BrowseReservationsPage() {
 
   return (
     <AppLayout headerTitle="예약 둘러보기" onBack={handleBack}>
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px 16px' }}>
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">예약 둘러보기</h1>
-          <p className="text-muted-foreground">
+        <div style={{ marginBottom: '32px' }}>
+          <Text size="xl" fw={700} mb="xs">예약 둘러보기</Text>
+          <Text c="dimmed">
             회의실 예약 현황을 확인하고 원하는 시간대를 찾아보세요.
-          </p>
+          </Text>
         </div>
 
         {/* Filters */}
@@ -108,9 +108,9 @@ export default function BrowseReservationsPage() {
             <Text size="sm" c="dimmed">조회할 기간과 표시 옵션을 선택하세요.</Text>
           </Card.Section>
           <Card.Section inheritPadding py="md">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
               {/* Date Range Preset */}
-              <div className="space-y-2">
+              <Stack gap="xs">
                 <Text size="sm" fw={500}>기간 선택</Text>
                 <Select 
                   value={selectedPreset} 
@@ -121,12 +121,12 @@ export default function BrowseReservationsPage() {
                     { value: 'custom', label: '직접 선택' }
                   ]}
                 />
-              </div>
+              </Stack>
 
               {/* Custom Date Range */}
-              <div className="space-y-2">
+              <Stack gap="xs">
                 <Text size="sm" fw={500}>사용자 정의 기간</Text>
-                <div className="flex gap-2">
+                <Group gap="xs">
                   <input
                     type="date"
                     value={formatDate(dateRange.from, 'yyyy-MM-dd')}
@@ -137,9 +137,17 @@ export default function BrowseReservationsPage() {
                       }
                     }}
                     disabled={selectedPreset !== 'custom'}
-                    className="flex-1 px-3 py-2 border border-input bg-background rounded-md text-sm disabled:opacity-50"
+                    style={{ 
+                      flex: 1, 
+                      padding: '8px 12px', 
+                      border: '1px solid var(--mantine-color-gray-4)', 
+                      backgroundColor: 'var(--mantine-color-body)', 
+                      borderRadius: '6px', 
+                      fontSize: '14px',
+                      opacity: selectedPreset !== 'custom' ? 0.5 : 1
+                    }}
                   />
-                  <span className="flex items-center text-sm text-muted-foreground">~</span>
+                  <Text size="sm" c="dimmed" style={{ display: 'flex', alignItems: 'center' }}>~</Text>
                   <input
                     type="date"
                     value={formatDate(dateRange.to, 'yyyy-MM-dd')}
@@ -150,13 +158,21 @@ export default function BrowseReservationsPage() {
                       }
                     }}
                     disabled={selectedPreset !== 'custom'}
-                    className="flex-1 px-3 py-2 border border-input bg-background rounded-md text-sm disabled:opacity-50"
+                    style={{ 
+                      flex: 1, 
+                      padding: '8px 12px', 
+                      border: '1px solid var(--mantine-color-gray-4)', 
+                      backgroundColor: 'var(--mantine-color-body)', 
+                      borderRadius: '6px', 
+                      fontSize: '14px',
+                      opacity: selectedPreset !== 'custom' ? 0.5 : 1
+                    }}
                   />
-                </div>
-              </div>
+                </Group>
+              </Stack>
 
               {/* Page Size */}
-              <div className="space-y-2">
+              <Stack gap="xs">
                 <Text size="sm" fw={500}>페이지 크기</Text>
                 <Select 
                   value={pageSize.toString()} 
@@ -168,26 +184,32 @@ export default function BrowseReservationsPage() {
                     { value: '100', label: '100개씩' }
                   ]}
                 />
-              </div>
-            </div>
+              </Stack>
+            </SimpleGrid>
 
             {/* Current selection display */}
-            <div className="mt-4 p-3 bg-muted rounded-lg">
+            <div style={{ 
+              marginTop: '16px', 
+              padding: '12px', 
+              backgroundColor: 'var(--mantine-color-gray-1)', 
+              borderRadius: '8px' 
+            }}>
               <Text size="sm">
-                <span className="font-medium">선택된 기간:</span> {formatDateRange(dateRange)}
-                <span className="ml-4 font-medium">페이지 크기:</span> {pageSize}개
+                <Text component="span" fw={500}>선택된 기간:</Text> {formatDateRange(dateRange)}
+                <Text component="span" fw={500} ml="md">페이지 크기:</Text> {pageSize}개
               </Text>
             </div>
           </Card.Section>
         </Card>
 
         {/* Infinite Reservation List */}
-        <InfiniteReservationList
-          startDate={formatDate(dateRange.from, 'yyyy-MM-dd')}
-          endDate={formatDate(dateRange.to, 'yyyy-MM-dd')}
-          limit={pageSize}
-          className="mb-8"
-        />
+        <div style={{ marginBottom: '32px' }}>
+          <InfiniteReservationList
+            startDate={formatDate(dateRange.from, 'yyyy-MM-dd')}
+            endDate={formatDate(dateRange.to, 'yyyy-MM-dd')}
+            limit={pageSize}
+          />
+        </div>
       </div>
     </AppLayout>
   );

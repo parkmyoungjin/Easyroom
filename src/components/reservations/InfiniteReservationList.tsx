@@ -104,20 +104,20 @@ export function InfiniteReservationList({
   const LoadingSkeleton = () => {
     const skeletonCount = Math.min(limit, 5); // Show up to 5 skeleton items
     return (
-      <div className="space-y-4">
+      <Stack gap="md">
         {[...Array(skeletonCount)].map((_, i) => (
           <Card key={i} shadow="sm" padding="lg" radius="md" withBorder style={{ animation: 'pulse 2s infinite' }}>
             <Stack gap="sm">
-              <div className="h-4 bg-muted rounded w-1/3"></div>
-              <div className="h-3 bg-muted rounded w-1/2"></div>
+              <div style={{ height: '16px', backgroundColor: 'var(--mantine-color-gray-3)', borderRadius: '4px', width: '33%' }}></div>
+              <div style={{ height: '12px', backgroundColor: 'var(--mantine-color-gray-3)', borderRadius: '4px', width: '50%' }}></div>
             </Stack>
             <Stack gap="xs" mt="md">
-              <div className="h-3 bg-muted rounded w-full"></div>
-              <div className="h-3 bg-muted rounded w-3/4"></div>
+              <div style={{ height: '12px', backgroundColor: 'var(--mantine-color-gray-3)', borderRadius: '4px', width: '100%' }}></div>
+              <div style={{ height: '12px', backgroundColor: 'var(--mantine-color-gray-3)', borderRadius: '4px', width: '75%' }}></div>
             </Stack>
           </Card>
         ))}
-      </div>
+      </Stack>
     );
   };
 
@@ -140,7 +140,7 @@ export function InfiniteReservationList({
     return (
       <Card shadow="sm" padding="lg" radius="md" withBorder style={{ textAlign: 'center', paddingTop: '2rem', paddingBottom: '2rem' }}>
         <Stack align="center" gap="md">
-          <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
+          <AlertCircle style={{ margin: '0 auto', height: '48px', width: '48px', color: 'var(--mantine-color-red-6)', marginBottom: '16px' }} />
           <Text size="lg" fw={500} c="dark">예약 목록을 불러올 수 없습니다</Text>
           <Text size="sm" c="dimmed">
             {isNetworkError 
@@ -185,7 +185,7 @@ export function InfiniteReservationList({
     return (
       <Card shadow="sm" padding="lg" radius="md" withBorder style={{ textAlign: 'center', paddingTop: '2rem', paddingBottom: '2rem' }}>
         <Stack align="center" gap="md">
-          <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+          <Calendar style={{ margin: '0 auto', height: '48px', width: '48px', color: 'var(--mantine-color-gray-6)', marginBottom: '16px' }} />
           <Text size="lg" fw={500} c="dark">예약이 없습니다</Text>
           <Text size="sm" c="dimmed">
             선택한 기간에 예약된 회의실이 없습니다.
@@ -198,54 +198,54 @@ export function InfiniteReservationList({
   return (
     <div className={className}>
       {/* Header with total count */}
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold">예약 목록</h2>
-        <Badge variant="secondary">
+      <Group justify="space-between" align="center" mb="md">
+        <Text size="xl" fw={600}>예약 목록</Text>
+        <Badge variant="light" color="gray">
           총 {totalCount}개 중 {reservations.length}개 표시
         </Badge>
-      </div>
+      </Group>
 
       {/* Reservation list */}
-      <div className="space-y-4">
+      <Stack gap="md">
         {reservations.map((reservation, index) => (
           <ReservationCard
             key={`${reservation.id}-${index}`}
             reservation={reservation}
           />
         ))}
-      </div>
+      </Stack>
 
       {/* Load more trigger with enhanced UX */}
-      <div ref={loadMoreRef} className="mt-6">
+      <div ref={loadMoreRef} style={{ marginTop: '24px' }}>
         {isFetchingNextPage && (
-          <div className="flex items-center justify-center py-4">
-            <Loader2 className="h-6 w-6 animate-spin mr-2" />
-            <span className="text-muted-foreground">
+          <Group justify="center" align="center" py="md">
+            <Loader2 style={{ height: '24px', width: '24px', animation: 'spin 1s linear infinite', marginRight: '8px' }} />
+            <Text size="sm" c="dimmed">
               더 많은 예약을 불러오는 중... ({reservations.length}/{totalCount})
-            </span>
-          </div>
+            </Text>
+          </Group>
         )}
 
         {hasNextPage && !isFetchingNextPage && (
-          <div className="flex justify-center py-4">
+          <Group justify="center" py="md">
             <Button
               onClick={handleLoadMore}
               variant="outline"
-              className="w-full max-w-xs"
+              style={{ width: '100%', maxWidth: '300px' }}
               disabled={isFetchingNextPage}
             >
               더 보기 ({totalCount - reservations.length}개 남음)
             </Button>
-          </div>
+          </Group>
         )}
 
         {!hasNextPage && reservations.length > 0 && (
-          <div className="text-center py-4 text-muted-foreground">
-            <div className="flex items-center justify-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span>모든 예약을 불러왔습니다 (총 {totalCount}개)</span>
-            </div>
-          </div>
+          <Group justify="center" py="md">
+            <Group align="center" gap="xs">
+              <Calendar style={{ height: '16px', width: '16px' }} />
+              <Text size="sm" c="dimmed">모든 예약을 불러왔습니다 (총 {totalCount}개)</Text>
+            </Group>
+          </Group>
         )}
       </div>
     </div>
