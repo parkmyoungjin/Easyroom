@@ -10,7 +10,7 @@ import { AuthToastManager } from '@/components/auth/AuthErrorToast';
 import { ColorSchemeScript } from '@mantine/core';
 
 import { GlobalNotification } from '@/components/layout/GlobalNotification';
-import AuthGatekeeper from '@/components/layout/AuthGatekeeper';
+import AuthLoadingWrapper from '@/components/layout/AuthLoadingWrapper';
 import { UpdateNotification } from '@/components/pwa/UpdateNotification';
 import { AppInitializer } from '@/components/layout/AppInitializer';
 // ✅ [1단계] 서버용 클라이언트와 타입을 import
@@ -85,9 +85,9 @@ export default async function RootLayout({
               <AuthProvider initialSession={session}>
                 {/* AppInitializer: 단순한 스플래시 화면 컴포넌트 (프로바이더 아님) */}
                 <AppInitializer>
-                  <AuthGatekeeper>
+                  <AuthLoadingWrapper>
                     {children}
-                  </AuthGatekeeper>
+                  </AuthLoadingWrapper>
                 </AppInitializer>
                 <AuthToastManager />
                 <UpdateNotification />
