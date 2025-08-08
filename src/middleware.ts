@@ -13,7 +13,7 @@ const allowedOrigins = [
 export async function middleware(request: NextRequest) {
   // [핵심 수정] CORS 사전 요청(Preflight) 처리
   const origin = request.headers.get('origin');
-  
+
   if (request.method === 'OPTIONS') {
     // 허용된 출처인지 확인
     if (origin && allowedOrigins.includes(origin)) {
@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
         },
       });
     }
-    
+
     // 허용되지 않은 출처는 거부
     return new NextResponse('CORS preflight request failed', { status: 403 });
   }
@@ -138,8 +138,9 @@ export async function middleware(request: NextRequest) {
   // 4. 비로그인 사용자의 일반 보호된 페이지 접근 차단
   if (!user) {
     const isPublicRoute = publicRoutes.includes(pathname);
-    if (!isPublicRoute && pathname !== '/') {
-      console.log(`[Middleware] Non-public route - redirecting unauthenticated user to /welcome`);
+    // 루트 경로(/)도 비로그인 사용자는 welcome으로 리다이렉트
+    if (!isPublicRoute) {
+      console.log(`[Middleware] Non-public route (${pathname}) - redirecting unauthenticated user to /welcome`);
       return NextResponse.redirect(new URL('/welcome', request.url));
     }
   }

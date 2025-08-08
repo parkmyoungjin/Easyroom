@@ -246,15 +246,17 @@ async function updateCache(request, cacheName) {
       await cache.put(request, networkResponse.clone());
       console.log('백그라운드 캐시 업데이트 완료:', request.url);
       
-      // 클라이언트에게 업데이트 알림
-      const clients = await self.clients.matchAll();
-      clients.forEach(client => {
-        client.postMessage({
-          type: 'CACHE_UPDATED',
-          url: request.url,
-          timestamp: Date.now()
+      // 클라이언트에게 업데이트 알림 (중요한 리소스만)
+      if (request.url.includes('/api/') || request.url.includes('.js') || request.url.includes('.css')) {
+        const clients = await self.clients.matchAll();
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'CACHE_UPDATED',
+            url: request.url,
+            timestamp: Date.now()
+          });
         });
-      });
+      }
     }
   } catch (error) {
     console.warn('백그라운드 캐시 업데이트 실패:', error);
