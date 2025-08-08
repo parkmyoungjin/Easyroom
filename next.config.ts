@@ -67,7 +67,7 @@ const nextConfig: NextConfig = {
     if (isDevelopment) {
       scriptSrc += " 'unsafe-eval' https://unpkg.com";
     }
-    scriptSrc += ` ${supabaseUrl}`;
+    scriptSrc += ` ${supabaseUrl} https://vercel.live`;
     
     // 환경별 connect-src 설정
     let connectSrc = `'self' ${supabaseUrl} ${supabaseWsUrl}`;
