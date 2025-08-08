@@ -83,7 +83,7 @@ export default async function RootLayout({
             <SupabaseProvider>
               {/* ✅ [핵심 수정] AuthProvider가 가장 바깥쪽을 감싸야 합니다. */}
               <AuthProvider initialSession={session}>
-                {/* AppInitializer와 AuthGatekeeper는 AuthProvider의 자식입니다. */}
+                {/* AppInitializer: 단순한 스플래시 화면 컴포넌트 (프로바이더 아님) */}
                 <AppInitializer>
                   <AuthGatekeeper>
                     {children}
