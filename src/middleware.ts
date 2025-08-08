@@ -2,10 +2,37 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+// CORS를 위한 허용 출처 목록
+const allowedOrigins = [
+  'https://easy-room-git-optimization-01-de-cce2b8-parkmyoungjins-projects.vercel.app', // 현재 프리뷰 도메인
+  'https://easyroom-app.vercel.app', // 프로덕션 도메인
+  'http://localhost:3000', // 로컬 개발 환경
+  'https://vercel.live' // Vercel Live 협업 도구
+];
+
 export async function middleware(request: NextRequest) {
-  // [핵심 원칙] GET 요청이 아닌 경우, 미들웨어의 모든 로직을 건너뜁니다.
-  // OPTIONS, HEAD, POST 등은 라우팅 검사의 대상이 아닙니다.
-  // 아키텍처 원칙: "미들웨어는 사용자가 페이지를 보려고 할 때(GET)만 검사한다."
+  // [핵심 수정] CORS 사전 요청(Preflight) 처리
+  const origin = request.headers.get('origin');
+  
+  if (request.method === 'OPTIONS') {
+    // 허용된 출처인지 확인
+    if (origin && allowedOrigins.includes(origin)) {
+      return new NextResponse(null, {
+        status: 204, // No Content
+        headers: {
+          'Access-Control-Allow-Origin': origin,
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Access-Control-Max-Age': '86400', // 24시간
+        },
+      });
+    }
+    
+    // 허용되지 않은 출처는 거부
+    return new NextResponse('CORS preflight request failed', { status: 403 });
+  }
+
+  // [기존] GET 요청이 아닌 경우 통과 (OPTIONS는 위에서 처리했으므로 이제 안전)
   if (request.method !== 'GET') {
     return NextResponse.next();
   }
