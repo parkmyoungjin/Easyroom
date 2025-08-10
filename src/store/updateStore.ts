@@ -1,4 +1,4 @@
-// FILE: src/stores/updateStore.ts
+// FILE: src/store/updateStore.ts
 // 작전명: 중앙 업데이트 관제소 (Operation: Central Update Control)
 // 목표: 앱 전체의 업데이트 상태를 단일 진실의 원천에서 관리
 

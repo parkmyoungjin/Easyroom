@@ -192,7 +192,7 @@ describe('Data Integrity and RLS Policy Tests', () => {
       const reservationId = 'reservation-789';
 
       // Mock the specific chain for reservation lookup and user lookup
-      let callCount = 0;
+      const callCount = 0;
       mockSupabase.from.mockImplementation((table: string) => {
         if (table === 'reservations') {
           return {

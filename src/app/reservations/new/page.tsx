@@ -1,9 +1,13 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import AppLayout from '@/components/layout/AppLayout';
-import ReservationForm from '@/components/reservations/ReservationForm';
+import { Container, Skeleton } from '@mantine/core';
 
-import { Container } from '@mantine/core';
+const ReservationForm = dynamic(() => import('@/components/reservations/ReservationForm'), {
+  loading: () => <Skeleton height={600} />,
+  ssr: false
+});
 
 export default function NewReservationPage() {
   return (

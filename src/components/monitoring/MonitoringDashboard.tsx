@@ -1,6 +1,6 @@
 // src/components/monitoring/MonitoringDashboard.tsx
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Badge, Button, Alert, Tabs, Progress, Text, Group, Stack } from '@mantine/core';
 import { 
   Activity, 

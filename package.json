@@ -82,7 +82,16 @@
     "verify:comprehensive:export": "node scripts/comprehensive-config-verifier.js --export",
     "test:deployment": "jest --testPathPattern=deployment",
     "test:deployment:scenarios": "jest --testPathPattern=deployment-config-scenarios",
-    "test:deployment:platform": "jest --testPathPattern=platform-integration"
+    "test:deployment:platform": "jest --testPathPattern=platform-integration",
+    "checkin:install": "node scripts/run-checkin-migrations.js",
+    "checkin:test": "node scripts/test-checkin-system.js",
+    "checkin:create-test-data": "node scripts/create-test-reservations.js",
+    "checkin:cleanup-test-data": "node scripts/create-test-reservations.js --cleanup",
+    "checkin:reset-test-data": "node scripts/create-test-reservations.js --reset",
+    "checkin:simple-test": "node scripts/create-simple-test-data.js",
+    "checkin:immediate-test": "node scripts/create-immediate-test-data.js",
+    "checkin:cleanup": "node scripts/cleanup-test-reservations.js",
+    "checkin:cleanup-old": "node scripts/cleanup-test-reservations.js --old"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -105,7 +114,6 @@
     "critters": "^0.0.23",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
-    "dayjs": "^1.11.13",
     "dotenv": "^16.6.1",
     "framer-motion": "^11.18.2",
     "lucide-react": "^0.469.0",

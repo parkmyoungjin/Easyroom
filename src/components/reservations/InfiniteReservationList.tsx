@@ -8,6 +8,7 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { logger } from '@/lib/utils/logger';
 import type { PublicReservation, PublicReservationAnonymous } from '@/types/database';
+import { CheckInOutButton, ReservationStatusBadge } from './CheckInOutButton';
 
 interface InfiniteReservationListProps {
   startDate: string;
@@ -291,9 +292,18 @@ function ReservationCard({
               </Text>
             </Group>
           </Stack>
-          <Badge variant="light">
-            확정됨
-          </Badge>
+          {isMyReservation ? (
+            <CheckInOutButton
+              reservationId={reservation.id}
+              startTime={reservation.start_time}
+              endTime={reservation.end_time}
+              roomName={'room_name' in reservation ? reservation.room_name : '회의실'}
+              size="sm"
+              variant="outline"
+            />
+          ) : (
+            <ReservationStatusBadge status="confirmed" size="sm" />
+          )}
         </Group>
         
         <Stack gap="sm">

@@ -81,6 +81,7 @@ function reservationFromDatabase(reservation: Reservation): EnhancedReservation 
     cancellation_reason: reservation.cancellation_reason,
     created_at: new Date(reservation.created_at),
     updated_at: new Date(reservation.updated_at)
+    // checked_in_at, checked_out_at는 EnhancedReservation에 없으므로 제외
   };
 }
 
@@ -99,7 +100,9 @@ function reservationToDatabase(enhancedReservation: EnhancedReservation): Reserv
     status: enhancedReservation.status,
     cancellation_reason: enhancedReservation.cancellation_reason,
     created_at: enhancedReservation.created_at.toISOString(),
-    updated_at: enhancedReservation.updated_at.toISOString()
+    updated_at: enhancedReservation.updated_at.toISOString(),
+    checked_in_at: null, // EnhancedReservation에는 없으므로 null로 설정
+    checked_out_at: null // EnhancedReservation에는 없으므로 null로 설정
   };
 }
 
@@ -262,9 +265,9 @@ export function safeUserFromDatabase(user: User): { success: true; data: Enhance
     const enhancedUser = userFromDatabase(user);
     return { success: true, data: enhancedUser };
   } catch (error) {
-    return { 
-      success: false, 
-      error: `Failed to convert user: ${error instanceof Error ? error.message : 'Unknown error'}` 
+    return {
+      success: false,
+      error: `Failed to convert user: ${error instanceof Error ? error.message : 'Unknown error'}`
     };
   }
 }
@@ -277,9 +280,9 @@ export function safeReservationFromDatabase(reservation: Reservation): { success
     const enhancedReservation = reservationFromDatabase(reservation);
     return { success: true, data: enhancedReservation };
   } catch (error) {
-    return { 
-      success: false, 
-      error: `Failed to convert reservation: ${error instanceof Error ? error.message : 'Unknown error'}` 
+    return {
+      success: false,
+      error: `Failed to convert reservation: ${error instanceof Error ? error.message : 'Unknown error'}`
     };
   }
 }
@@ -292,9 +295,9 @@ export function safePublicReservationFromDatabase(reservation: PublicReservation
     const enhancedReservation = publicReservationFromDatabase(reservation);
     return { success: true, data: enhancedReservation };
   } catch (error) {
-    return { 
-      success: false, 
-      error: `Failed to convert public reservation: ${error instanceof Error ? error.message : 'Unknown error'}` 
+    return {
+      success: false,
+      error: `Failed to convert public reservation: ${error instanceof Error ? error.message : 'Unknown error'}`
     };
   }
 }
@@ -326,9 +329,9 @@ export function validateDatabaseUserId(userId: string): { isValid: true; userId:
     const databaseUserId = createDatabaseUserId(userId);
     return { isValid: true, userId: databaseUserId };
   } catch (error) {
-    return { 
-      isValid: false, 
-      error: error instanceof Error ? error.message : 'Invalid DatabaseUserId format' 
+    return {
+      isValid: false,
+      error: error instanceof Error ? error.message : 'Invalid DatabaseUserId format'
     };
   }
 }
@@ -341,9 +344,9 @@ export function validateAuthId(authId: string): { isValid: true; authId: AuthId 
     const validAuthId = createAuthId(authId);
     return { isValid: true, authId: validAuthId };
   } catch (error) {
-    return { 
-      isValid: false, 
-      error: error instanceof Error ? error.message : 'Invalid AuthId format' 
+    return {
+      isValid: false,
+      error: error instanceof Error ? error.message : 'Invalid AuthId format'
     };
   }
 }
@@ -364,7 +367,7 @@ export {
   reservationFromInsert,
   reservationToUpdate,
   reservationFromUpdate,
-  
+
   // Batch conversion functions
   usersFromDatabase,
   usersToDatabase,

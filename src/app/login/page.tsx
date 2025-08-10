@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { LoginForm } from '@/features/auth/components/LoginForm';
 import { Alert } from '@mantine/core';
-import { MailCheck, AlertCircle, RefreshCw } from 'lucide-react';
+import { MailCheck } from 'lucide-react';
 import AppLayout from '@/components/layout/AppLayout';
 
 

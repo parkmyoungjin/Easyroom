@@ -8,11 +8,11 @@ import GoogleCalendarView from '@/features/reservation/components/GoogleCalendar
 import CalendarControlHeader from '@/features/reservation/components/CalendarControlHeader';
 import AppLayout from '@/components/layout/AppLayout';
 import {
-  Container, Stack, Paper, Group, ThemeIcon, Title, Text,
-  Skeleton, useMantineTheme
+  Stack, Paper, Group, ThemeIcon, Title, Text,
+  Skeleton
 } from '@mantine/core';
 import { Activity, XCircle } from 'lucide-react';
-import { addDays, startOfWeek, endOfWeek, format } from 'date-fns';
+import { startOfWeek, endOfWeek, format } from 'date-fns';
 import { usePublicReservationsV2 as usePublicReservations } from '@/hooks/usePublicReservationsV2';
 import type { PublicReservation } from "@/types/database";
 
@@ -33,7 +33,7 @@ function getDepartmentColor(department: string): string {
 
 export default function ReservationStatusPage() {
   const { isAuthenticated, userProfile } = useAuth();
-  const theme = useMantineTheme();
+
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const weekRange = useMemo(() => {

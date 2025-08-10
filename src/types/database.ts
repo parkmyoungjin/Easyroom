@@ -84,7 +84,9 @@ export interface Database {
           purpose?: string
           start_time: string
           end_time: string
-          status: 'confirmed' | 'cancelled'
+          status: 'confirmed' | 'cancelled' | 'checked_in' | 'completed' | 'overtime' | 'no_show'
+          checked_in_at: string | null
+          checked_out_at: string | null
           cancellation_reason?: string
           created_at: string
           updated_at: string
@@ -96,7 +98,7 @@ export interface Database {
           purpose?: string
           start_time: string
           end_time: string
-          status?: 'confirmed' | 'cancelled'
+          status?: 'confirmed' | 'cancelled' | 'checked_in' | 'completed' | 'overtime' | 'no_show'
           cancellation_reason?: string
         }
         Update: {
@@ -106,8 +108,10 @@ export interface Database {
           purpose?: string
           start_time?: string
           end_time?: string
-          status?: 'confirmed' | 'cancelled'
+          status?: 'confirmed' | 'cancelled' | 'checked_in' | 'completed' | 'overtime' | 'no_show'
           cancellation_reason?: string
+          checked_in_at?: string | null
+          checked_out_at?: string | null
         }
       }
     }
@@ -172,7 +176,7 @@ export interface Database {
     }
     Enums: {
       user_role: 'employee' | 'admin'
-      reservation_status: 'confirmed' | 'cancelled'
+      reservation_status: 'confirmed' | 'cancelled' | 'checked_in' | 'completed' | 'overtime' | 'no_show'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -296,7 +300,7 @@ export interface EnhancedReservation {
   purpose?: string
   start_time: Date
   end_time: Date
-  status: 'confirmed' | 'cancelled'
+  status: ExtendedReservationStatus
   cancellation_reason?: string
   created_at: Date
   updated_at: Date
@@ -328,7 +332,7 @@ export interface EnhancedReservationInsert {
   purpose?: string
   start_time: string
   end_time: string
-  status?: 'confirmed' | 'cancelled'
+  status?: ExtendedReservationStatus
   cancellation_reason?: string
 }
 
@@ -342,7 +346,7 @@ export interface EnhancedReservationUpdate {
   purpose?: string
   start_time?: string
   end_time?: string
-  status?: 'confirmed' | 'cancelled'
+  status?: ExtendedReservationStatus
   cancellation_reason?: string
 }
 
@@ -371,4 +375,190 @@ export interface ValidatedReservationData {
   start_time: string;
   end_time: string;
   status?: 'confirmed' | 'cancelled';
+}
+
+// ============================================================================
+// CHECK-IN/CHECK-OUT SYSTEM TYPES
+// ============================================================================
+
+/**
+ * Extended reservation status including check-in/check-out states
+ */
+export type ExtendedReservationStatus = 
+  | 'confirmed'     // 예약 확정 (기본값)
+  | 'checked_in'    // 사용자가 체크인하여 사용 중
+  | 'completed'     // 사용자가 정상적으로 사용 완료 (체크아웃)
+  | 'overtime'      // 예약 시간을 초과하여 사용 중
+  | 'no_show'       // 사용자가 나타나지 않음
+  | 'cancelled';    // 사용자가 예약을 취소함
+
+/**
+ * Check-in/Check-out API response types
+ */
+export interface CheckInResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+  code?: string;
+  data?: {
+    reservation_id: string;
+    room_name: string;
+    checked_in_at: string;
+    start_time: string;
+    end_time: string;
+  };
+}
+
+export interface CheckOutResponse {
+  success: boolean;
+  message?: string;
+  error?: string;
+  code?: string;
+  data?: {
+    reservation_id: string;
+    room_name: string;
+    checked_in_at: string;
+    checked_out_at: string;
+    actual_duration_minutes: number;
+    scheduled_duration_minutes: number;
+    was_overtime: boolean;
+  };
+}
+
+export interface ReservationStatusResponse {
+  success: boolean;
+  error?: string;
+  code?: string;
+  data?: {
+    reservation_id: string;
+    room_name: string;
+    current_status: ExtendedReservationStatus;
+    can_checkin: boolean;
+    can_checkout: boolean;
+    status_message: string;
+    start_time: string;
+    end_time: string;
+    checked_in_at: string | null;
+    checked_out_at: string | null;
+    is_overtime: boolean;
+  };
+}
+
+/**
+ * Enhanced reservation with check-in/check-out data
+ */
+export interface ReservationWithCheckInOut extends Reservation {
+  checked_in_at: string | null;
+  checked_out_at: string | null;
+  status: ExtendedReservationStatus;
+}
+
+/**
+ * Room status for real-time display
+ */
+export interface RoomStatus {
+  room_id: string;
+  room_name: string;
+  location: string;
+  capacity: number;
+  current_status: 'available' | 'occupied' | 'reserved_soon' | 'reserved';
+  current_reservation_id: string | null;
+  current_reservation_title: string | null;
+  current_start_time: string | null;
+  current_end_time: string | null;
+  current_user_name: string | null;
+  current_user_department: string | null;
+}
+
+/**
+ * Statistics and analytics types
+ */
+export interface ReservationStatistics {
+  total_reservations: number;
+  completed_reservations: number;
+  no_show_reservations: number;
+  currently_in_use: number;
+  completion_rate: number;
+  no_show_rate: number;
+}
+
+export interface RoomUsageStatistics extends ReservationStatistics {
+  room_id: string;
+  room_name: string;
+  location: string;
+}
+
+/**
+ * Automation job result types
+ */
+export interface AutomationResult {
+  execution_time: string;
+  overtime_updated: number;
+  no_shows_marked: number;
+  auto_checkouts: number;
+  total_processed: number;
+  success?: boolean;
+  error?: string;
+}
+
+/**
+ * Room usage statistics from database view
+ */
+export interface RoomUsageStatistics {
+  room_id: string;
+  room_name: string;
+  location: string;
+  total_reservations: number;
+  completed_reservations: number;
+  no_show_reservations: number;
+  currently_in_use: number;
+  completion_rate: number;
+  no_show_rate: number;
+}
+
+/**
+ * No-show reservation data from database view
+ */
+export interface NoShowReservation {
+  id: string;
+  title: string;
+  room_name: string;
+  user_name: string;
+  department: string;
+  start_time: string;
+  end_time: string;
+  location: string;
+  created_at: string;
+}
+
+/**
+ * Cron job status data
+ */
+export interface CronJobStatus {
+  jobid: number;
+  jobname: string;
+  schedule: string;
+  command: string;
+  nodename: string;
+  nodeport: number;
+  database: string;
+  username: string;
+  active: boolean;
+}
+
+/**
+ * Room status for real-time display (enhanced)
+ */
+export interface RoomStatusData {
+  room_id: string;
+  room_name: string;
+  location: string;
+  capacity: number;
+  current_status: 'available' | 'occupied' | 'reserved_soon' | 'reserved';
+  current_reservation_id: string | null;
+  current_reservation_title: string | null;
+  current_start_time: string | null;
+  current_end_time: string | null;
+  current_user_name: string | null;
+  current_user_department: string | null;
 }

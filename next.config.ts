@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
         hostname: '**',
       },
     ],
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60,
   },
   webpack: (config, { isServer, dev }) => {
     // Enhanced fallback configuration for better server isolation
@@ -109,6 +111,7 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizeCss: true, // Enable CSS optimization
     scrollRestoration: true, // Better scroll restoration
+    optimizePackageImports: ['@mantine/core', '@mantine/hooks', 'lucide-react'], // 트리 쉐이킹 개선
   },
 
   // Force CSS cache busting

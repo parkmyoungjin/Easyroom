@@ -6,7 +6,7 @@
  * Requirements: 1.1, 1.2, 2.1, 2.2, 2.3, 2.4, 2.5, 3.1, 3.2, 3.3, 4.1, 4.2, 4.3, 4.4
  */
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { validateStartup, quickStartupCheck } from '@/lib/startup/environment-startup-validator';
 import type { StartupValidationResult } from '@/lib/startup/environment-startup-validator';
 import type { UserFriendlyError, ErrorAction } from '@/lib/error-handling/environment-error-handler';

@@ -6,7 +6,7 @@
 
 import { useEffect, useRef } from 'react';
 import { toast } from 'sonner';
-import { useUpdateStore } from '@/stores/updateStore';
+import { useUpdateStore } from '@/store/updateStore';
 import { RefreshCw, Download } from 'lucide-react';
 
 /**

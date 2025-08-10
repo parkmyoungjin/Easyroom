@@ -110,7 +110,7 @@ class ComprehensiveTestRunner {
 
     const startTime = Date.now();
     let passed = false;
-    let errors: string[] = [];
+    const errors: string[] = [];
 
     try {
       // Run the test suite

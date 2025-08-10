@@ -144,7 +144,7 @@ async function loadServiceWorker(): Promise<void> {
               
               // zustand 스토어에 업데이트 가능 상태 알림
               // 동적 import로 스토어 로드 (서버 사이드 렌더링 호환성)
-              import('@/stores/updateStore').then(({ useUpdateStore }) => {
+              import('@/store/updateStore').then(({ useUpdateStore }) => {
                 const { setUpdateAvailable } = useUpdateStore.getState();
                 setUpdateAvailable(registration);
                 console.log('[ServiceWorker] Update state set in store');
@@ -161,7 +161,7 @@ async function loadServiceWorker(): Promise<void> {
         console.log('[ServiceWorker] Controller changed - new service worker took control');
         
         // 새 서비스 워커가 제어권을 가져갔으므로 상태 초기화
-        import('@/stores/updateStore').then(({ useUpdateStore }) => {
+        import('@/store/updateStore').then(({ useUpdateStore }) => {
           const { resetUpdateState } = useUpdateStore.getState();
           resetUpdateState();
           console.log('[ServiceWorker] Update state reset after controller change');

@@ -141,7 +141,7 @@ describe('Cross-Browser Compatibility Tests', () => {
   describe('Browser-Specific localStorage Behavior', () => {
     it('should work correctly in Chrome environment', () => {
       const chromeMock = createBrowserEnvironmentMock('chrome');
-      let store: { [key: string]: string } = {};
+      const store: { [key: string]: string } = {};
       
       chromeMock.getItem.mockImplementation((key: string) => store[key] || null);
       chromeMock.setItem.mockImplementation((key: string, value: string) => {
@@ -177,7 +177,7 @@ describe('Cross-Browser Compatibility Tests', () => {
 
     it('should work correctly in Firefox environment', () => {
       const firefoxMock = createBrowserEnvironmentMock('firefox');
-      let store: { [key: string]: string } = {};
+      const store: { [key: string]: string } = {};
       
       firefoxMock.getItem.mockImplementation((key: string) => store[key] || null);
       firefoxMock.setItem.mockImplementation((key: string, value: string) => {
@@ -246,7 +246,7 @@ describe('Cross-Browser Compatibility Tests', () => {
 
     it('should handle mobile browser quota limitations', () => {
       const mobileMock = createBrowserEnvironmentMock('mobile');
-      let quotaReached = false;
+      const quotaReached = false;
       
       mobileMock.setItem.mockImplementation((key: string, value: string) => {
         if (quotaReached || value.length > 100) { // Simulate small quota

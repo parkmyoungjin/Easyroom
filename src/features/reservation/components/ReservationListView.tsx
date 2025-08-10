@@ -4,14 +4,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  Paper, Badge, Group, Text, ActionIcon, Stack, Button, 
+import {
+  Paper, Badge, Group, Text, ActionIcon, Stack, Button,
   ThemeIcon, useMantineColorScheme, SimpleGrid, Title, Divider
 } from '@mantine/core';
-import { 
-  Edit, Trash2, Calendar, Clock, MapPin, Plus, 
-  CalendarX, CheckCircle, XCircle 
+import {
+  Edit, Trash2, Calendar, Clock, MapPin, Plus,
+  CalendarX, CheckCircle, XCircle
 } from 'lucide-react';
+import { CheckInOutButton } from '@/components/reservations/CheckInOutButton';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { ReservationActionDrawer } from '@/features/reservation/components/ReservationActionDrawer';
@@ -67,9 +68,9 @@ export function ReservationListView({ reservations = [], isError, showActions = 
             <Title order={3}>예약이 없습니다</Title>
             <Text c="dimmed" ta="center">새로운 회의실을 예약해보세요.</Text>
           </Stack>
-          <Button 
-            size="lg" 
-            radius="xl" 
+          <Button
+            size="lg"
+            radius="xl"
             leftSection={<Plus size={18} />}
             onClick={() => router.push('/reservations/new')}
           >
@@ -115,56 +116,73 @@ export function ReservationListView({ reservations = [], isError, showActions = 
           >
             <Stack gap="md">
               {/* 헤더 영역 */}
-              <Group justify="space-between" align="flex-start">
-                <Group align="center" gap="md">
-                  <ThemeIcon
-                    size="lg"
-                    radius="xl"
-                    color={reservation.status === 'confirmed' ? 'blue' : 'gray'}
-                    variant="light"
-                  >
-                    {reservation.status === 'confirmed' ? <CheckCircle size={20} /> : <XCircle size={20} />}
-                  </ThemeIcon>
-                  <Stack gap={4}>
-                    <Title order={4} lineClamp={1}>
-                      {reservation.title}
-                    </Title>
-                    <Group gap="xs" align="center">
-                      <Text size="sm" fw={500} c="dark">
-                        {format(new Date(reservation.start_time), 'M월 d일 (E)', { locale: ko })}
-                      </Text>
-                      <Text size="sm" c="dimmed">
-                        {format(new Date(reservation.start_time), 'HH:mm', { locale: ko })}
-                        {' - '}
-                        {format(new Date(reservation.end_time), 'HH:mm', { locale: ko })}
-                      </Text>
-                    </Group>
-                  </Stack>
-                </Group>
-                
+              <Group align="center" gap="md">
+                <ThemeIcon
+                  size="lg"
+                  radius="xl"
+                  color={reservation.status === 'confirmed' ? 'blue' : 'gray'}
+                  variant="light"
+                >
+                  {reservation.status === 'confirmed' ? <CheckCircle size={20} /> : <XCircle size={20} />}
+                </ThemeIcon>
+                <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
+                  <Title order={4} lineClamp={1}>
+                    {reservation.title}
+                  </Title>
+                  <Group gap="xs" align="center">
+                    <Text size="sm" fw={500} c="dark">
+                      {format(new Date(reservation.start_time), 'M월 d일 (E)', { locale: ko })}
+                    </Text>
+                    <Text size="sm" c="dimmed">
+                      {format(new Date(reservation.start_time), 'HH:mm', { locale: ko })}
+                      {' - '}
+                      {format(new Date(reservation.end_time), 'HH:mm', { locale: ko })}
+                    </Text>
+                  </Group>
+                </Stack>
+              </Group>
+
+              <Divider />
+
+              {/* 모바일 친화적 액션 버튼 영역 */}
+              <Stack gap="sm">
+                {/* 체크인/체크아웃 버튼 - 전체 너비로 강조 */}
+                <CheckInOutButton
+                  reservationId={reservation.id}
+                  startTime={reservation.start_time}
+                  endTime={reservation.end_time}
+                  roomName={reservation.room?.name || '회의실'}
+                  size="sm"
+                  variant="default"
+                  className="w-full"
+                />
+
+                {/* 편집/삭제 버튼 - 하단에 작게 배치 */}
                 {showActions && reservation.status === 'confirmed' && (
-                  <Group gap="xs">
-                    <ActionIcon 
+                  <Group justify="flex-end" gap="xs">
+                    <Button
                       variant="light"
                       color="blue"
-                      size="lg"
+                      size="xs"
                       radius="xl"
+                      leftSection={<Edit size={14} />}
                       onClick={() => handleEdit(reservation)}
                     >
-                      <Edit size={16} />
-                    </ActionIcon>
-                    <ActionIcon 
+                      수정
+                    </Button>
+                    <Button
                       variant="light"
                       color="red"
-                      size="lg"
+                      size="xs"
                       radius="xl"
+                      leftSection={<Trash2 size={14} />}
                       onClick={() => handleCancel(reservation)}
                     >
-                      <Trash2 size={16} />
-                    </ActionIcon>
+                      취소
+                    </Button>
                   </Group>
                 )}
-              </Group>
+              </Stack>
 
               <Divider />
 
