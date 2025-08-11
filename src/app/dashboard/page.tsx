@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import {
   Title, Text, Stack, Container, SimpleGrid, ThemeIcon,
   Group, Button, Badge, Paper, ActionIcon, Drawer, Switch,
-  Divider, useMantineColorScheme
+  Divider, useMantineColorScheme, useComputedColorScheme
 } from '@mantine/core';
 import {
   Settings, BarChart3, Plus, Star, Bell, ChevronRight, Activity, Wrench,
@@ -29,10 +29,10 @@ function ActionCard({
   title, icon, onClick, variant = 'primary',
   stats, badge
 }: ActionCardProps) {
-  const { colorScheme } = useMantineColorScheme();
+  const computed = useComputedColorScheme('light', { getInitialValueInEffect: true });
 
   const getCardStyle = () => {
-    const isDark = colorScheme === 'dark';
+    const isDark = computed === 'dark';
 
     switch (variant) {
       case 'admin':
@@ -128,6 +128,7 @@ function ActionCard({
 export default function DashboardPage() {
   const { signOut, userProfile } = useAuth();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const computed = useComputedColorScheme('light', { getInitialValueInEffect: true });
   const [settingsOpened, setSettingsOpened] = useState(false);
 
   // AuthGatekeeper에서 모든 인증 및 리디렉션을 처리하므로

@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Paper, Badge, Group, Text, ActionIcon, Stack, Button,
-  ThemeIcon, useMantineColorScheme, SimpleGrid, Title, Divider
+  ThemeIcon, useMantineColorScheme, useComputedColorScheme, SimpleGrid, Title, Divider
 } from '@mantine/core';
 import {
   Edit, Trash2, Calendar, Clock, MapPin, Plus,
@@ -28,7 +28,8 @@ interface ReservationListViewProps {
 // ✅ props로 데이터를 직접 받습니다.
 export function ReservationListView({ reservations = [], isError, showActions = true }: ReservationListViewProps) {
   const router = useRouter();
-  const { colorScheme } = useMantineColorScheme();
+  const { colorScheme: schemeForToggle } = useMantineColorScheme();
+  const computed = useComputedColorScheme('light', { getInitialValueInEffect: true });
   const [selectedReservation, setSelectedReservation] = useState<ReservationWithDetails | null>(null);
 
   if (isError) {
@@ -37,7 +38,7 @@ export function ReservationListView({ reservations = [], isError, showActions = 
         p="xl"
         radius="xl"
         style={{
-          border: colorScheme === 'dark' ? '2px solid rgba(255, 0, 0, 0.3)' : '2px solid #dc2626'
+          border: computed === 'dark' ? '2px solid rgba(255, 0, 0, 0.3)' : '2px solid #dc2626'
         }}
       >
         <Stack align="center" gap="md">
@@ -57,7 +58,7 @@ export function ReservationListView({ reservations = [], isError, showActions = 
         p="xl"
         radius="xl"
         style={{
-          border: colorScheme === 'dark' ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #4f46e5'
+          border: computed === 'dark' ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #4f46e5'
         }}
       >
         <Stack align="center" gap="lg">
@@ -101,7 +102,7 @@ export function ReservationListView({ reservations = [], isError, showActions = 
             style={{
               cursor: 'pointer',
               transition: 'all 0.3s ease',
-              border: colorScheme === 'dark' ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #e5e7eb',
+              border: computed === 'dark' ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #e5e7eb',
               background: 'var(--mantine-color-body)',
             }}
             styles={{
@@ -109,7 +110,7 @@ export function ReservationListView({ reservations = [], isError, showActions = 
                 '&:hover': {
                   transform: 'translateY(-2px)',
                   boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-                  borderColor: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.5)' : '#4f46e5',
+                  borderColor: computed === 'dark' ? 'rgba(255, 255, 255, 0.5)' : '#4f46e5',
                 },
               },
             }}

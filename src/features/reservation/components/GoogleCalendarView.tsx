@@ -13,7 +13,7 @@ import { useUpdateReservation } from '@/hooks/useReservations';
 import { toast } from 'sonner';
 import { DndContext, DragEndEvent, useDraggable, useDroppable, DragOverlay, closestCenter, useSensor, useSensors, PointerSensor, TouchSensor } from '@dnd-kit/core';
 // ✅ [핵심] Mantine 컴포넌트들을 import 합니다.
-import { Paper, Stack, Box, Text, useMantineTheme, useMantineColorScheme } from '@mantine/core';
+import { Paper, Stack, Box, Text, useMantineTheme, useMantineColorScheme, useComputedColorScheme } from '@mantine/core';
 
 // --- 설정 상수 ---
 const DAYS = ['월', '화', '수', '목', '금'];
@@ -338,14 +338,14 @@ export default function GoogleCalendarView({
     });
   }, [isAuthenticated, weekStartDate, updateReservation, reservations]);
 
-  const { colorScheme } = useMantineColorScheme();
+  const computed = useComputedColorScheme('light', { getInitialValueInEffect: true });
 
   return (
     <>
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
         <div style={{ 
           minHeight: 'calc(100vh - 200px)', 
-          background: colorScheme === 'dark' ? 'var(--mantine-color-dark-7)' : 'var(--mantine-color-gray-0)',
+          background: computed === 'dark' ? 'var(--mantine-color-dark-7)' : 'var(--mantine-color-gray-0)',
           padding: '8px'
         }}>
           <Stack gap="sm">
@@ -365,14 +365,14 @@ export default function GoogleCalendarView({
                       style={{
                         background: isTodayDate 
                           ? 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)'
-                          : colorScheme === 'dark' 
+                          : computed === 'dark' 
                             ? 'rgba(255, 255, 255, 0.05)' 
                             : theme.colors.gray[1],
                         border: 'none',
                         color: isTodayDate ? 'white' : undefined
                       }}
                     >
-                      <Text ta="center" fw={600} size="xs" c={isTodayDate ? 'white' : (colorScheme === 'dark' ? 'white' : 'dark')}>
+                      <Text ta="center" fw={600} size="xs" c={isTodayDate ? 'white' : (computed === 'dark' ? 'white' : 'dark')}>
                         {day}
                       </Text>
                       <Text 
@@ -393,10 +393,10 @@ export default function GoogleCalendarView({
             <Box 
               style={{ 
                 display: 'flex',
-                background: colorScheme === 'dark' ? 'var(--mantine-color-dark-6)' : 'white',
+                background: computed === 'dark' ? 'var(--mantine-color-dark-6)' : 'white',
                 borderRadius: '8px',
                 overflow: 'hidden',
-                border: colorScheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : `1px solid ${theme.colors.gray[3]}`
+                border: computed === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : `1px solid ${theme.colors.gray[3]}`
               }}
             >
               {/* 시간 라벨 컬럼 */}
@@ -404,8 +404,8 @@ export default function GoogleCalendarView({
                 w={40} 
                 style={{ 
                   position: 'relative',
-                  background: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.02)' : theme.colors.gray[0],
-                  borderRight: colorScheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : `1px solid ${theme.colors.gray[2]}`
+                  background: computed === 'dark' ? 'rgba(255, 255, 255, 0.02)' : theme.colors.gray[0],
+                  borderRight: computed === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : `1px solid ${theme.colors.gray[2]}`
                 }}
               >
                 {timeSlots.map((timeString, i) => (
@@ -437,12 +437,12 @@ export default function GoogleCalendarView({
                       key={`horizontal-${i}`}
                       h={SLOT_HEIGHT}
                       style={{
-                        borderBottom: colorScheme === 'dark' 
+                        borderBottom: computed === 'dark' 
                           ? '1px solid rgba(255, 255, 255, 0.05)' 
                           : `1px solid ${theme.colors.gray[2]}`,
                         width: '100%',
                         background: i % 4 === 0 || i % 4 === 1 
-                          ? (colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.01)' : theme.colors.gray[0])
+                          ? (computed === 'dark' ? 'rgba(255, 255, 255, 0.01)' : theme.colors.gray[0])
                           : 'transparent'
                       }}
                     />
@@ -459,7 +459,7 @@ export default function GoogleCalendarView({
                         width: `${100 / DAYS.length}%`,
                         height: '100%',
                         borderRight: dayIndex < DAYS.length - 1 
-                          ? (colorScheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : `1px solid ${theme.colors.gray[2]}`)
+                          ? (computed === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : `1px solid ${theme.colors.gray[2]}`)
                           : 'none'
                       }}
                     />

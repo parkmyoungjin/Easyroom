@@ -7,7 +7,7 @@ import { format, addDays } from 'date-fns';
 import { ChevronLeft, ChevronRight, LocateFixed, Calendar, Users } from 'lucide-react';
 import {
   Group, Button, Text, Badge, useMantineTheme, Paper, Stack,
-  ThemeIcon, Title, useMantineColorScheme
+  ThemeIcon, Title, useComputedColorScheme
 } from '@mantine/core';
 
 interface CalendarControlHeaderProps {
@@ -24,7 +24,7 @@ export default function CalendarControlHeader({
   departmentColorMap
 }: CalendarControlHeaderProps) {
   const theme = useMantineTheme();
-  const { colorScheme } = useMantineColorScheme();
+  const computed = useComputedColorScheme('light', { getInitialValueInEffect: true });
 
   // 주간 범위 계산
   const weekRange = useMemo(() => {
@@ -60,7 +60,7 @@ export default function CalendarControlHeader({
       p={{ base: 'sm', sm: 'md' }}
       radius="md"
       style={{
-        border: colorScheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e5e7eb'
+        border: computed === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid #e5e7eb'
       }}
     >
       <Stack gap="sm">
@@ -74,7 +74,7 @@ export default function CalendarControlHeader({
               <Text size="xs" c="dimmed" fw={500} display={{ base: 'none', sm: 'block' }}>주간 일정</Text>
               <Group gap="xs" align="center">
                 <Text fw={500} size="xs" c="dimmed">{format(weekRange.start, 'yyyy년')}</Text>
-                <Text fw={600} size="sm" c={colorScheme === 'dark' ? 'white' : 'dark'}>{weekDisplay}</Text>
+                <Text fw={600} size="sm" c={computed === 'dark' ? 'white' : 'dark'}>{weekDisplay}</Text>
               </Group>
             </Stack>
           </Group>

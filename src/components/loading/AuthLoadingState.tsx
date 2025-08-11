@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useSupabaseClient } from '@/contexts/SupabaseProvider';
-import { useMantineColorScheme } from '@mantine/core';
+import { useComputedColorScheme, useMantineColorScheme } from '@mantine/core';
 
 interface AuthLoadingStateProps {
   children: React.ReactNode;
@@ -94,7 +94,7 @@ function DefaultAuthLoadingUI({
   phase: 'hydrating' | 'supabase' | 'auth' | 'ready';
   hasTimedOut: boolean;
 }) {
-  const { colorScheme } = useMantineColorScheme();
+  const computed = useComputedColorScheme('light', { getInitialValueInEffect: true });
   
   const getLoadingMessage = () => {
     if (hasTimedOut) {
@@ -117,7 +117,7 @@ function DefaultAuthLoadingUI({
     <div 
       className="flex items-center justify-center min-h-screen"
       style={{
-        background: colorScheme === 'dark' 
+        background: computed === 'dark' 
           ? 'linear-gradient(135deg, #1a1b23 0%, #2d3748 100%)'
           : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)'
       }}
@@ -136,7 +136,7 @@ function DefaultAuthLoadingUI({
               borderWidth: '2px',
               borderStyle: 'solid',
               borderColor: 'transparent',
-              borderBottomColor: colorScheme === 'dark' ? '#60a5fa' : '#2563eb'
+               borderBottomColor: computed === 'dark' ? '#60a5fa' : '#2563eb'
             }}
           ></div>
         )}
@@ -145,7 +145,7 @@ function DefaultAuthLoadingUI({
           style={{
             color: hasTimedOut 
               ? '#ef4444' 
-              : colorScheme === 'dark' 
+              : computed === 'dark' 
                 ? '#94a3b8' 
                 : '#64748b'
           }}
@@ -157,14 +157,14 @@ function DefaultAuthLoadingUI({
             onClick={() => window.location.reload()}
             className="mt-4 px-4 py-2 rounded transition-colors"
             style={{
-              backgroundColor: colorScheme === 'dark' ? '#3b82f6' : '#2563eb',
+              backgroundColor: computed === 'dark' ? '#3b82f6' : '#2563eb',
               color: 'white'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = colorScheme === 'dark' ? '#2563eb' : '#1d4ed8';
+              e.currentTarget.style.backgroundColor = computed === 'dark' ? '#2563eb' : '#1d4ed8';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = colorScheme === 'dark' ? '#3b82f6' : '#2563eb';
+              e.currentTarget.style.backgroundColor = computed === 'dark' ? '#3b82f6' : '#2563eb';
             }}
           >
             새로고침
@@ -179,26 +179,26 @@ function DefaultAuthLoadingUI({
  * Skeleton loading component for auth-dependent content
  */
 export function AuthContentSkeleton() {
-  const { colorScheme } = useMantineColorScheme();
+  const computed = useComputedColorScheme('light', { getInitialValueInEffect: true });
   
   return (
     <div className="animate-pulse">
       <div 
         className="h-4 rounded w-3/4 mb-4"
         style={{
-          backgroundColor: colorScheme === 'dark' ? '#374151' : '#e5e7eb'
+          backgroundColor: computed === 'dark' ? '#374151' : '#e5e7eb'
         }}
       ></div>
       <div 
         className="h-4 rounded w-1/2 mb-4"
         style={{
-          backgroundColor: colorScheme === 'dark' ? '#374151' : '#e5e7eb'
+          backgroundColor: computed === 'dark' ? '#374151' : '#e5e7eb'
         }}
       ></div>
       <div 
         className="h-4 rounded w-5/6"
         style={{
-          backgroundColor: colorScheme === 'dark' ? '#374151' : '#e5e7eb'
+          backgroundColor: computed === 'dark' ? '#374151' : '#e5e7eb'
         }}
       ></div>
     </div>

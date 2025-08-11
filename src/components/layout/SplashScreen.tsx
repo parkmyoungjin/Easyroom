@@ -4,11 +4,11 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useMantineColorScheme } from '@mantine/core';
+import { useComputedColorScheme } from '@mantine/core';
 import { useEffect, useState } from 'react';
 
 export function SplashScreen() {
-  const { colorScheme } = useMantineColorScheme();
+  const computed = useComputedColorScheme('dark', { getInitialValueInEffect: true });
   const [mounted, setMounted] = useState(false);
 
   // 클라이언트에서만 colorScheme을 사용하도록 함
@@ -17,7 +17,7 @@ export function SplashScreen() {
   }, []);
 
   // 서버 사이드에서는 기본값(dark) 사용, 클라이언트에서는 실제 colorScheme 사용
-  const actualColorScheme = mounted ? colorScheme : 'dark';
+  const actualColorScheme = mounted ? computed : 'dark';
   const titleText = "EasyRoom";
 
   const containerVariants = {

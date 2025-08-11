@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, usePathname } from 'next/navigation';
-import { Group, UnstyledButton, Text, ThemeIcon, useMantineColorScheme } from '@mantine/core';
+import { Group, UnstyledButton, Text, ThemeIcon, useComputedColorScheme } from '@mantine/core';
 import { Home, Calendar, User, BarChart3, Wrench } from 'lucide-react';
 
 interface TabItem {
@@ -49,7 +49,7 @@ const tabs: TabItem[] = [
 export default function TabNavigation() {
   const router = useRouter();
   const pathname = usePathname();
-  const { colorScheme } = useMantineColorScheme();
+  const computed = useComputedColorScheme('light', { getInitialValueInEffect: true });
 
   const handleTabClick = (tab: TabItem) => {
     if (tab.disabled) return;
@@ -98,27 +98,27 @@ export default function TabNavigation() {
     if (tab.disabled) {
       return {
         ...baseStyles,
-        background: colorScheme === 'dark' 
+        background: computed === 'dark' 
           ? 'rgba(255, 255, 255, 0.02)'
           : 'rgba(0, 0, 0, 0.02)',
-        color: colorScheme === 'dark' ? '#6b7280' : '#9ca3af',
+        color: computed === 'dark' ? '#6b7280' : '#9ca3af',
         border: '2px solid rgba(156, 163, 175, 0.2)',
       };
     }
 
     return {
       ...baseStyles,
-      background: colorScheme === 'dark' 
+      background: computed === 'dark' 
         ? 'rgba(255, 255, 255, 0.05)'
         : 'rgba(255, 255, 255, 0.8)',
-      color: colorScheme === 'dark' ? '#d1d5db' : '#4b5563',
-      border: colorScheme === 'dark' 
+      color: computed === 'dark' ? '#d1d5db' : '#4b5563',
+      border: computed === 'dark' 
         ? '2px solid rgba(255, 255, 255, 0.08)'
         : '2px solid rgba(0, 0, 0, 0.05)',
       // 모바일에서 호버 효과 제거, 터치 피드백만 유지
       '@media (hover: hover)': {
         '&:hover': {
-          background: colorScheme === 'dark' 
+          background: computed === 'dark' 
             ? 'rgba(255, 255, 255, 0.1)'
             : 'rgba(79, 70, 229, 0.08)',
           transform: 'scale(1.02)',
@@ -157,14 +157,14 @@ export default function TabNavigation() {
                 size="md"
                 radius="md"
                 variant="transparent"
-                color={isActive ? 'white' : (colorScheme === 'dark' ? 'gray.4' : 'gray.6')}
+                color={isActive ? 'white' : (computed === 'dark' ? 'gray.4' : 'gray.6')}
               >
                 {tab.icon}
               </ThemeIcon>
               <Text
                 size="xs"
                 fw={isActive ? 600 : 500}
-                c={isActive ? 'white' : (colorScheme === 'dark' ? 'gray.3' : 'gray.7')}
+                c={isActive ? 'white' : (computed === 'dark' ? 'gray.3' : 'gray.7')}
                 style={{ 
                   whiteSpace: 'nowrap',
                   lineHeight: 1.2,

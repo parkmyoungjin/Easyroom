@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useSearchParams } from 'next/navigation';
 import {
     Button, Stack, Paper, Text, Group, ThemeIcon, Badge,
-    SimpleGrid, useMantineColorScheme, Title, Divider
+    SimpleGrid, useMantineColorScheme, useComputedColorScheme, Title, Divider
 } from '@mantine/core';
 import {
     Calendar, Clock, MapPin, User, FileText,
@@ -269,7 +269,7 @@ export default function ReservationForm({
         return options;
     }, [selectedStartTime, timeSlotStatus]);
 
-    const { colorScheme } = useMantineColorScheme();
+    const computed = useComputedColorScheme('light', { getInitialValueInEffect: true });
 
     // 로딩 중일 때 (Edit 모드)
     if (isLoading) {
@@ -279,7 +279,7 @@ export default function ReservationForm({
                 p="xl"
                 radius="xl"
                 style={{
-                    border: colorScheme === 'dark' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid var(--mantine-color-gray-3)'
+                    border: computed === 'dark' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid var(--mantine-color-gray-3)'
                 }}
             >
                 <Stack align="center" gap="md">
@@ -453,7 +453,7 @@ export default function ReservationForm({
                 p="xl"
                 radius="xl"
                 style={{
-                    border: colorScheme === 'dark' ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #4f46e5'
+                    border: computed === 'dark' ? '2px solid rgba(255, 255, 255, 0.3)' : '2px solid #4f46e5'
                 }}
             >
                 <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -464,7 +464,7 @@ export default function ReservationForm({
                                 <ThemeIcon variant="light" color="blue" size="sm">
                                     <User size={16} />
                                 </ThemeIcon>
-                                <Text fw={600} size="lg" c={colorScheme === 'dark' ? 'white' : 'dark'}>기본 정보</Text>
+                                <Text fw={600} size="lg" c={computed === 'dark' ? 'white' : 'dark'}>기본 정보</Text>
                             </Group>
 
                             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
@@ -496,7 +496,7 @@ export default function ReservationForm({
                                 <ThemeIcon variant="light" color="green" size="sm">
                                     <MapPin size={16} />
                                 </ThemeIcon>
-                                <Text fw={600} size="lg" c={colorScheme === 'dark' ? 'white' : 'dark'}>회의실 및 날짜</Text>
+                                <Text fw={600} size="lg" c={computed === 'dark' ? 'white' : 'dark'}>회의실 및 날짜</Text>
                             </Group>
 
                             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
@@ -546,7 +546,7 @@ export default function ReservationForm({
                                 <ThemeIcon variant="light" color="orange" size="sm">
                                     <Clock size={16} />
                                 </ThemeIcon>
-                                <Text fw={600} size="lg" c={colorScheme === 'dark' ? 'white' : 'dark'}>시간 선택</Text>
+                                <Text fw={600} size="lg" c={computed === 'dark' ? 'white' : 'dark'}>시간 선택</Text>
                                 {selectedRoomId && selectedDate && (
                                     <Badge variant="light" color="blue" size="sm">
                                         실시간 예약 현황 반영
@@ -609,7 +609,7 @@ export default function ReservationForm({
                                 <ThemeIcon variant="light" color="gray" size="sm">
                                     <FileText size={16} />
                                 </ThemeIcon>
-                                <Text fw={600} size="lg" c={colorScheme === 'dark' ? 'white' : 'dark'}>추가 정보</Text>
+                                <Text fw={600} size="lg" c={computed === 'dark' ? 'white' : 'dark'}>추가 정보</Text>
                                 <Text size="sm" c="dimmed">(선택사항)</Text>
                             </Group>
 
