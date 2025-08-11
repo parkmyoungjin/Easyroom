@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+import '@mantine/core/styles.css';
 import '@/app/globals.css';
 import Providers from '@/app/providers';
 import { Toaster } from 'sonner';

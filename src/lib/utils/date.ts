@@ -411,6 +411,50 @@ export const normalizeDateForQuery = (dateStr: string, isEndDate: boolean = fals
 };
 
 /**
+ * 한국 시간 기준 날짜를 UTC 범위로 확장하여 데이터베이스 쿼리용 범위 생성
+ * 타임존 변환으로 인한 날짜 경계 문제를 해결하기 위한 함수
+ * 
+ * @param date - 한국 시간 기준 날짜 (Date 객체 또는 YYYY-MM-DD 문자열)
+ * @returns UTC 기준 시작/종료 시간 범위
+ * 
+ * @example
+ * // 8월 11일 한국 시간 전체를 조회하려면
+ * // 8월 10일 15:00 UTC ~ 8월 11일 14:59 UTC 범위가 필요
+ * const range = normalizeKSTDateForQuery('2025-08-11');
+ * // { start: '2025-08-10T15:00:00.000Z', end: '2025-08-11T14:59:59.999Z' }
+ */
+export const normalizeKSTDateForQuery = (date: Date | string): { start: string; end: string } => {
+  let targetDate: Date;
+  
+  if (typeof date === 'string') {
+    // YYYY-MM-DD 형식 검증
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(date)) {
+      throw new Error(`잘못된 날짜 형식입니다: ${date}. YYYY-MM-DD 형식이어야 합니다.`);
+    }
+    targetDate = new Date(date + 'T00:00:00+09:00'); // 한국 시간으로 파싱
+  } else {
+    targetDate = new Date(date);
+  }
+
+  // 한국 시간 기준 해당 날의 시작과 끝
+  const kstStartOfDay = new Date(targetDate);
+  kstStartOfDay.setHours(0, 0, 0, 0);
+  
+  const kstEndOfDay = new Date(targetDate);
+  kstEndOfDay.setHours(23, 59, 59, 999);
+
+  // UTC로 변환 (한국 시간 - 9시간)
+  const utcStart = new Date(kstStartOfDay.getTime() - 9 * 60 * 60 * 1000);
+  const utcEnd = new Date(kstEndOfDay.getTime() - 9 * 60 * 60 * 1000);
+
+  return {
+    start: utcStart.toISOString(),
+    end: utcEnd.toISOString()
+  };
+};
+
+/**
  * 날짜 범위를 데이터베이스 쿼리에 적합한 형태로 정규화
  * 
  * @param startDate - 시작 날짜 (YYYY-MM-DD)
@@ -421,6 +465,29 @@ export const normalizeDateRange = (startDate: string, endDate: string) => {
   return {
     start: normalizeDateForQuery(startDate, false),
     end: normalizeDateForQuery(endDate, true)
+  };
+};
+
+/**
+ * 한국 시간 기준 날짜 범위를 UTC로 변환하여 데이터베이스 쿼리용 범위 생성
+ * API 엔드포인트에서 사용하기 위한 안전한 함수
+ * 
+ * @param startDate - 시작 날짜 (YYYY-MM-DD)
+ * @param endDate - 종료 날짜 (YYYY-MM-DD)
+ * @returns UTC 기준 시작/종료 시간 범위
+ */
+export const normalizeKSTDateRangeForAPI = (startDate: string, endDate: string): { start: string; end: string } => {
+  // 시작 날짜의 한국 시간 00:00을 UTC로 변환
+  const startKST = new Date(startDate + 'T00:00:00+09:00');
+  const startUTC = new Date(startKST.getTime() - 9 * 60 * 60 * 1000);
+  
+  // 종료 날짜의 한국 시간 23:59:59.999를 UTC로 변환
+  const endKST = new Date(endDate + 'T23:59:59.999+09:00');
+  const endUTC = new Date(endKST.getTime() - 9 * 60 * 60 * 1000);
+
+  return {
+    start: startUTC.toISOString(),
+    end: endUTC.toISOString()
   };
 };
 

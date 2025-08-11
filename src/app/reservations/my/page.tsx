@@ -6,7 +6,7 @@ import { ReservationListView } from '@/features/reservation/components/Reservati
 import AppLayout from '@/components/layout/AppLayout';
 import { useMyReservations } from '@/hooks/useReservations';
 import { useAuth } from '@/hooks/useAuth';
-import { Container, Stack, Paper, Group, ThemeIcon, Title, Text, Skeleton, Tabs } from '@mantine/core';
+import { Container, Stack, Paper, Group, ThemeIcon, Title, Text, Skeleton, Tabs, Badge } from '@mantine/core';
 import { Calendar, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 export default function MyReservationsPage() {
@@ -14,17 +14,27 @@ export default function MyReservationsPage() {
 
   const { data: reservations, isLoading, isError } = useMyReservations(userProfile?.dbId);
 
-  // 예약을 상태별로 분류
+  // 예약을 사용자 친화적으로 분류
   const categorizeReservations = (reservations: any[]) => {
     const now = new Date();
 
     return {
-      upcoming: reservations.filter(r =>
-        r.status === 'confirmed' && new Date(r.start_time) > now
-      ),
+      // 1. '예정된 예약' - 사용자가 행동을 취해야 하거나 현재 이용 중인 예약
+      upcoming: reservations.filter(r => {
+        const isActive = ['confirmed', 'checked_in', 'overtime'].includes(r.status);
+        const isFuture = new Date(r.start_time) > now;
+        const isInProgress = ['checked_in', 'overtime'].includes(r.status);
+
+        // 미래 예약이거나 현재 진행 중인 예약
+        return isActive && (isFuture || isInProgress);
+      }),
+
+      // 2. '이용 내역' - 과거의 모든 기록 (정상 완료 + 노쇼)
       completed: reservations.filter(r =>
-        r.status === 'confirmed' && new Date(r.end_time) <= now
+        ['completed', 'no_show'].includes(r.status)
       ),
+
+      // 3. '취소 내역' - 사용자가 직접 취소한 예약
       cancelled: reservations.filter(r => r.status === 'cancelled')
     };
   };
@@ -72,25 +82,101 @@ export default function MyReservationsPage() {
               <Skeleton height={120} radius="xl" />
             </Stack>
           ) : (
-            <Tabs defaultValue="upcoming" radius="lg">
+            <Tabs
+              defaultValue="upcoming"
+              radius="lg"
+              styles={{
+                list: {
+                  gap: '4px',
+                  [`@media (max-width: 768px)`]: {
+                    gap: '2px',
+                  }
+                },
+                tab: {
+                  minHeight: '48px',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  transition: 'all 0.2s ease',
+                  [`@media (max-width: 768px)`]: {
+                    minHeight: '44px',
+                    fontSize: '12px',
+                    padding: '6px 4px',
+                  },
+                  '&[data-active]': {
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  }
+                }
+              }}
+            >
               <Tabs.List grow>
-                <Tabs.Tab
-                  value="upcoming"
-                  leftSection={<Clock size={16} />}
-                >
-                  예약 ({categorizedReservations.upcoming.length})
+                <Tabs.Tab value="upcoming">
+                  <Group gap="xs" align="center" justify="center" wrap="nowrap">
+                    <Clock size={14} className="hidden sm:block" />
+                    <Clock size={12} className="block sm:hidden" />
+                    <Stack gap={2} align="center">
+                      <Text size="sm" fw={600} ta="center" className="hidden sm:block">
+                        예정된 예약
+                      </Text>
+                      <Text size="xs" fw={600} ta="center" className="block sm:hidden">
+                        예정
+                      </Text>
+                      <Badge
+                        size="xs"
+                        variant="filled"
+                        color="blue"
+                        className="min-w-[20px] h-[18px] text-[10px] sm:min-w-[24px] sm:h-[20px] sm:text-xs"
+                      >
+                        {categorizedReservations.upcoming.length}
+                      </Badge>
+                    </Stack>
+                  </Group>
                 </Tabs.Tab>
-                <Tabs.Tab
-                  value="completed"
-                  leftSection={<CheckCircle size={16} />}
-                >
-                  완료 ({categorizedReservations.completed.length})
+
+                <Tabs.Tab value="completed">
+                  <Group gap="xs" align="center" justify="center" wrap="nowrap">
+                    <CheckCircle size={14} className="hidden sm:block" />
+                    <CheckCircle size={12} className="block sm:hidden" />
+                    <Stack gap={2} align="center">
+                      <Text size="sm" fw={600} ta="center" className="hidden sm:block">
+                        이용 내역
+                      </Text>
+                      <Text size="xs" fw={600} ta="center" className="block sm:hidden">
+                        이용
+                      </Text>
+                      <Badge
+                        size="xs"
+                        variant="filled"
+                        color="green"
+                        className="min-w-[20px] h-[18px] text-[10px] sm:min-w-[24px] sm:h-[20px] sm:text-xs"
+                      >
+                        {categorizedReservations.completed.length}
+                      </Badge>
+                    </Stack>
+                  </Group>
                 </Tabs.Tab>
-                <Tabs.Tab
-                  value="cancelled"
-                  leftSection={<XCircle size={16} />}
-                >
-                  취소 ({categorizedReservations.cancelled.length})
+
+                <Tabs.Tab value="cancelled">
+                  <Group gap="xs" align="center" justify="center" wrap="nowrap">
+                    <XCircle size={14} className="hidden sm:block" />
+                    <XCircle size={12} className="block sm:hidden" />
+                    <Stack gap={2} align="center">
+                      <Text size="sm" fw={600} ta="center" className="hidden sm:block">
+                        취소 내역
+                      </Text>
+                      <Text size="xs" fw={600} ta="center" className="block sm:hidden">
+                        취소
+                      </Text>
+                      <Badge
+                        size="xs"
+                        variant="filled"
+                        color="red"
+                        className="min-w-[20px] h-[18px] text-[10px] sm:min-w-[24px] sm:h-[20px] sm:text-xs"
+                      >
+                        {categorizedReservations.cancelled.length}
+                      </Badge>
+                    </Stack>
+                  </Group>
                 </Tabs.Tab>
               </Tabs.List>
 

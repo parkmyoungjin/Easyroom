@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server'; // createClient는 이제 async 함수일 수 있음
-import { normalizeDateForQuery } from '@/lib/utils/date';
+import { normalizeKSTDateRangeForAPI } from '@/lib/utils/date';
 import { logger } from '@/lib/utils/logger';
 import { ReservationErrorHandler } from '@/lib/utils/error-handler';
 import { 
@@ -45,8 +45,7 @@ export async function GET(request: NextRequest) {
 
     logger.debug('인증된 사용자 확인', { userId: user.id });
 
-    const normalizedStartDate = normalizeDateForQuery(startDate, false);
-    const normalizedEndDate = normalizeDateForQuery(endDate, true);
+    const { start: normalizedStartDate, end: normalizedEndDate } = normalizeKSTDateRangeForAPI(startDate, endDate);
 
     // ✅ 개선된 RPC 함수 호출 - room 정보 포함
     const { data, error } = await supabase.rpc('get_public_reservations_with_room', {

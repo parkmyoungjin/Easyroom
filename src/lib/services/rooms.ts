@@ -6,6 +6,7 @@ import { RoomFormData } from '@/lib/validations/schemas';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { format } from 'date-fns';
 import { logger } from '@/lib/utils/logger';
+import { normalizeKSTDateForQuery } from '@/lib/utils/date';
 
 export type Room = Database["public"]["Tables"]["rooms"]["Row"];
 type TypedSupabaseClient = SupabaseClient<Database>;
@@ -42,9 +43,8 @@ export class RoomService {
     }
 
     try {
-      // ✅ 날짜 범위 계산
-      const startDate = format(date, 'yyyy-MM-dd') + 'T00:00:00Z';
-      const endDate = format(date, 'yyyy-MM-dd') + 'T23:59:59Z';
+      // ✅ 타임존 변환을 고려한 날짜 범위 계산
+      const { start: startDate, end: endDate } = normalizeKSTDateForQuery(date);
 
       // ✅ RPC 함수 호출
       const { data, error } = await supabase.rpc('get_reservations_for_period', {
@@ -359,9 +359,8 @@ export class RoomService {
         return [];
       }
 
-      // Date 객체를 ISO 형식으로 변환
-      const startDate = format(date, 'yyyy-MM-dd') + 'T00:00:00Z';
-      const endDate = format(date, 'yyyy-MM-dd') + 'T23:59:59Z';
+      // ✅ 타임존 변환을 고려한 날짜 범위 계산
+      const { start: startDate, end: endDate } = normalizeKSTDateForQuery(date);
       
       logger.debug('Fetching booked slots for timeline via unified RPC', { roomId, startDate, endDate });
 

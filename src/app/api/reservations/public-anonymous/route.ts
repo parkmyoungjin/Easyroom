@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { normalizeDateForQuery } from '@/lib/utils/date';
+import { normalizeKSTDateRangeForAPI } from '@/lib/utils/date';
 import { logger } from '@/lib/utils/logger';
 import { ReservationErrorHandler } from '@/lib/utils/error-handler';
 import { securityMonitor } from '@/lib/monitoring/security-monitor';
@@ -77,8 +77,9 @@ export async function GET(request: NextRequest) {
     let normalizedEndDate: string;
 
     try {
-      normalizedStartDate = normalizeDateForQuery(startDate, false);
-      normalizedEndDate = normalizeDateForQuery(endDate, true);
+      const dateRange = normalizeKSTDateRangeForAPI(startDate, endDate);
+      normalizedStartDate = dateRange.start;
+      normalizedEndDate = dateRange.end;
       logger.debug('날짜 정규화 완료', { normalizedStartDate, normalizedEndDate });
     } catch (error) {
       const structuredError = ReservationErrorHandler.handleApiError(error, {
