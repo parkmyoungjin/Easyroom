@@ -197,7 +197,7 @@ export default function DashboardPage() {
                 variant="white"
                 size="lg"
                 radius="xl"
-                onClick={() => toast.info('알림 기능 준비중입니다')}
+                onClick={() => navigateToPage('/notifications')}
               >
                 <Bell size={18} />
               </ActionIcon>

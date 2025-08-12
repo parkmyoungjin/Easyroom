@@ -18,6 +18,7 @@ import {
   Alert
 } from '@mantine/core';
 import { User, Save, AlertCircle } from 'lucide-react';
+import { NotificationSettings } from '@/components/settings/NotificationSettings';
 
 export default function ProfilePage() {
   const { userProfile } = useAuth();
@@ -178,6 +179,9 @@ export default function ProfilePage() {
               )}
             </Stack>
           </Paper>
+
+          {/* 푸시 알림 설정 */}
+          <NotificationSettings />
 
           {/* 계정 정보 */}
           <Paper p="xl" radius="lg" withBorder>

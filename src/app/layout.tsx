@@ -14,6 +14,7 @@ import { GlobalNotification } from '@/components/layout/GlobalNotification';
 import AuthGatekeeper from '@/components/layout/AuthGatekeeper';
 import { UpdateNotification } from '@/components/pwa/UpdateNotification';
 import { AppInitializer } from '@/components/layout/AppInitializer';
+import { ServiceWorkerRegistration } from '@/components/notifications/ServiceWorkerRegistration';
 // ✅ [1단계] 서버용 클라이언트와 타입을 import
 import { createClient } from '@/lib/supabase/server';
 
@@ -93,6 +94,7 @@ export default async function RootLayout({
                 <AuthToastManager />
                 <UpdateNotification />
                 <GlobalNotification />
+                <ServiceWorkerRegistration />
               </AuthProvider>
               <Toaster />
             </SupabaseProvider>
