@@ -20,12 +20,7 @@
       "maxDuration": 30
     }
   },
-  "crons": [
-    {
-      "path": "/api/check-and-send-reminders",
-      "schedule": "*/10 * * * *"
-    }
-  ],
+
   "headers": [
     {
       "source": "/_next/static/(.*)",
